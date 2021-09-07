@@ -1,2 +1,2 @@
-# obsidian-tools
+# obsidian_tools
 Obsidian tools
