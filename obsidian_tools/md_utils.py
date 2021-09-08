@@ -30,12 +30,11 @@ def get_wiki_links(filepath):
     Args:
         filepath (pathlib Path): Path object representing the file from
             which info will be extracted.
-            to search.
 
     Returns:
         list
     """
-    html_str = _get_plaintext_from_md_file(filepath, remove_escapes=True)
+    html_str = _get_plaintext_from_md_file(filepath)
 
     wikilinks = _get_unique_wiki_links(html_str, remove_aliases=True)
     return wikilinks
@@ -47,13 +46,14 @@ def _get_html_from_md_file(filepath):
     return html
 
 
-def _get_plaintext_from_md_file(filepath, *, remove_escapes=True):
-    html = _get_html_from_md_file(filepath)
-
+def _get_plaintext_from_html(html):
     string = html2text.html2text(html)
-    if remove_escapes:
-        string = re.sub(r'\s+', ' ', string)
     return string
+
+
+def _get_plaintext_from_md_file(filepath):
+    html = _get_html_from_md_file(filepath)
+    return _get_plaintext_from_html(html)
 
 
 def _get_all_wiki_links_from_html_content(html_str, *, remove_aliases=True):
