@@ -35,8 +35,7 @@ class Vault:
         Returns:
             list
         """
-        return [Path(p).relative_to(self._filepath)
-                for p in glob(str(self._filepath / '**/*.md'))]
+        return get_md_relpaths_from_dir(self._filepath)
 
     def get_md_relpaths_by_name(self):
         """Return k,v pairs
