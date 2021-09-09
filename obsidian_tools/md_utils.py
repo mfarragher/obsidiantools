@@ -27,14 +27,14 @@ def get_wiki_links(filepath):
     """Get wiki links (unique) from a md file.  This accounts for aliases,
     so the [[Lorem ipsum | L.I.]] will be represented as 'Lorem ipsum'.
 
-    Order of appearance in the file is not preserved in the output.
+    The links' order of appearance in the file IS preserved in the output.
 
     Args:
         filepath (pathlib Path): Path object representing the file from
             which info will be extracted.
 
     Returns:
-        list
+        list of strings
     """
     plaintext = _get_ascii_plaintext_from_md_file(filepath)
 
@@ -47,14 +47,14 @@ def get_md_links(filepath):
     syntax of the format [...](...) - the returned 'links' inside the ()
     are not checked for validity.
 
-    The links' Order of appearance in the file IS preserved in the output.
+    The links' order of appearance in the file IS preserved in the output.
 
     Args:
         filepath (pathlib Path): Path object representing the file from
             which info will be extracted.
 
     Returns:
-        list
+        list of strings
     """
     text_str = _get_ascii_plaintext_from_md_file(filepath)
 
@@ -112,7 +112,7 @@ def _get_all_wiki_links_from_html_content(html_str, *, remove_aliases=True):
 def _get_unique_wiki_links(html_str, *, remove_aliases=True):
     wikilinks = _get_all_wiki_links_from_html_content(
         html_str, remove_aliases=remove_aliases)
-    return list(set(wikilinks))
+    return list(dict.fromkeys(wikilinks))
 
 
 def _get_all_md_link_info_from_ascii_plaintext(plaintext):
