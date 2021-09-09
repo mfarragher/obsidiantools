@@ -3,7 +3,7 @@ import pytest
 
 from obsidian_tools.md_utils import (_get_all_wiki_links_from_html_content,
                                      _get_unique_wiki_links,
-                                     _get_plaintext_from_html)
+                                     _get_ascii_plaintext_from_html)
 
 
 @pytest.fixture
