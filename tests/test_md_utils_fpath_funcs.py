@@ -1,17 +1,28 @@
+import os
 import pytest
 
 from obsidian_tools.md_utils import (_get_html_from_md_file,
                                      _get_ascii_plaintext_from_md_file)
-from obsidian_tools.md_utils import (get_md_links,
+from obsidian_tools.md_utils import (get_md_relpaths_from_dir,
+                                     get_md_links,
                                      get_wiki_links)
 
-# tmp_path
 
 @pytest.fixture
 def mocker_md_file(mocker):
     mocked_output = mocker.mock_open()
     mocker.patch('builtins.open', mocked_output)
     return mocked_output
+
+
+def test_get_md_relpaths_from_dir(tmp_path):
+    # test fake dir returns list of pathlike objs (with md ext)
+    actual_relpaths = get_md_relpaths_from_dir(tmp_path)
+
+    assert isinstance(actual_relpaths, list)
+    for p in actual_relpaths:
+        assert isinstance(p, os.PathLike)
+        assert p.suffix == 'md'
 
 
 def test_get_html_from_md_file(mocker_md_file):
