@@ -8,7 +8,7 @@ from obsidian_tools.md_utils import (_get_all_wiki_links_from_html_content,
 
 
 @pytest.fixture
-def html_stub():
+def html_wikilinks_stub():
     html = r"""
     <pre><code># Intro
     This is a very basic string representation.
@@ -26,7 +26,7 @@ def html_stub():
 
 
 @pytest.fixture
-def txt_stub():
+def txt_md_links_stub():
     text = r"""
     * [The Times 03/Jan/2009 Chancellor on brink of second bailout for banks](<https://www.thetimes.co.uk/article/chancellor-alistair-darling-on-brink-of-second-bailout-for-banks-n9l382mn62h>)
     * [Chancellor Alistair Darling on brink of second bailout for banks](<https://www.thetimes.co.uk/article/chancellor-alistair-darling-on-brink-of-second-bailout-for-banks-n9l382mn62h>)
@@ -45,8 +45,8 @@ def txt_stub():
     return text
 
 
-def test_get_all_wiki_links_from_html_content(html_stub):
-    actual_results = _get_all_wiki_links_from_html_content(html_stub)
+def test_get_all_wiki_links_from_html_content(html_wikilinks_stub):
+    actual_results = _get_all_wiki_links_from_html_content(html_wikilinks_stub)
     expected_results = ['Shopping list', 'Bananas', 'Banana splits',
                         'Apples',
                         'Flour', 'Flower',
@@ -56,9 +56,9 @@ def test_get_all_wiki_links_from_html_content(html_stub):
     assert actual_results == expected_results
 
 
-def test_get_all_wiki_links_from_html_content_keep_aliases(html_stub):
+def test_get_all_wiki_links_from_html_content_keep_aliases(html_wikilinks_stub):
     actual_results = _get_all_wiki_links_from_html_content(
-        html_stub, remove_aliases=False)
+        html_wikilinks_stub, remove_aliases=False)
     expected_results = ['Shopping list | shopping list',
                         'Bananas', 'Banana splits',
                         'Apples',
@@ -69,39 +69,44 @@ def test_get_all_wiki_links_from_html_content_keep_aliases(html_stub):
     assert actual_results == expected_results
 
 
-def test_get_unique_wiki_links_from_html_content(html_stub):
+def test_get_unique_wiki_links_from_html_content(html_wikilinks_stub):
     actual_results = _get_unique_wiki_links(
-        html_stub, remove_aliases=True)
+        html_wikilinks_stub, remove_aliases=True)
     expected_results = ['Shopping list',
                         'Bananas', 'Banana splits',
                         'Apples',
                         'Flour', 'Flower',
                         'Durians']
 
-    assert set(actual_results) == set(expected_results)
+    assert actual_results == expected_results
     assert isinstance(expected_results, list)
 
 
-def test_get_all_md_link_info(txt_stub):
+def test_get_unique_wiki_links_from_html_content_has_unique_links(html_wikilinks_stub):
+    actual_links = _get_unique_wiki_links(html_wikilinks_stub)
+    assert len(set(actual_links)) == len(actual_links)
+
+
+def test_get_all_md_link_info(txt_md_links_stub):
     expected_links = [('The Times 03/Jan/2009 Chancellor on brink of second bailout for banks',
                        'https://www.thetimes.co.uk/article/chancellor-alistair-darling-on-brink-of-second-bailout-for-banks-n9l382mn62h'),
                       ("Chancellor Alistair Darling on brink of second bailout for banks",
                       'https://www.thetimes.co.uk/article/chancellor-alistair-darling-on-brink-of-second-bailout-for-banks-n9l382mn62h'),
                       ('ADA', 'https://cardano.org/')
                       ]
-    actual_links = _get_all_md_link_info_from_ascii_plaintext(txt_stub)
+    actual_links = _get_all_md_link_info_from_ascii_plaintext(txt_md_links_stub)
 
     assert actual_links == expected_links
 
 
-def test_get_unique_md_links_has_order_preserved(txt_stub):
+def test_get_unique_md_links_has_order_preserved(txt_md_links_stub):
     expected_links = ['https://www.thetimes.co.uk/article/chancellor-alistair-darling-on-brink-of-second-bailout-for-banks-n9l382mn62h',
                       'https://cardano.org/']
-    actual_links = _get_unique_md_links_from_ascii_plaintext(txt_stub)
+    actual_links = _get_unique_md_links_from_ascii_plaintext(txt_md_links_stub)
 
     assert actual_links == expected_links
 
 
-def test_get_unique_md_links_has_unique_links(txt_stub):
-    actual_links = _get_unique_md_links_from_ascii_plaintext(txt_stub)
+def test_get_unique_md_links_has_unique_links(txt_md_links_stub):
+    actual_links = _get_unique_md_links_from_ascii_plaintext(txt_md_links_stub)
     assert len(set(actual_links)) == len(actual_links)
