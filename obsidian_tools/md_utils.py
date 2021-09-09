@@ -104,7 +104,8 @@ def _get_all_wiki_links_from_html_content(html_str, *, remove_aliases=True):
 
     link_matches_list = pattern.findall(html_str)
     if remove_aliases:
-        link_matches_list = [i.split(" | ")[0]
+        link_matches_list = [(i.split("|")[0].rstrip()  # catch alias/alt-text
+                              .split('#', 1)[0])  # catch links to headers
                              for i in link_matches_list]
     return link_matches_list
 

@@ -21,6 +21,11 @@ def html_wikilinks_stub():
 
     Oh and did I say [[Bananas | BANANAS]]??
     There's no link for [Cherries].  Though there is for [[Durians]].
+
+    ## Drinks
+    - [[Apples|Freshly squeezed apple juice]]
+    - [[Bananas|Banana smoothie]]
+    - [[Protein shakes#Protein powder|Vanilla whey protein]]
     """
     return html
 
@@ -51,7 +56,8 @@ def test_get_all_wiki_links_from_html_content(html_wikilinks_stub):
                         'Apples',
                         'Flour', 'Flower',
                         'Bananas',
-                        'Durians']
+                        'Durians',
+                        'Apples', 'Bananas', 'Protein shakes']
 
     assert actual_results == expected_results
 
@@ -64,7 +70,10 @@ def test_get_all_wiki_links_from_html_content_keep_aliases(html_wikilinks_stub):
                         'Apples',
                         'Flour', 'Flower | flower',
                         'Bananas | BANANAS',
-                        'Durians']
+                        'Durians',
+                        'Apples|Freshly squeezed apple juice',
+                        'Bananas|Banana smoothie',
+                        'Protein shakes#Protein powder|Vanilla whey protein']
 
     assert actual_results == expected_results
 
@@ -76,7 +85,8 @@ def test_get_unique_wiki_links_from_html_content(html_wikilinks_stub):
                         'Bananas', 'Banana splits',
                         'Apples',
                         'Flour', 'Flower',
-                        'Durians']
+                        'Durians',
+                        'Protein shakes']
 
     assert actual_results == expected_results
     assert isinstance(expected_results, list)
