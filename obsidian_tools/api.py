@@ -1,7 +1,3 @@
-from pathlib import Path
-from glob import glob
-
-
 from .md_utils import get_md_relpaths_from_dir, get_wiki_links
 
 
