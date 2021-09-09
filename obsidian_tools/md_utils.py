@@ -42,6 +42,26 @@ def get_wiki_links(filepath):
     return wikilinks
 
 
+def get_md_links(filepath):
+    """Get markdown links (unique) from a md file.  This is to check for
+    syntax of the format [...](...) - the returned 'links' inside the ()
+    are not checked for validity.
+
+    The links' Order of appearance in the file IS preserved in the output.
+
+    Args:
+        filepath (pathlib Path): Path object representing the file from
+            which info will be extracted.
+
+    Returns:
+        list
+    """
+    text_str = _get_ascii_plaintext_from_md_file(filepath)
+
+    links = _get_unique_md_links_from_ascii_plaintext(text_str)
+    return links
+
+
 def _get_html_from_md_file(filepath):
     """md -> html, via markdown lib."""
     with open(filepath) as f:
@@ -93,3 +113,18 @@ def _get_unique_wiki_links(html_str, *, remove_aliases=True):
     wikilinks = _get_all_wiki_links_from_html_content(
         html_str, remove_aliases=remove_aliases)
     return list(set(wikilinks))
+
+
+def _get_all_md_link_info_from_ascii_plaintext(plaintext):
+    # basic regex e.g. catch URLs or paths
+    inline_link_regex = re.compile(r'\[([^\]]+)\]\(<([^)]+)>\)')
+
+    links_list_of_tuples = list(inline_link_regex.findall(plaintext))
+    return links_list_of_tuples
+
+
+def _get_unique_md_links_from_ascii_plaintext(plaintext):
+    links_detail = _get_all_md_link_info_from_ascii_plaintext(
+        plaintext)
+    links_list = [link for _, link in links_detail]
+    return list(dict.fromkeys(links_list))
