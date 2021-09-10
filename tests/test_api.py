@@ -1,4 +1,5 @@
 import pytest
+import networkx as nx
 
 
 from obsidian_tools.api import Vault
@@ -10,7 +11,7 @@ def mock_initial_vault(tmp_path):
     return mock_vault
 
 
-def test_vault_initialisation(tmp_path):
+def test_vault_instantiation(tmp_path):
     actual_vault = Vault(tmp_path)
 
     assert isinstance(actual_vault, Vault)
@@ -21,8 +22,14 @@ def test_vault_initialisation(tmp_path):
     # file_index
     assert isinstance(actual_vault.file_index, dict)
 
+    # graph and connections
+    assert not actual_vault.graph
+    assert actual_vault.graph is None
+    assert not actual_vault.is_connected
+    assert isinstance(actual_vault.is_connected, bool)
 
-def test_vault_initialisation_needs_directory():
+
+def test_vault_instantiation_needs_directory():
     with pytest.raises(TypeError):
         Vault()
 
@@ -45,3 +52,17 @@ def test_get_wikilinks_by_md_filename(mock_initial_vault):
 def test_get_unique_wikilinks_by_md_filename(mock_initial_vault):
     mock_output = mock_initial_vault._get_unique_wikilinks_by_md_filename()
     assert isinstance(mock_output, dict)
+
+
+def test_connect(mock_initial_vault):
+    mock_output = mock_initial_vault.connect()
+
+    assert mock_initial_vault.is_connected
+    assert isinstance(mock_initial_vault.is_connected, bool)
+    assert isinstance(mock_initial_vault.graph, nx.Graph)
+    assert isinstance(mock_initial_vault.graph, nx.MultiDiGraph)
+
+    # output is the vault object itself
+    assert isinstance(mock_output, Vault)
+
+    # TODO - on a very basic vault test where graph node count > file count
