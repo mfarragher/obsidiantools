@@ -1,5 +1,8 @@
 import networkx as nx
+import numpy as np
+import pandas as pd
 from collections import Counter
+from pathlib import Path
 
 from .md_utils import (get_md_relpaths_from_dir, get_unique_wikilinks,
                        get_wikilinks)
@@ -40,6 +43,9 @@ class Vault:
             get_backlinks
             get_backlink_counts
             get_wikilinks
+
+        Methods for analysis across multiple notes:
+            get_note_metadata
 
         Attributes:
             dirpath (arg)
@@ -215,3 +221,52 @@ class Vault:
         and v is list of ALL backlinks found in k"""
         return {n: [n[0] for n in list(graph.in_edges(n))]
                 for n in self._graph.nodes}
+
+    def get_note_metadata(self):
+        """Structured dataset of metadata on the vault's notes.  This
+        includes filepaths and counts of different link types.
+
+        The df is indexed by 'note' (i.e. nodes in the graph).
+
+        Notes that haven't been created will only have info on the number
+        of backlinks - other columns will have NaN.
+
+        Returns:
+            pd.DataFrame
+        """
+
+        if not self._is_connected:
+            raise AttributeError('Connect notes before calling the function')
+
+        df = (pd.DataFrame(index=list(self._backlinks_index.keys()))
+              .rename_axis('note')
+              .pipe(self._create_note_metadata_columns)
+              .pipe(self._clean_up_note_metadata_dtypes)
+              )
+        return df
+
+    def _create_note_metadata_columns(self, df):
+        """pipe func for mutating df"""
+        df['rel_filepath'] = [self._file_index.get(f, np.NaN)
+                              for f in df.index]
+        df['abs_filepath'] = np.where(df['rel_filepath'].notna(),
+                                      [self._dirpath / Path(str(f))
+                                       for f in df['rel_filepath']],
+                                      np.NaN)
+        df['note_exists'] = np.where(df['rel_filepath'].notna(),
+                                     True, False)
+        df['n_backlinks'] = [len(self.get_backlinks(f)) for f in df.index]
+        df['n_wikilinks'] = np.where(df['note_exists'],
+                                     [len(self._wikilinks_index.get(f, []))
+                                     for f in df.index],
+                                     np.NaN)
+        return df
+
+    def _clean_up_note_metadata_dtypes(self, df):
+        """pipe func for mutating df"""
+        df['rel_filepath'] = np.where(df['rel_filepath'].notna(),
+                                      [Path(str(f))
+                                       for f in df['rel_filepath']],
+                                      np.NaN)
+        df['n_wikilinks'] = df['n_wikilinks'].astype(float)  # for consistency
+        return df

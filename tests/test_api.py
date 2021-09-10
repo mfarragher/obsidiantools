@@ -80,3 +80,5 @@ def test_functions_to_fail_for_unconnected_vault(mock_initial_vault):
         mock_initial_vault.get_backlink_counts('A note that would exist')
     with pytest.raises(AttributeError):
         mock_initial_vault.get_wikilinks('A note that would exist')
+    with pytest.raises(AttributeError):
+        mock_initial_vault.get_note_metadata()
