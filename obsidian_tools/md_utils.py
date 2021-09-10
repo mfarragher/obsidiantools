@@ -42,10 +42,11 @@ def get_unique_wiki_links(filepath):
     return wikilinks
 
 
-def get_md_links(filepath):
+def get_unique_md_links(filepath):
     """Get markdown links (unique) from a md file.  This is to check for
     syntax of the format [...](...) - the returned 'links' inside the ()
-    are not checked for validity.
+    are not checked for validity or subtle differences (e.g. '/' vs no
+    '/' at the end).
 
     The links' order of appearance in the file IS preserved in the output.
 
