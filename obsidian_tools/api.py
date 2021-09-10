@@ -52,6 +52,7 @@ class Vault:
         # graph setup
         self._graph = None
         self._is_connected = False
+        self._backlinks_index = {}
 
     @property
     def dirpath(self):
@@ -67,6 +68,12 @@ class Vault:
     def graph(self):
         """networkx Graph"""
         return self._graph
+
+    @property
+    def backlinks_index(self):
+        """dict of lists: filename (k) to lists (v).  v is [] if k
+        has no backlinks."""
+        return self._backlinks_index
 
     @property
     def is_connected(self):
@@ -87,16 +94,22 @@ class Vault:
             wiki_link_map = self._get_wikilinks_by_md_filename()
             G = nx.MultiDiGraph(wiki_link_map)
             self._graph = G
+            self._backlinks_index = self._get_backlinks_by_md_filename(graph=G)
 
             self._is_connected = True
 
         return self  # fluent
 
     def get_backlinks(self, filename):
-        """Get backlinks for a note (given its filename).
+        """Get backlinks for a note (given its filename).  If a note has not
+        been created, but has wikilinks pointing to it elsewhere in the
+        vault, then it will return those backlinks.
+
+        If a note is not in the graph at all then the function will raise
+        an AttributeError.
 
         Args:
-            filename (str): the filename string that is in the file_index.
+            filename (str): the filename string that is in the graph.
                 This is NOT the filepath!
 
         Returns:
@@ -105,10 +118,10 @@ class Vault:
         if not self._is_connected:
             raise AttributeError('Connect notes before calling the function')
 
-        if filename not in self._file_index:
-            raise ValueError('{} not found in file_index.'.format(filename))
+        if filename not in self._backlinks_index:
+            raise ValueError('{} not found in graph.'.format(filename))
         else:
-            return [n[0] for n in self._graph.in_edges(filename)]
+            return self._backlinks_index[filename]
 
     def get_backlink_counts(self, filename):
         """Get counts of backlinks for a note (given its filename).
@@ -161,3 +174,10 @@ class Vault:
         and v is list of UNIQUE wikilinks found in k"""
         return {k: get_unique_wikilinks(self._dirpath / v)
                 for k, v in self._file_index.items()}
+
+    def _get_backlinks_by_md_filename(self, *, graph):
+        """Return k,v pairs
+        where k is the md filename
+        and v is list of ALL backlinks found in k"""
+        return {n: [n[0] for n in list(graph.in_edges(n))]
+                for n in self._graph.nodes}
