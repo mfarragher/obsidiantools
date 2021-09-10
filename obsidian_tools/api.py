@@ -1,5 +1,5 @@
 import networkx as nx
-
+from collections import Counter
 
 from .md_utils import (get_md_relpaths_from_dir, get_unique_wikilinks,
                        get_wikilinks)
@@ -33,8 +33,12 @@ class Vault:
                 subdirectory of the vault with notes you want to inspect,
                 then you could pass that.
 
-        Methods:
+        Methods for setup:
             connect
+
+        Methods for analysis:
+            get_backlinks
+            get_backlink_counts
 
         Attributes:
             dirpath (arg)
@@ -87,6 +91,43 @@ class Vault:
             self._is_connected = True
 
         return self  # fluent
+
+    def get_backlinks(self, filename):
+        """Get backlinks for a note (given its filename).
+
+        Args:
+            filename (str): the filename string that is in the file_index.
+                This is NOT the filepath!
+
+        Returns:
+            list
+        """
+        if not self._is_connected:
+            raise AttributeError('Connect notes before calling the function')
+
+        if filename not in self._file_index:
+            raise ValueError('{} not found in file_index.'.format(filename))
+        else:
+            return [n[0] for n in self._graph.in_edges(filename)]
+
+    def get_backlink_counts(self, filename):
+        """Get counts of backlinks for a note (given its filename).
+
+        Args:
+            filename (str): the filename string that is in the file_index.
+                This is NOT the filepath!
+
+        Returns:
+            dict of integers >= 1
+        """
+        if not self._is_connected:
+            raise AttributeError('Connect notes before calling the function')
+
+        if filename not in self._file_index:
+            raise ValueError('{} not found in file_index.'.format(filename))
+        else:
+            backlinks = self.get_backlinks(filename)
+            return dict(Counter(backlinks))
 
     def _get_md_relpaths(self):
         """Return list of filepaths *relative* to the directory instantiated
