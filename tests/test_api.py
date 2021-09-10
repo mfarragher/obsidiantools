@@ -46,13 +46,13 @@ def test_get_md_relpaths_by_name(mock_initial_vault):
     assert isinstance(mock_output, dict)
 
 
-def test_get_wikilinks_by_md_filename(mock_initial_vault):
-    mock_output = mock_initial_vault._get_wikilinks_by_md_filename()
+def test_get_wikilinks_index(mock_initial_vault):
+    mock_output = mock_initial_vault._get_wikilinks_index()
     assert isinstance(mock_output, dict)
 
 
-def test_get_unique_wikilinks_by_md_filename(mock_initial_vault):
-    mock_output = mock_initial_vault._get_unique_wikilinks_by_md_filename()
+def test_get_unique_wikilinks_index(mock_initial_vault):
+    mock_output = mock_initial_vault._get_unique_wikilinks_index()
     assert isinstance(mock_output, dict)
 
 

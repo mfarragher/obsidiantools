@@ -75,7 +75,7 @@ class Vault:
 
     @property
     def backlinks_index(self):
-        """dict of lists: filename (k) to lists (v).  v is [] if k
+        """dict of lists: note name (k) to lists (v).  v is [] if k
         has no backlinks."""
         return self._backlinks_index
 
@@ -101,18 +101,18 @@ class Vault:
         """
         if not self._is_connected:
             # default graph to mirror Obsidian's link counts
-            wiki_link_map = self._get_wikilinks_by_md_filename()
+            wiki_link_map = self._get_wikilinks_index()
             G = nx.MultiDiGraph(wiki_link_map)
             self._graph = G
-            self._backlinks_index = self._get_backlinks_by_md_filename(graph=G)
+            self._backlinks_index = self._get_backlinks_index(graph=G)
             self._wikilinks_index = wiki_link_map
 
             self._is_connected = True
 
         return self  # fluent
 
-    def get_backlinks(self, filename):
-        """Get backlinks for a note (given its filename).
+    def get_backlinks(self, note_name):
+        """Get backlinks for a note (given its name).
 
         If a note has not been created, but has wikilinks pointing to it
         elsewhere in the vault, then it will return those backlinks.
@@ -121,8 +121,8 @@ class Vault:
         an AttributeError.
 
         Args:
-            filename (str): the filename string that is in the graph.
-                This is NOT the filepath!
+            note_name (str): the string that is the name in the graph.
+                This is NOT a filepath!
 
         Returns:
             list
@@ -130,17 +130,17 @@ class Vault:
         if not self._is_connected:
             raise AttributeError('Connect notes before calling the function')
 
-        if filename not in self._graph.nodes:
-            raise ValueError('"{}" not found in graph.'.format(filename))
+        if note_name not in self._graph.nodes:
+            raise ValueError('"{}" not found in graph.'.format(note_name))
         else:
-            return self._backlinks_index[filename]
+            return self._backlinks_index[note_name]
 
-    def get_backlink_counts(self, filename):
-        """Get counts of backlinks for a note (given its filename).
+    def get_backlink_counts(self, note_name):
+        """Get counts of backlinks for a note (given its name).
 
         Args:
-            filename (str): the filename string that is in the graph.
-                This is NOT the filepath!
+            note_name (str): the string that is the name in the graph.
+                This is NOT a filepath!
 
         Returns:
             dict of integers >= 1
@@ -148,13 +148,13 @@ class Vault:
         if not self._is_connected:
             raise AttributeError('Connect notes before calling the function')
 
-        if filename not in self._graph.nodes:
-            raise ValueError('"{}" not found in graph.'.format(filename))
+        if note_name not in self._graph.nodes:
+            raise ValueError('"{}" not found in graph.'.format(note_name))
         else:
-            backlinks = self.get_backlinks(filename)
+            backlinks = self.get_backlinks(note_name)
             return dict(Counter(backlinks))
 
-    def get_wikilinks(self, filename):
+    def get_wikilinks(self, file_name):
         """Get wikilinks for a note (given its filename).
 
         Wikilinks can only appear in notes that already exist, so if a
@@ -162,7 +162,7 @@ class Vault:
         a ValueError.
 
         Args:
-            filename (str): the filename string that is in the file_index.
+            file_name (str): the filename string that is in the file_index.
                 This is NOT the filepath!
 
         Returns:
@@ -171,10 +171,10 @@ class Vault:
         if not self._is_connected:
             raise AttributeError('Connect notes before calling the function')
 
-        if filename not in self._file_index:
-            raise ValueError('"{}" does not exist so it cannot have wikilinks.'.format(filename))
+        if file_name not in self._file_index:
+            raise ValueError('"{}" does not exist so it cannot have wikilinks.'.format(file_name))
         else:
-            return self._file_index[filename]
+            return self._file_index[file_name]
 
     def _get_md_relpaths(self):
         """Return list of filepaths *relative* to the directory instantiated
@@ -195,23 +195,23 @@ class Vault:
         """
         return {f.stem: f for f in self._get_md_relpaths()}
 
-    def _get_wikilinks_by_md_filename(self):
+    def _get_wikilinks_index(self):
         """Return k,v pairs
         where k is the md filename
         and v is list of ALL wikilinks found in k"""
         return {k: get_wikilinks(self._dirpath / v)
                 for k, v in self._file_index.items()}
 
-    def _get_unique_wikilinks_by_md_filename(self):
+    def _get_unique_wikilinks_index(self):
         """Return k,v pairs
         where k is the md filename
         and v is list of UNIQUE wikilinks found in k"""
         return {k: get_unique_wikilinks(self._dirpath / v)
                 for k, v in self._file_index.items()}
 
-    def _get_backlinks_by_md_filename(self, *, graph):
+    def _get_backlinks_index(self, *, graph):
         """Return k,v pairs
-        where k is the md filename
+        where k is the md note name
         and v is list of ALL backlinks found in k"""
         return {n: [n[0] for n in list(graph.in_edges(n))]
                 for n in self._graph.nodes}
