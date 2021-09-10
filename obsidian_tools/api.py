@@ -1,4 +1,5 @@
-from .md_utils import get_md_relpaths_from_dir, get_unique_wiki_links
+from .md_utils import (get_md_relpaths_from_dir, get_unique_wiki_links,
+                       get_wiki_links)
 
 
 class Vault:
@@ -16,6 +17,9 @@ class Vault:
                 typically be the vault's directory.  If you have a
                 subdirectory of the vault with notes you want to inspect,
                 then you could pass that.
+
+        Attributes:
+            filepath
         """
         self._filepath = filepath
 
@@ -43,13 +47,16 @@ class Vault:
         """
         return {f.stem: f for f in self.get_md_relpaths()}
 
-    def _get_unique_wiki_links_by_md_relpaths(self):
+    def _get_wiki_links_by_md_filename(self):
         """Return k,v pairs
-        where k is relpath of vault page
-        and v is list of wiki links found in k"""
-        relpaths = get_md_relpaths_from_dir(self._filepath)
-        return {f: get_unique_wiki_links(self._filepath / f) for f in relpaths}
+        where k is the md filename
+        and v is list of ALL wiki links found in k"""
+        links_to_relpaths = self._get_wiki_links_by_md_relpaths()
+        return {k.stem: v for k, v in links_to_relpaths.items()}
 
     def _get_unique_wiki_links_by_md_filename(self):
+        """Return k,v pairs
+        where k is the md filename
+        and v is list of UNIQUE wiki links found in k"""
         links_to_relpaths = self._get_unique_wiki_links_by_md_relpaths()
         return {k.stem: v for k, v in links_to_relpaths.items()}
