@@ -5,7 +5,8 @@ from obsidian_tools.md_utils import (_get_html_from_md_file,
                                      _get_ascii_plaintext_from_md_file)
 from obsidian_tools.md_utils import (get_md_relpaths_from_dir,
                                      get_unique_md_links,
-                                     get_unique_wiki_links)
+                                     get_unique_wiki_links,
+                                     get_wiki_links)
 
 
 @pytest.fixture
@@ -50,4 +51,11 @@ def test_get_unique_wiki_links(mocker_md_file):
     # test fake file open returns list
 
     actual_links = get_unique_wiki_links(mocker_md_file)
+    assert isinstance(actual_links, list)
+
+
+def test_get_wiki_links(mocker_md_file):
+    # test fake file open returns list
+
+    actual_links = get_wiki_links(mocker_md_file)
     assert isinstance(actual_links, list)

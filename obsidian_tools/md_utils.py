@@ -23,11 +23,41 @@ def get_md_relpaths_from_dir(dir_path):
             for p in glob(str(dir_path / '**/*.md'))]
 
 
-def get_unique_wiki_links(filepath):
-    """Get wiki links (unique) from a md file.  This accounts for aliases,
-    so the [[Lorem ipsum | L.I.]] will be represented as 'Lorem ipsum'.
+def get_wiki_links(filepath):
+    """Get ALL wiki links from a md file.
+    The links' order of appearance in the file IS preserved in the output.
+
+    This accounts for:
+    - Aliases / alt text, so [[Lorem ipsum|L.I.]]
+    will be represented as 'Lorem ipsum'.
+    - Header text links, so [[Lorem ipsum#Dummy text]]
+    will be represented as 'Lorem ipsum'.
 
     The links' order of appearance in the file IS preserved in the output.
+
+    Args:
+        filepath (pathlib Path): Path object representing the file from
+            which info will be extracted.
+
+    Returns:
+        list of strings
+    """
+    plaintext = _get_ascii_plaintext_from_md_file(filepath)
+
+    wikilinks = _get_all_wiki_links_from_html_content(
+        plaintext, remove_aliases=True)
+    return wikilinks
+
+
+def get_unique_wiki_links(filepath):
+    """Get UNIQUE wiki links from a md file.
+    The links' order of appearance in the file IS preserved in the output.
+
+    This accounts for:
+    - Aliases / alt text, so [[Lorem ipsum|L.I.]]
+    will be represented as 'Lorem ipsum'.
+    - Header text links, so [[Lorem ipsum#Dummy text]]
+    will be represented as 'Lorem ipsum'.
 
     Args:
         filepath (pathlib Path): Path object representing the file from
@@ -43,12 +73,12 @@ def get_unique_wiki_links(filepath):
 
 
 def get_unique_md_links(filepath):
-    """Get markdown links (unique) from a md file.  This is to check for
-    syntax of the format [...](...) - the returned 'links' inside the ()
-    are not checked for validity or subtle differences (e.g. '/' vs no
-    '/' at the end).
-
+    """Get markdown links (unique) from a md file.
     The links' order of appearance in the file IS preserved in the output.
+
+    This is to check for syntax of the format [...](...).
+    The returned 'links' inside the () are not checked for validity or
+    subtle differences (e.g. '/' vs no '/' at the end of a URL).
 
     Args:
         filepath (pathlib Path): Path object representing the file from
