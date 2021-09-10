@@ -23,8 +23,8 @@ def get_md_relpaths_from_dir(dir_path):
             for p in glob(str(dir_path / '**/*.md'), recursive=True)]
 
 
-def get_wiki_links(filepath):
-    """Get ALL wiki links from a md file.
+def get_wikilinks(filepath):
+    """Get ALL wikilinks from a md file.
     The links' order of appearance in the file IS preserved in the output.
 
     This accounts for:
@@ -44,13 +44,13 @@ def get_wiki_links(filepath):
     """
     plaintext = _get_ascii_plaintext_from_md_file(filepath)
 
-    wikilinks = _get_all_wiki_links_from_html_content(
+    wikilinks = _get_all_wikilinks_from_html_content(
         plaintext, remove_aliases=True)
     return wikilinks
 
 
-def get_unique_wiki_links(filepath):
-    """Get UNIQUE wiki links from a md file.
+def get_unique_wikilinks(filepath):
+    """Get UNIQUE wikilinks from a md file.
     The links' order of appearance in the file IS preserved in the output.
 
     This accounts for:
@@ -68,7 +68,7 @@ def get_unique_wiki_links(filepath):
     """
     plaintext = _get_ascii_plaintext_from_md_file(filepath)
 
-    wikilinks = _get_unique_wiki_links(plaintext, remove_aliases=True)
+    wikilinks = _get_unique_wikilinks(plaintext, remove_aliases=True)
     return wikilinks
 
 
@@ -127,7 +127,7 @@ def _get_ascii_plaintext_from_md_file(filepath):
     return _get_ascii_plaintext_from_html(html)
 
 
-def _get_all_wiki_links_from_html_content(html_str, *, remove_aliases=True):
+def _get_all_wikilinks_from_html_content(html_str, *, remove_aliases=True):
     # basic regex that includes any aliases
     wikilink_regex = r'\[{2}([^\]\]]+)\]{2}'
 
@@ -141,8 +141,8 @@ def _get_all_wiki_links_from_html_content(html_str, *, remove_aliases=True):
     return link_matches_list
 
 
-def _get_unique_wiki_links(html_str, *, remove_aliases=True):
-    wikilinks = _get_all_wiki_links_from_html_content(
+def _get_unique_wikilinks(html_str, *, remove_aliases=True):
+    wikilinks = _get_all_wikilinks_from_html_content(
         html_str, remove_aliases=remove_aliases)
     return list(dict.fromkeys(wikilinks))
 

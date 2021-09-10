@@ -1,5 +1,5 @@
-from .md_utils import (get_md_relpaths_from_dir, get_unique_wiki_links,
-                       get_wiki_links)
+from .md_utils import (get_md_relpaths_from_dir, get_unique_wikilinks,
+                       get_wikilinks)
 
 
 class Vault:
@@ -53,16 +53,16 @@ class Vault:
         """
         return {f.stem: f for f in self._get_md_relpaths()}
 
-    def _get_wiki_links_by_md_filename(self):
+    def _get_wikilinks_by_md_filename(self):
         """Return k,v pairs
         where k is the md filename
-        and v is list of ALL wiki links found in k"""
-        return {k: get_wiki_links(self._dirpath / v)
+        and v is list of ALL wikilinks found in k"""
+        return {k: get_wikilinks(self._dirpath / v)
                 for k, v in self._file_index.items()}
 
-    def _get_unique_wiki_links_by_md_filename(self):
+    def _get_unique_wikilinks_by_md_filename(self):
         """Return k,v pairs
         where k is the md filename
-        and v is list of UNIQUE wiki links found in k"""
-        return {k: get_unique_wiki_links(self._dirpath / v)
+        and v is list of UNIQUE wikilinks found in k"""
+        return {k: get_unique_wikilinks(self._dirpath / v)
                 for k, v in self._file_index.items()}

@@ -1,8 +1,8 @@
 import pytest
 
 
-from obsidian_tools.md_utils import (_get_all_wiki_links_from_html_content,
-                                     _get_unique_wiki_links,
+from obsidian_tools.md_utils import (_get_all_wikilinks_from_html_content,
+                                     _get_unique_wikilinks,
                                      _get_all_md_link_info_from_ascii_plaintext,
                                      _get_unique_md_links_from_ascii_plaintext)
 
@@ -50,8 +50,8 @@ def txt_md_links_stub():
     return text
 
 
-def test_get_all_wiki_links_from_html_content(html_wikilinks_stub):
-    actual_results = _get_all_wiki_links_from_html_content(html_wikilinks_stub)
+def test_get_all_wikilinks_from_html_content(html_wikilinks_stub):
+    actual_results = _get_all_wikilinks_from_html_content(html_wikilinks_stub)
     expected_results = ['Shopping list', 'Bananas', 'Banana splits',
                         'Apples',
                         'Flour', 'Flower',
@@ -62,8 +62,8 @@ def test_get_all_wiki_links_from_html_content(html_wikilinks_stub):
     assert actual_results == expected_results
 
 
-def test_get_all_wiki_links_from_html_content_keep_aliases(html_wikilinks_stub):
-    actual_results = _get_all_wiki_links_from_html_content(
+def test_get_all_wikilinks_from_html_content_keep_aliases(html_wikilinks_stub):
+    actual_results = _get_all_wikilinks_from_html_content(
         html_wikilinks_stub, remove_aliases=False)
     expected_results = ['Shopping list | shopping list',
                         'Bananas', 'Banana splits',
@@ -78,8 +78,8 @@ def test_get_all_wiki_links_from_html_content_keep_aliases(html_wikilinks_stub):
     assert actual_results == expected_results
 
 
-def test_get_unique_wiki_links_from_html_content(html_wikilinks_stub):
-    actual_results = _get_unique_wiki_links(
+def test_get_unique_wikilinks_from_html_content(html_wikilinks_stub):
+    actual_results = _get_unique_wikilinks(
         html_wikilinks_stub, remove_aliases=True)
     expected_results = ['Shopping list',
                         'Bananas', 'Banana splits',
@@ -92,8 +92,8 @@ def test_get_unique_wiki_links_from_html_content(html_wikilinks_stub):
     assert isinstance(expected_results, list)
 
 
-def test_get_unique_wiki_links_from_html_content_has_unique_links(html_wikilinks_stub):
-    actual_links = _get_unique_wiki_links(html_wikilinks_stub)
+def test_get_unique_wikilinks_from_html_content_has_unique_links(html_wikilinks_stub):
+    actual_links = _get_unique_wikilinks(html_wikilinks_stub)
     assert len(set(actual_links)) == len(actual_links)
 
 
