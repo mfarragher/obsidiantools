@@ -66,3 +66,11 @@ def test_connect(mock_initial_vault):
     assert isinstance(mock_output, Vault)
 
     # TODO - on a very basic vault test where graph node count > file count
+
+
+def test_functions_to_fail_for_unconnected_vault(mock_initial_vault):
+    # catch functions that require attributes set via connect method
+    with pytest.raises(AttributeError):
+        mock_initial_vault.get_backlinks('A note that would exist')
+    with pytest.raises(AttributeError):
+        mock_initial_vault.get_backlink_counts('A note that would exist')
