@@ -23,7 +23,7 @@ def get_md_relpaths_from_dir(dir_path):
             for p in glob(str(dir_path / '**/*.md'))]
 
 
-def get_wiki_links(filepath):
+def get_unique_wiki_links(filepath):
     """Get wiki links (unique) from a md file.  This accounts for aliases,
     so the [[Lorem ipsum | L.I.]] will be represented as 'Lorem ipsum'.
 
