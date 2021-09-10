@@ -27,6 +27,7 @@ def test_vault_instantiation(tmp_path):
     assert actual_vault.graph is None
     assert not actual_vault.is_connected
     assert isinstance(actual_vault.is_connected, bool)
+    assert actual_vault.backlinks_index == {}
 
 
 def test_vault_instantiation_needs_directory():
