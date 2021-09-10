@@ -36,13 +36,16 @@ class Vault:
         Methods for setup:
             connect
 
-        Methods for analysis:
+        Methods for analysis of an individual note:
             get_backlinks
             get_backlink_counts
+            get_wikilinks
 
         Attributes:
             dirpath (arg)
             file_index
+            backlinks_index
+            wikilinks_index
             graph
             is_connected
         """
@@ -53,6 +56,7 @@ class Vault:
         self._graph = None
         self._is_connected = False
         self._backlinks_index = {}
+        self._wikilinks_index = {}
 
     @property
     def dirpath(self):
@@ -76,6 +80,12 @@ class Vault:
         return self._backlinks_index
 
     @property
+    def wikilinks_index(self):
+        """dict of lists: filename (k) to lists (v).  v is [] if k
+        has no wikilinks."""
+        return self._wikilinks_index
+
+    @property
     def is_connected(self):
         """Bool: has the connect function been called to set up graph?"""
         return self._is_connected
@@ -95,17 +105,19 @@ class Vault:
             G = nx.MultiDiGraph(wiki_link_map)
             self._graph = G
             self._backlinks_index = self._get_backlinks_by_md_filename(graph=G)
+            self._wikilinks_index = wiki_link_map
 
             self._is_connected = True
 
         return self  # fluent
 
     def get_backlinks(self, filename):
-        """Get backlinks for a note (given its filename).  If a note has not
-        been created, but has wikilinks pointing to it elsewhere in the
-        vault, then it will return those backlinks.
+        """Get backlinks for a note (given its filename).
 
-        If a note is not in the graph at all then the function will raise
+        If a note has not been created, but has wikilinks pointing to it
+        elsewhere in the vault, then it will return those backlinks.
+
+        If a note is not in the graph at all, then the function will raise
         an AttributeError.
 
         Args:
@@ -118,8 +130,8 @@ class Vault:
         if not self._is_connected:
             raise AttributeError('Connect notes before calling the function')
 
-        if filename not in self._backlinks_index:
-            raise ValueError('{} not found in graph.'.format(filename))
+        if filename not in self._graph.nodes:
+            raise ValueError('"{}" not found in graph.'.format(filename))
         else:
             return self._backlinks_index[filename]
 
@@ -127,7 +139,7 @@ class Vault:
         """Get counts of backlinks for a note (given its filename).
 
         Args:
-            filename (str): the filename string that is in the file_index.
+            filename (str): the filename string that is in the graph.
                 This is NOT the filepath!
 
         Returns:
@@ -136,11 +148,33 @@ class Vault:
         if not self._is_connected:
             raise AttributeError('Connect notes before calling the function')
 
-        if filename not in self._file_index:
-            raise ValueError('{} not found in file_index.'.format(filename))
+        if filename not in self._graph.nodes:
+            raise ValueError('"{}" not found in graph.'.format(filename))
         else:
             backlinks = self.get_backlinks(filename)
             return dict(Counter(backlinks))
+
+    def get_wikilinks(self, filename):
+        """Get wikilinks for a note (given its filename).
+
+        Wikilinks can only appear in notes that already exist, so if a
+        note is not in the file_index at all then the function will raise
+        a ValueError.
+
+        Args:
+            filename (str): the filename string that is in the file_index.
+                This is NOT the filepath!
+
+        Returns:
+            list
+        """
+        if not self._is_connected:
+            raise AttributeError('Connect notes before calling the function')
+
+        if filename not in self._file_index:
+            raise ValueError('"{}" does not exist so it cannot have wikilinks.'.format(filename))
+        else:
+            return self._file_index[filename]
 
     def _get_md_relpaths(self):
         """Return list of filepaths *relative* to the directory instantiated

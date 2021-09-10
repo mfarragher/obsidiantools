@@ -28,6 +28,7 @@ def test_vault_instantiation(tmp_path):
     assert not actual_vault.is_connected
     assert isinstance(actual_vault.is_connected, bool)
     assert actual_vault.backlinks_index == {}
+    assert actual_vault.wikilinks_index == {}
 
 
 def test_vault_instantiation_needs_directory():
@@ -62,6 +63,8 @@ def test_connect(mock_initial_vault):
     assert isinstance(mock_initial_vault.is_connected, bool)
     assert isinstance(mock_initial_vault.graph, nx.Graph)
     assert isinstance(mock_initial_vault.graph, nx.MultiDiGraph)
+    assert isinstance(mock_initial_vault.backlinks_index, dict)
+    assert isinstance(mock_initial_vault.wikilinks_index, dict)
 
     # output is the vault object itself
     assert isinstance(mock_output, Vault)
@@ -75,3 +78,5 @@ def test_functions_to_fail_for_unconnected_vault(mock_initial_vault):
         mock_initial_vault.get_backlinks('A note that would exist')
     with pytest.raises(AttributeError):
         mock_initial_vault.get_backlink_counts('A note that would exist')
+    with pytest.raises(AttributeError):
+        mock_initial_vault.get_wikilinks('A note that would exist')
