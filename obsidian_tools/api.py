@@ -53,6 +53,7 @@ class Vault:
             backlinks_index
             wikilinks_index
             nonexistent_notes
+            isolated_notes
             graph
             is_connected
         """
@@ -65,6 +66,7 @@ class Vault:
         self._backlinks_index = {}
         self._wikilinks_index = {}
         self._nonexistent_notes = []
+        self._isolated_notes = []
 
     @property
     def dirpath(self):
@@ -99,8 +101,15 @@ class Vault:
         their md files don't exist yet.
 
         They are ideas floating around in the Obsidian graph... waiting to
-        be created one day :-)"""
+        be created as actual notes one day :-)"""
         return self._nonexistent_notes
+
+    @property
+    def isolated_notes(self):
+        """list: notes (with their own md files) that lack backlinks and
+        lack wikilinks.  They are not connected to other notes in the
+        Obsidian graph at all."""
+        return self._isolated_notes
 
     @property
     def is_connected(self):
@@ -125,6 +134,7 @@ class Vault:
             self._wikilinks_index = wiki_link_map
 
             self._nonexistent_notes = self._get_nonexistent_notes()
+            self._isolated_notes = self._get_isolated_notes(graph=G)
 
             self._is_connected = True
 
@@ -291,3 +301,10 @@ class Vault:
         as a list."""
         return list(set(self.backlinks_index.keys())
                     .difference(set(self.file_index)))
+
+    def _get_isolated_notes(self, *, graph):
+        """Get notes that are not connected to any other notes in the vault,
+        i.e. they have 0 wikilinks and 0 backlinks.
+
+        These notes are retrieved from the graph."""
+        return list(nx.isolates(graph))

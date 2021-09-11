@@ -255,3 +255,19 @@ def test_nonexistent_notes(actual_connected_vault, actual_metadata_df):
     assert (set(actual_metadata_df.loc[~actual_metadata_df['note_exists'], :]
                 .index.tolist())
             == set(expected_non_e_notes))
+
+
+def test_isolated_notes(actual_connected_vault):
+    expected_isol_notes = ['Sussudio']
+
+    assert isinstance(actual_connected_vault.isolated_notes, list)
+
+    assert (set(actual_connected_vault.isolated_notes)
+            == set(expected_isol_notes))
+
+    # isolated notes can't have backlinks
+    for n in actual_connected_vault.isolated_notes:
+        assert actual_connected_vault.get_backlink_counts(n) == {}
+    # isolated notes can't have wikilinks
+    for n in actual_connected_vault.isolated_notes:
+        assert actual_connected_vault.get_wikilinks(n) == []
