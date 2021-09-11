@@ -1,4 +1,5 @@
 markdown
 html2text
 pandas
+numpy
 networkx

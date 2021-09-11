@@ -27,3 +27,30 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
 CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+This software uses the following open-source libraries:
+
+Numpy
+Project code: https://github.com/numpy/numpy
+Copyright (c) 2005-2021, NumPy Developers
+Licence (BSD): http://www.numpy.org/license.html
+
+Pandas
+Project code: https://github.com/pandas-dev/pandas
+Copyright (c) 2008-2011, AQR Capital Management, LLC, Lambda Foundry, Inc. and PyData Development Team; 2011-2021, Open source contributors
+Licence (BSD): https://pandas.pydata.org/pandas-docs/stable/getting_started/overview.html
+
+Networkx
+Project code: https://github.com/networkx/networkx
+Copyright (c) 2004-2021, NetworkX Developers
+Licence (BSD): https://github.com/networkx/networkx/blob/main/LICENSE.txt
+
+markdown
+Project code: https://python-markdown.github.io/
+Copyright (c) 2007, 2008 The Python Markdown Project (v. 1.7 and later)
+Licence (BSD): https://github.com/Python-Markdown/markdown/blob/master/LICENSE.md
+
+html2text
+Project code: https://github.com/Alir3z4/html2text/
+Copyright (c) 2007, html2text developers (see https://github.com/Alir3z4/html2text/blob/master/AUTHORS.rst)
+Licence (GPL 3): https://github.com/Alir3z4/html2text/blob/master/COPYING
