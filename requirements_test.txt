@@ -1,0 +1,6 @@
+pytest
+pytest-cov
+coverage
+codecov
+tox
+twine
