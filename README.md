@@ -11,7 +11,7 @@ vault = otools.Vault(<VAULT_DIRECTORY>).connect()
 
 As this package relies upon note (file)names, it is only recommended for use on vaults where wikilinks are not formatted as paths and where note names are unique.  This should cover the vast majority of vaults that people create.
 
-## Key features
+## 💡 Key features
 This is how **`obsidian_tools`** can complement your workflows for note-taking:
 - **Access a `networkx` graph of your vault** (`vault.graph`)
     - NetworkX is the main Python library for network analysis, enabling sophisticated analyses of your vault.
@@ -29,16 +29,22 @@ There are other API features that try to mirror the Obsidian.md app, for your co
 
 The text from vault notes goes through this process: markdown → HTML → ASCII plaintext.  The functions for text processing are in the `md_utils` module so they can be used to get text, e.g. for use in NLP analysis.
 
-## Installation ⏲️
+## ⏲️ Installation
 ``pip install obsidian_tools``
 
 Developed for Python 3.9 but may still work on lower versions.
 
-## Dependencies 🖇️
+## 🖇️ Dependencies
 - markdown
 - html2text
 - pandas
+- numpy
 - networkx
 
-## Licence ⚖️
+## 🏗️ Tests
+A small 'dummy vault' vault of lipsum notes is in `tests/vault-stub` (generated with help of the [lorem-markdownum](https://github.com/jaspervdj/lorem-markdownum) tool).  Sense-checking on the API functionality was also done on a personal vault of up to 100 notes.
+
+I am not sure how the parsing will work outside of Latin languages - if you have ideas on how that can be supported feel free to suggest a feature or pull request.
+
+## ⚖️ Licence
 Modified BSD (3-clause)
