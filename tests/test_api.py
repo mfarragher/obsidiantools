@@ -29,6 +29,7 @@ def test_vault_instantiation(tmp_path):
     assert isinstance(actual_vault.is_connected, bool)
     assert actual_vault.backlinks_index == {}
     assert actual_vault.wikilinks_index == {}
+    assert actual_vault.nonexistent_notes == []
 
 
 def test_vault_instantiation_needs_directory():
@@ -65,6 +66,7 @@ def test_connect(mock_initial_vault):
     assert isinstance(mock_initial_vault.graph, nx.MultiDiGraph)
     assert isinstance(mock_initial_vault.backlinks_index, dict)
     assert isinstance(mock_initial_vault.wikilinks_index, dict)
+    assert isinstance(mock_initial_vault.nonexistent_notes, list)
 
     # output is the vault object itself
     assert isinstance(mock_output, Vault)

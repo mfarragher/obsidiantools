@@ -241,3 +241,17 @@ def test_wikilink_individual_notes(actual_connected_vault):
     for k in list(actual_wl_ix.keys()):
         assert isinstance(actual_connected_vault.file_index.get(k),
                           Path)
+
+
+def test_nonexistent_notes(actual_connected_vault, actual_metadata_df):
+    expected_non_e_notes = ['Tarpeia', 'Caelum', 'Vita', 'Aras Teucras',
+                            'Manus', 'Bacchus', 'Amor', 'Virtus',
+                            'Tydides', 'Dives', 'Aetna']
+
+    assert isinstance(actual_connected_vault.nonexistent_notes, list)
+
+    assert (set(actual_connected_vault.nonexistent_notes)
+            == set(expected_non_e_notes))
+    assert (set(actual_metadata_df.loc[~actual_metadata_df['note_exists'], :]
+                .index.tolist())
+            == set(expected_non_e_notes))

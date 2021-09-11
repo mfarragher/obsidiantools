@@ -52,6 +52,7 @@ class Vault:
             file_index
             backlinks_index
             wikilinks_index
+            nonexistent_notes
             graph
             is_connected
         """
@@ -63,6 +64,7 @@ class Vault:
         self._is_connected = False
         self._backlinks_index = {}
         self._wikilinks_index = {}
+        self._nonexistent_notes = []
 
     @property
     def dirpath(self):
@@ -92,6 +94,15 @@ class Vault:
         return self._wikilinks_index
 
     @property
+    def nonexistent_notes(self):
+        """list: notes without files, i.e. the notes have backlink(s) but
+        their md files don't exist yet.
+
+        They are ideas floating around in the Obsidian graph... waiting to
+        be created one day :-)"""
+        return self._nonexistent_notes
+
+    @property
     def is_connected(self):
         """Bool: has the connect function been called to set up graph?"""
         return self._is_connected
@@ -112,6 +123,8 @@ class Vault:
             self._graph = G
             self._backlinks_index = self._get_backlinks_index(graph=G)
             self._wikilinks_index = wiki_link_map
+
+            self._nonexistent_notes = self._get_nonexistent_notes()
 
             self._is_connected = True
 
@@ -270,3 +283,11 @@ class Vault:
                                       np.NaN)
         df['n_wikilinks'] = df['n_wikilinks'].astype(float)  # for consistency
         return df
+
+    def _get_nonexistent_notes(self):
+        """Get notes that have backlinks but don't have md files.
+
+        The comparison is done with sets but the result is returned
+        as a list."""
+        return list(set(self.backlinks_index.keys())
+                    .difference(set(self.file_index)))
