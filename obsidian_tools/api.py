@@ -180,7 +180,7 @@ class Vault:
         if file_name not in self._file_index:
             raise ValueError('"{}" does not exist so it cannot have wikilinks.'.format(file_name))
         else:
-            return self._file_index[file_name]
+            return self._wikilinks_index[file_name]
 
     def _get_md_relpaths(self):
         """Return list of filepaths *relative* to the directory instantiated
