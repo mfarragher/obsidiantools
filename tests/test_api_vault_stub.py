@@ -61,7 +61,7 @@ def expected_metadata_dict():
                         'Vita': 3,
                         'Aras Teucras': 1,
                         'Manus': 3,
-                        'Bacchus': 2,
+                        'Bacchus': 5,
                         'Amor': 2,
                         'Virtus': 1,
                         'Tydides': 1,
@@ -70,7 +70,7 @@ def expected_metadata_dict():
         'n_wikilinks': {'Sussudio': 0.0,
                         'Brevissimus moenia': 3.0,
                         'Ne fuit': 6.0,
-                        'Alimenta': 9.0,
+                        'Alimenta': 12.0,
                         'Vulnera ubera': 3.0,
                         'Causam mihi': 4.0,
                         'Tarpeia': np.NaN,
@@ -198,7 +198,9 @@ def test_backlink_counts(actual_connected_vault):
                     'Alimenta': 1,
                     'Vulnera ubera': 1},
         'Ne fuit': {'Alimenta': 1,
-                    'Causam mihi': 1}
+                    'Causam mihi': 1},
+        'Bacchus': {'Ne fuit': 1,
+                    'Alimenta': 4}
     }
 
     for k in list(expected_bl_count_subset.keys()):
@@ -218,7 +220,8 @@ def test_wikilink_individual_notes(actual_connected_vault):
     expected_wl_subset = {
         'Sussudio': [],
         'Alimenta': ['Manus', 'Bacchus', 'Amor', 'Ne fuit', 'Virtus',
-                     'Brevissimus moenia', 'Tarpeia', 'Tydides', 'Vita'],
+                     'Brevissimus moenia', 'Tarpeia', 'Tydides', 'Vita',
+                     'Bacchus', 'Bacchus', 'Bacchus'],
         'Ne fuit': ['Aras Teucras', 'Manus', 'Bacchus',
                     'Amor', 'Caelum', 'Causam mihi']
     }

@@ -43,3 +43,6 @@ Metuunt conspecta [[Tydides]] famem, et **Phryges vix est** color tu aut. Tellur
 atque laudaret! Eo certum rupta, cur tum latere premit qui pariter aureus?
 Pulcherrime dolor postquam. Aura rotat **mihi Cilix venerat** superare amnem
 nisi [[Vita | vitae]], nova pulsa laude itque parsque.
+
+## More wikilinks
+[[Bacchus]] [[Bacchus]] [[Bacchus]]
