@@ -1,10 +1,10 @@
-# obsidian_tools 🪨⚒️
-**obsidian_tools** is a Python package for getting structured metadata about your [Obsidian.md notes](https://obsidian.md/) and analysing your vault.  Complement your Obsidian workflows by getting metrics and detail about all your notes in one place through the widely-used Python data stack.
+# obsidiantools 🪨⚒️
+**obsidiantools** is a Python package for getting structured metadata about your [Obsidian.md notes](https://obsidian.md/) and analysing your vault.  Complement your Obsidian workflows by getting metrics and detail about all your notes in one place through the widely-used Python data stack.
 
 It's incredibly easy to explore structured data on your vault through this fluent interface.  This is all the code you need to generate a `vault` object that stores the key data:
 
 ```python
-import obsidian_tools.api as otools
+import obsidiantools.api as otools
 
 vault = otools.Vault(<VAULT_DIRECTORY>).connect()
 ```
@@ -14,7 +14,7 @@ See some of the **key features** below - all accessible from the `vault` object 
 As this package relies upon note (file)names, it is only recommended for use on vaults where wikilinks are not formatted as paths and where note names are unique.  This should cover the vast majority of vaults that people create.
 
 ## 💡 Key features
-This is how **`obsidian_tools`** can complement your workflows for note-taking:
+This is how **`obsidiantools`** can complement your workflows for note-taking:
 - **Access a `networkx` graph of your vault** (`vault.graph`)
     - NetworkX is the main Python library for network analysis, enabling sophisticated analyses of your vault.
     - NetworkX also supports the ability to export your graph to other data formats.
@@ -35,7 +35,7 @@ There are other API features that try to mirror the Obsidian.md app, for your co
 The text from vault notes goes through this process: markdown → HTML → ASCII plaintext.  The functions for text processing are in the `md_utils` module so they can be used to get text, e.g. for use in NLP analysis.
 
 ## ⏲️ Installation
-``pip install obsidian_tools``
+``pip install obsidiantools``
 
 Developed for Python 3.9 but may still work on lower versions.
 

@@ -1,7 +1,7 @@
 import pytest
 
 
-from obsidian_tools.md_utils import (_get_all_wikilinks_from_html_content,
+from obsidiantools.md_utils import (_get_all_wikilinks_from_html_content,
                                      _get_unique_wikilinks,
                                      _get_all_md_link_info_from_ascii_plaintext,
                                      _get_unique_md_links_from_ascii_plaintext)

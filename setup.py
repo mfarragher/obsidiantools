@@ -3,7 +3,7 @@ import setuptools
 with open("README.md", "r", encoding="utf8") as f:
     LONG_DESCRIPTION = f.read()
 
-PROJECT_URLS = {"Source": "https://github.com/mfarragher/obsidian_tools"}
+PROJECT_URLS = {"Source": "https://github.com/mfarragher/obsidiantools"}
 INSTALL_REQUIRES = [
     "markdown",
     "html2text",
@@ -26,7 +26,7 @@ CLASSIFIERS = [
 ]
 
 setuptools.setup(
-    name="obsidian_tools",
+    name="obsidiantools",
     version="0.5.0",
     author="Mark Farragher",
     description="Obsidian Tools - a Python interface for Obsidian.md vaults",
@@ -36,7 +36,7 @@ setuptools.setup(
               "note-taking", "notes",
               "knowledge management",
               "connected notes"],
-    url="https://github.com/mfarragher/obsidian_tools",
+    url="https://github.com/mfarragher/obsidiantools",
     project_urls=PROJECT_URLS,
     packages=setuptools.find_packages(exclude=("tests")),
     python_requires=">=3.7",

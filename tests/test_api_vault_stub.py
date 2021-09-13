@@ -6,7 +6,7 @@ from pathlib import Path
 from pandas.testing import assert_series_equal
 
 
-from obsidian_tools.api import Vault
+from obsidiantools.api import Vault
 
 # NOTE: run the tests from the project dir.
 WKD = Path(os.getcwd())

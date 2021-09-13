@@ -1,9 +1,9 @@
 import os
 import pytest
 
-from obsidian_tools.md_utils import (_get_html_from_md_file,
+from obsidiantools.md_utils import (_get_html_from_md_file,
                                      _get_ascii_plaintext_from_md_file)
-from obsidian_tools.md_utils import (get_md_relpaths_from_dir,
+from obsidiantools.md_utils import (get_md_relpaths_from_dir,
                                      get_unique_md_links,
                                      get_unique_wikilinks,
                                      get_wikilinks)

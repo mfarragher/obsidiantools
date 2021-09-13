@@ -2,7 +2,7 @@ import pytest
 import networkx as nx
 
 
-from obsidian_tools.api import Vault
+from obsidiantools.api import Vault
 
 
 @pytest.fixture
