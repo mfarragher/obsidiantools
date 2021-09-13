@@ -1,3 +1,6 @@
+[![PyPI version](https://badge.fury.io/py/obsidiantools.svg)](https://badge.fury.io/py/obsidiantools) [![PyPI version](https://img.shields.io/pypi/pyversions/obsidiantools.svg)](https://badge.fury.io/py/obsidiantools)
+[![Licence](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://github.com/mfarragher/obsidiantools/blob/main/LICENSE) [![Documentation](https://img.shields.io/badge/docs-obsidiantools--demo-orange)](https://github.com/mfarragher/obsidiantools-demo) [![codecov](https://codecov.io/gh/mfarragher/obsidiantools/branch/main/graph/badge.svg)](https://codecov.io/gh/mfarragher/obsidiantools)
+
 # obsidiantools 🪨⚒️
 **obsidiantools** is a Python package for getting structured metadata about your [Obsidian.md notes](https://obsidian.md/) and analysing your vault.  Complement your Obsidian workflows by getting metrics and detail about all your notes in one place through the widely-used Python data stack.
 
@@ -29,6 +32,10 @@ This is how **`obsidiantools`** can complement your workflows for note-taking:
         - e.g. `vault.get_backlinks(<NOTE>)` for the backlinks of an individual note
     - Check which notes are isolated (`vault.isolated_notes`)
     - Check which notes do not exist as files yet (`vault.nonexistent_notes`)
+
+Check out the functionality in the demo repo.  Launch the '10 minutes' demo in a virtual machine via Binder:
+
+[![Documentation](https://img.shields.io/badge/docs-obsidiantools--demo-orange)](https://github.com/mfarragher/obsidiantools-demo) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/mfarragher/obsidiantools-demo/HEAD?filepath=obsidiantools%20in%2010%20minutes.ipynb)
 
 There are other API features that try to mirror the Obsidian.md app, for your convenience when working with Python, but they are no substitute for the interactivity of the app!
 
