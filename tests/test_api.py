@@ -31,6 +31,7 @@ def test_vault_instantiation(tmp_path):
     assert actual_vault.wikilinks_index == {}
     assert actual_vault.nonexistent_notes == []
     assert actual_vault.isolated_notes == []
+    assert actual_vault.front_matter_index == {}
 
 
 def test_vault_instantiation_needs_directory():
@@ -69,6 +70,7 @@ def test_connect(mock_initial_vault):
     assert isinstance(mock_initial_vault.wikilinks_index, dict)
     assert isinstance(mock_initial_vault.nonexistent_notes, list)
     assert isinstance(mock_initial_vault.isolated_notes, list)
+    assert isinstance(mock_initial_vault.front_matter_index, dict)
 
     # output is the vault object itself
     assert isinstance(mock_output, Vault)
