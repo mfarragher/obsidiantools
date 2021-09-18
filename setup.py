@@ -9,7 +9,9 @@ INSTALL_REQUIRES = [
     "html2text",
     "pandas",
     "numpy",
-    "networkx"]
+    "networkx",
+    "python-frontmatter",
+    "beautifulsoup4"]
 
 CLASSIFIERS = [
     "Development Status :: 3 - Alpha",
@@ -27,7 +29,7 @@ CLASSIFIERS = [
 
 setuptools.setup(
     name="obsidiantools",
-    version="0.5.0",
+    version="0.6.0",
     author="Mark Farragher",
     description="Obsidian Tools - a Python interface for Obsidian.md vaults",
     long_description=LONG_DESCRIPTION,
