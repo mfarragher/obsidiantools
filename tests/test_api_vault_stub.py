@@ -140,7 +140,8 @@ def test_get_metadata_cols(actual_metadata_df):
 
     expected_cols = ['rel_filepath', 'abs_filepath',
                      'note_exists',
-                     'n_backlinks', 'n_wikilinks']
+                     'n_backlinks', 'n_wikilinks',
+                     'modified_time']
     assert actual_metadata_df.columns.tolist() == expected_cols
 
 
@@ -150,6 +151,7 @@ def test_get_metadata_dtypes(actual_metadata_df):
     assert actual_metadata_df['note_exists'].dtype == 'bool'
     assert actual_metadata_df['n_backlinks'].dtype == 'int'
     assert actual_metadata_df['n_wikilinks'].dtype == 'float'
+    assert actual_metadata_df['modified_time'].dtype == 'datetime64[ns]'
 
 
 def test_get_metadata_rel_filepath(actual_metadata_df,

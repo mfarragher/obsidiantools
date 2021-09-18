@@ -1,10 +1,12 @@
+import os
 import networkx as nx
 import numpy as np
 import pandas as pd
 from collections import Counter
 from pathlib import Path
 
-from .md_utils import (get_md_relpaths_from_dir, get_unique_md_links, get_unique_wikilinks,
+from .md_utils import (get_md_relpaths_from_dir, get_unique_md_links,
+                       get_unique_wikilinks,
                        get_md_links,
                        get_wikilinks, get_front_matter)
 
@@ -368,6 +370,11 @@ class Vault:
                                      [len(self._wikilinks_index.get(f, []))
                                      for f in df.index],
                                      np.NaN)
+        df['modified_time'] = pd.to_datetime(
+            [os.path.getmtime(f) if not pd.isna(f) else np.NaN
+             for f in df['abs_filepath']],
+            unit='ns'
+        )
         return df
 
     def _clean_up_note_metadata_dtypes(self, df):
