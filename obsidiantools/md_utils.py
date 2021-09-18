@@ -95,6 +95,20 @@ def get_unique_md_links(filepath):
     return links
 
 
+def get_front_matter(filepath):
+    """Get front matter from a md file.
+
+    If no front matter is found for a file, the value will be {}.
+
+    Args:
+        filepath (pathlib Path): Path object representing the file from
+            which info will be extracted.
+    Returns:
+        dict
+    """
+    return frontmatter.load(filepath).metadata
+
+
 def _get_html_from_md_file(filepath):
     """md -> html, via markdown lib."""
     with open(filepath) as f:
@@ -146,10 +160,6 @@ def _remove_front_matter(html):
         return str(soup)
     else:
         return html
-
-
-def _get_front_matter_metadata_from_md_file(filepath):
-    return frontmatter.load(filepath).metadata
 
 
 def _get_all_wikilinks_from_html_content(html_str, *, remove_aliases=True):

@@ -6,7 +6,7 @@ from obsidiantools.md_utils import (_get_all_wikilinks_from_html_content,
                                     _get_all_md_link_info_from_ascii_plaintext,
                                     _get_unique_md_links_from_ascii_plaintext,
                                     _get_html_from_md_file,
-                                    _get_front_matter_metadata_from_md_file)
+                                    get_front_matter)
 
 
 @pytest.fixture
@@ -143,13 +143,13 @@ def test_sussudio_front_matter():
                          'url': 'https://www.discogs.com/Phil-Collins-Sussudio/master/106239',
                          'references': [[['American Psycho (film)']], 'Polka Party!'],
                          'chart_peaks': [{'US': 1}, {'UK': 12}]}
-    actual_metadata = _get_front_matter_metadata_from_md_file(
+    actual_metadata = get_front_matter(
         'tests/vault-stub/Sussudio.md')
     assert actual_metadata == expected_metadata
 
 
 def test_ne_fuit_front_matter():
     expected_metadata = {}
-    actual_metadata = _get_front_matter_metadata_from_md_file(
+    actual_metadata = get_front_matter(
         'tests/vault-stub/lipsum/Ne fuit.md')
     assert actual_metadata == expected_metadata
