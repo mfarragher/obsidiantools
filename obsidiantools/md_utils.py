@@ -1,8 +1,10 @@
 import re
 from pathlib import Path
 from glob import glob
+from bs4 import BeautifulSoup
 import markdown
 import html2text
+import frontmatter
 
 
 def get_md_relpaths_from_dir(dir_path):
@@ -124,7 +126,30 @@ def _get_ascii_plaintext_from_html(html):
 def _get_ascii_plaintext_from_md_file(filepath):
     """md file -> html -> ASCII plaintext"""
     html = _get_html_from_md_file(filepath)
+    # strip out front matter (if any):
+    html = _remove_front_matter(html)
     return _get_ascii_plaintext_from_html(html)
+
+
+def _remove_front_matter(html):
+    soup = BeautifulSoup(html, 'lxml')
+
+    hr_content = soup.hr
+
+    if hr_content:
+        # wipe out content from first hr (the front matter)
+        for fm_detail in hr_content.find_next('p'):
+            fm_detail.extract()
+        # then wipe all hr elements
+        for fm in soup.find_all('hr'):
+            fm.decompose()
+        return str(soup)
+    else:
+        return html
+
+
+def _get_front_matter_metadata_from_md_file(filepath):
+    return frontmatter.load(filepath).metadata
 
 
 def _get_all_wikilinks_from_html_content(html_str, *, remove_aliases=True):
