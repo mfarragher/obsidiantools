@@ -4,7 +4,7 @@ import pytest
 from obsidiantools.md_utils import (_get_html_from_md_file,
                                     _get_ascii_plaintext_from_md_file)
 from obsidiantools.md_utils import (get_md_relpaths_from_dir,
-                                    get_unique_md_links,
+                                    get_md_links,
                                     get_unique_wikilinks,
                                     get_wikilinks)
 
@@ -40,10 +40,10 @@ def test_get_plaintext_from_md_file(mocker_md_file):
     assert isinstance(actual_txt, str)
 
 
-def test_get_unique_md_links(mocker_md_file):
+def test_get_md_links(mocker_md_file):
     # test fake file open returns list
 
-    actual_links = get_unique_md_links(mocker_md_file)
+    actual_links = get_md_links(mocker_md_file)
     assert isinstance(actual_links, list)
 
 

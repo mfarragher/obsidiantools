@@ -74,6 +74,27 @@ def get_unique_wikilinks(filepath):
     return wikilinks
 
 
+def get_md_links(filepath):
+    """Get markdown links from a md file.
+    The links' order of appearance in the file IS preserved in the output.
+
+    This is to check for syntax of the format [...](...).
+    The returned 'links' inside the () are not checked for validity or
+    subtle differences (e.g. '/' vs no '/' at the end of a URL).
+
+    Args:
+        filepath (pathlib Path): Path object representing the file from
+            which info will be extracted.
+
+    Returns:
+        list of strings
+    """
+    text_str = _get_ascii_plaintext_from_md_file(filepath)
+
+    links = _get_all_md_link_info_from_ascii_plaintext(text_str)
+    return links
+
+
 def get_unique_md_links(filepath):
     """Get markdown links (unique) from a md file.
     The links' order of appearance in the file IS preserved in the output.
