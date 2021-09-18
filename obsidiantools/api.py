@@ -373,7 +373,7 @@ class Vault:
         df['modified_time'] = pd.to_datetime(
             [os.path.getmtime(f) if not pd.isna(f) else np.NaN
              for f in df['abs_filepath']],
-            unit='ns'
+            unit='s'
         )
         return df
 
