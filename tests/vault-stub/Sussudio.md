@@ -17,6 +17,11 @@ This will be a note inside the vault dir.  Others will be lipsum in a subdirecto
 
 The song has been compared to the Prince's "1999" ( #y1982 ) <- oh look, a tag!
 
+More tags:
+- #y_1982
+- #y-1982
+- #y1982/sep
+
 However these shouldn't be recognised as tags:
 - (#y1985 )
 - #1985
