@@ -88,6 +88,26 @@ def expected_metadata_dict():
 
 
 @pytest.fixture
+def expected_front_matter_index():
+    return {'Sussudio': {'title': 'Sussudio',
+                         'artist': 'Phil Collins',
+                         'category': 'music',
+                         'year': 1985,
+                         'url': 'https://www.discogs.com/Phil-Collins-Sussudio/master/106239',
+                         'references': [[['American Psycho (film)']], 'Polka Party!'],
+                         'chart_peaks': [{'US': 1}, {'UK': 12}]},
+            'Brevissimus moenia': {},
+            'Ne fuit': {},
+            'Alimenta': {},
+            'Vulnera ubera': {},
+            'Causam mihi': {'title': 'Causam mihi',
+                            'author': 'Ovid',
+                            'category': 'literature',
+                            'year': 8,
+                            'language': 'la'}}
+
+
+@pytest.fixture
 def actual_connected_vault():
     return Vault(WKD / 'tests/vault-stub').connect()
 
@@ -271,3 +291,24 @@ def test_isolated_notes(actual_connected_vault):
     # isolated notes can't have wikilinks
     for n in actual_connected_vault.isolated_notes:
         assert actual_connected_vault.get_wikilinks(n) == []
+
+
+def test_front_matter_index(
+        actual_connected_vault, expected_front_matter_index):
+    assert isinstance(actual_connected_vault.front_matter_index, dict)
+
+    actual_front_matter_index = actual_connected_vault.front_matter_index
+    assert actual_front_matter_index == expected_front_matter_index
+
+
+def test_front_matter_sussudio(actual_connected_vault):
+    expected_fm = {'title': 'Sussudio',
+                   'artist': 'Phil Collins',
+                             'category': 'music',
+                             'year': 1985,
+                             'url': 'https://www.discogs.com/Phil-Collins-Sussudio/master/106239',
+                             'references': [[['American Psycho (film)']], 'Polka Party!'],
+                             'chart_peaks': [{'US': 1}, {'UK': 12}]}
+
+    actual_fm = actual_connected_vault.get_front_matter('Sussudio')
+    assert actual_fm == expected_fm
