@@ -312,3 +312,10 @@ def test_front_matter_sussudio(actual_connected_vault):
 
     actual_fm = actual_connected_vault.get_front_matter('Sussudio')
     assert actual_fm == expected_fm
+
+
+def test_nodes_gte_files(actual_connected_vault):
+    act_f_len = len(actual_connected_vault.file_index)
+    act_n_len = len(actual_connected_vault.wikilinks_index)
+
+    assert act_n_len >= act_f_len

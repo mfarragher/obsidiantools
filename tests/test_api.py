@@ -75,8 +75,6 @@ def test_connect(mock_initial_vault):
     # output is the vault object itself
     assert isinstance(mock_output, Vault)
 
-    # TODO - on a very basic vault test where graph node count > file count
-
 
 def test_functions_to_fail_for_unconnected_vault(mock_initial_vault):
     # catch functions that require attributes set via connect method
