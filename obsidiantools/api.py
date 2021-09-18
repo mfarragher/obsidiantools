@@ -5,7 +5,7 @@ from collections import Counter
 from pathlib import Path
 
 from .md_utils import (get_md_relpaths_from_dir, get_unique_wikilinks,
-                       get_wikilinks)
+                       get_wikilinks, get_front_matter)
 
 
 class Vault:
@@ -43,6 +43,7 @@ class Vault:
             get_backlinks
             get_backlink_counts
             get_wikilinks
+            get_front_matter
 
         Methods for analysis across multiple notes:
             get_note_metadata
@@ -67,6 +68,7 @@ class Vault:
         self._wikilinks_index = {}
         self._nonexistent_notes = []
         self._isolated_notes = []
+        self._front_matter_index = {}
 
     @property
     def dirpath(self):
@@ -112,6 +114,12 @@ class Vault:
         return self._isolated_notes
 
     @property
+    def front_matter_index(self):
+        """dict: note name (k) to front matter (v).  v is {} if no front
+        matter was extracted from note."""
+        return self._front_matter_index
+
+    @property
     def is_connected(self):
         """Bool: has the connect function been called to set up graph?"""
         return self._is_connected
@@ -135,6 +143,7 @@ class Vault:
 
             self._nonexistent_notes = self._get_nonexistent_notes()
             self._isolated_notes = self._get_isolated_notes(graph=G)
+            self._front_matter_index = self._get_front_matter_index()
 
             self._is_connected = True
 
@@ -205,6 +214,14 @@ class Vault:
         else:
             return self._wikilinks_index[file_name]
 
+    def get_front_matter(self, file_name):
+        if not self._is_connected:
+            raise AttributeError('Connect notes before calling the function')
+        if file_name not in self._file_index:
+            raise ValueError('"{}" does not exist so it cannot have wikilinks.'.format(file_name))
+        else:
+            return self._front_matter_index[file_name]
+
     def _get_md_relpaths(self):
         """Return list of filepaths *relative* to the directory instantiated
         for the class.
@@ -244,6 +261,13 @@ class Vault:
         and v is list of ALL backlinks found in k"""
         return {n: [n[0] for n in list(graph.in_edges(n))]
                 for n in self._graph.nodes}
+
+    def _get_front_matter_index(self):
+        """Return k,v pairs
+        where k is the md filename
+        and v is list of file matter metadata found in k"""
+        return {k: get_front_matter(self._dirpath / v)
+                for k, v in self._file_index.items()}
 
     def get_note_metadata(self):
         """Structured dataset of metadata on the vault's notes.  This
