@@ -92,7 +92,10 @@ def get_md_links(filepath):
     text_str = _get_ascii_plaintext_from_md_file(filepath)
 
     links = _get_all_md_link_info_from_ascii_plaintext(text_str)
-    return links
+    if links:  # links only, not their text
+        return [t[-1] for t in links]
+    else:
+        return links
 
 
 def get_unique_md_links(filepath):
