@@ -60,6 +60,11 @@ def test_get_unique_wikilinks_index(mock_initial_vault):
     assert isinstance(mock_output, dict)
 
 
+def test_get_front_matter_index(mock_initial_vault):
+    mock_output = mock_initial_vault._get_front_matter_index()
+    assert isinstance(mock_output, dict)
+
+
 def test_connect(mock_initial_vault):
     mock_output = mock_initial_vault.connect()
 
@@ -86,5 +91,9 @@ def test_functions_to_fail_for_unconnected_vault(mock_initial_vault):
         mock_initial_vault.get_backlink_counts('A note that would not exist')
     with pytest.raises(AttributeError):
         mock_initial_vault.get_wikilinks('A note that would not exist')
+    with pytest.raises(AttributeError):
+        mock_initial_vault.get_front_matter('A note that would not exist')
+    with pytest.raises(AttributeError):
+        mock_initial_vault.get_md_links('A note that would not exist')
     with pytest.raises(AttributeError):
         mock_initial_vault.get_note_metadata()

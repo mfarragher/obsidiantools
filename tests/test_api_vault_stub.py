@@ -343,3 +343,30 @@ def test_md_links_index(
         actual_connected_vault, expected_md_links_index):
     actual_md_links_ix = actual_connected_vault.md_links_index
     assert actual_md_links_ix == expected_md_links_index
+
+
+def test_unique_md_links(
+        actual_connected_vault, expected_md_links_index):
+    actual_u_md_links_ix = (actual_connected_vault.
+                            _get_unique_md_links_index())
+    # all notes in stub have unique md links:
+    assert actual_u_md_links_ix == expected_md_links_index
+
+
+def test_md_links_individual_notes(actual_connected_vault):
+    actual_md_links = actual_connected_vault.get_md_links('Ne fuit')
+    expected_md_links = ['http://vires.io/',
+                         'http://excoquitprotinus.net/quae.html',
+                         'http://medullis-me.net/novat',
+                         'http://sedibus.io/levemmonstra']
+    assert actual_md_links == expected_md_links
+
+
+def test_md_links_not_existing(actual_connected_vault):
+    with pytest.raises(ValueError):
+        actual_connected_vault.get_md_links('Tarpeia')
+
+
+def test_front_matter_not_existing(actual_connected_vault):
+    with pytest.raises(ValueError):
+        actual_connected_vault.get_front_matter('Tarpeia')
