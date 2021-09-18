@@ -5,6 +5,7 @@ from collections import Counter
 from pathlib import Path
 
 from .md_utils import (get_md_relpaths_from_dir, get_unique_wikilinks,
+                       get_md_links,
                        get_wikilinks, get_front_matter)
 
 
@@ -53,6 +54,7 @@ class Vault:
             file_index
             backlinks_index
             wikilinks_index
+            md_links_index
             nonexistent_notes
             isolated_notes
             graph
@@ -66,6 +68,7 @@ class Vault:
         self._is_connected = False
         self._backlinks_index = {}
         self._wikilinks_index = {}
+        self._md_links_index = {}
         self._nonexistent_notes = []
         self._isolated_notes = []
         self._front_matter_index = {}
@@ -96,6 +99,12 @@ class Vault:
         """dict of lists: filename (k) to lists (v).  v is [] if k
         has no wikilinks."""
         return self._wikilinks_index
+
+    @property
+    def md_links_index(self):
+        """dict of lists: filename (k) to lists (v).  v is [] if k
+        has no markdown links."""
+        return self._md_links_index
 
     @property
     def nonexistent_notes(self):
@@ -140,6 +149,7 @@ class Vault:
             self._graph = G
             self._backlinks_index = self._get_backlinks_index(graph=G)
             self._wikilinks_index = wiki_link_map
+            self._md_links_index = self._get_md_links_index()
 
             self._nonexistent_notes = self._get_nonexistent_notes()
             self._isolated_notes = self._get_isolated_notes(graph=G)
@@ -253,6 +263,13 @@ class Vault:
         where k is the md filename
         and v is list of UNIQUE wikilinks found in k"""
         return {k: get_unique_wikilinks(self._dirpath / v)
+                for k, v in self._file_index.items()}
+
+    def _get_md_links_index(self):
+        """Return k,v pairs
+        where k is the md note name
+        and v is list of ALL markdown links found in k"""
+        return {k: get_md_links(self._dirpath / v)
                 for k, v in self._file_index.items()}
 
     def _get_backlinks_index(self, *, graph):

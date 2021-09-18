@@ -108,6 +108,24 @@ def expected_front_matter_index():
 
 
 @pytest.fixture
+def expected_md_links_index():
+    return {'Sussudio': [],
+            'Brevissimus moenia': ['http://www.alii.io/',
+                                   'http://fronti.com/tumiseris.html'],
+            'Ne fuit': ['http://vires.io/',
+                        'http://excoquitprotinus.net/quae.html',
+                        'http://medullis-me.net/novat',
+                        'http://sedibus.io/levemmonstra'],
+            'Alimenta': ['http://fugitaer.net/dignus',
+                         'http://www.a-iuveni.com/',
+                         'http://cibos.net/venulus-redito.html',
+                         'http://et-pronus.com/',
+                         'http://iuppiter.net/'],
+            'Vulnera ubera': [],
+            'Causam mihi': []}
+
+
+@pytest.fixture
 def actual_connected_vault():
     return Vault(WKD / 'tests/vault-stub').connect()
 
@@ -319,3 +337,9 @@ def test_nodes_gte_files(actual_connected_vault):
     act_n_len = len(actual_connected_vault.wikilinks_index)
 
     assert act_n_len >= act_f_len
+
+
+def test_md_links_index(
+        actual_connected_vault, expected_md_links_index):
+    actual_md_links_ix = actual_connected_vault.md_links_index
+    assert actual_md_links_ix == expected_md_links_index
