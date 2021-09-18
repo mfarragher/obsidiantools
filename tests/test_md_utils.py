@@ -4,7 +4,8 @@ import pytest
 from obsidiantools.md_utils import (_get_all_wikilinks_from_html_content,
                                      _get_unique_wikilinks,
                                      _get_all_md_link_info_from_ascii_plaintext,
-                                     _get_unique_md_links_from_ascii_plaintext)
+                                     _get_unique_md_links_from_ascii_plaintext,
+                                     _get_html_from_md_file)
 
 
 @pytest.fixture
@@ -47,6 +48,12 @@ def txt_md_links_stub():
 
     [ADA](<https://cardano.org/>)
     """
+    return text
+
+
+@pytest.fixture
+def txt_sussudio_stub():
+    text = _get_html_from_md_file('tests/vault-stub/Sussudio.md')
     return text
 
 
@@ -120,3 +127,8 @@ def test_get_unique_md_links_has_order_preserved(txt_md_links_stub):
 def test_get_unique_md_links_has_unique_links(txt_md_links_stub):
     actual_links = _get_unique_md_links_from_ascii_plaintext(txt_md_links_stub)
     assert len(set(actual_links)) == len(actual_links)
+
+
+def test_pretend_wikilink_not_extracted_from_front_matter(txt_sussudio_stub):
+    actual_links = _get_unique_wikilinks(txt_sussudio_stub)
+    assert not set(['American Psycho (film)']).issubset(set(actual_links))
