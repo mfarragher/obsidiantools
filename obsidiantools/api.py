@@ -4,7 +4,7 @@ import pandas as pd
 from collections import Counter
 from pathlib import Path
 
-from .md_utils import (get_md_relpaths_from_dir, get_unique_wikilinks,
+from .md_utils import (get_md_relpaths_from_dir, get_unique_md_links, get_unique_wikilinks,
                        get_md_links,
                        get_wikilinks, get_front_matter)
 
@@ -45,6 +45,7 @@ class Vault:
             get_backlink_counts
             get_wikilinks
             get_front_matter
+            get_md_links
 
         Methods for analysis across multiple notes:
             get_note_metadata
@@ -224,11 +225,47 @@ class Vault:
         else:
             return self._wikilinks_index[file_name]
 
+    def get_md_links(self, file_name):
+        """Get markdown links for a note (given its filename).
+
+        Markdown links can only appear in notes that already exist, so if a
+        note is not in the file_index at all then the function will raise
+        a ValueError.
+
+        Args:
+            file_name (str): the filename string that is in the file_index.
+                This is NOT the filepath!
+
+        Returns:
+            list
+        """
+        if not self._is_connected:
+            raise AttributeError('Connect notes before calling the function')
+
+        if file_name not in self._file_index:
+            raise ValueError('"{}" does not exist so it cannot have md links.'.format(file_name))
+        else:
+            return self._md_links_index[file_name]
+
     def get_front_matter(self, file_name):
+        """Get front matter for a note (given its filename).
+
+
+        Front matter can only appear in notes that already exist, so if a
+        note is not in the file_index at all then the function will raise
+        a ValueError.
+
+        Args:
+            file_name (str): the filename string that is in the file_index.
+                This is NOT the filepath!
+
+        Returns:
+            list
+        """
         if not self._is_connected:
             raise AttributeError('Connect notes before calling the function')
         if file_name not in self._file_index:
-            raise ValueError('"{}" does not exist so it cannot have wikilinks.'.format(file_name))
+            raise ValueError('"{}" does not exist so it cannot have front matter.'.format(file_name))
         else:
             return self._front_matter_index[file_name]
 
@@ -270,6 +307,13 @@ class Vault:
         where k is the md note name
         and v is list of ALL markdown links found in k"""
         return {k: get_md_links(self._dirpath / v)
+                for k, v in self._file_index.items()}
+
+    def _get_unique_md_links_index(self):
+        """Return k,v pairs
+        where k is the md note name
+        and v is list of UNIQUE markdown links found in k"""
+        return {k: get_unique_md_links(self._dirpath / v)
                 for k, v in self._file_index.items()}
 
     def _get_backlinks_index(self, *, graph):
