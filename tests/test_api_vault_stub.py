@@ -83,8 +83,35 @@ def expected_metadata_dict():
                         'Virtus': np.NaN,
                         'Tydides': np.NaN,
                         'Dives': np.NaN,
-                        'Aetna': np.NaN}
+                        'Aetna': np.NaN},
+        'n_embedded_files': {'Sussudio': 0.0,
+                             'Brevissimus moenia': 0.0,
+                             'Ne fuit': 0.0,
+                             'Alimenta': 0.0,
+                             'Vulnera ubera': 0.0,
+                             'Causam mihi': 0.0,
+                             'Tarpeia': np.NaN,
+                             'Caelum': np.NaN,
+                             'Vita': np.NaN,
+                             'Aras Teucras': np.NaN,
+                             'Manus': np.NaN,
+                             'Bacchus': np.NaN,
+                             'Amor': np.NaN,
+                             'Virtus': np.NaN,
+                             'Tydides': np.NaN,
+                             'Dives': np.NaN,
+                             'Aetna': np.NaN}
     }
+
+
+@pytest.fixture
+def expected_embedded_files_index():
+    return {'Sussudio': [],
+            'Brevissimus moenia': [],
+            'Ne fuit': [],
+            'Alimenta': [],
+            'Vulnera ubera': [],
+            'Causam mihi': []}
 
 
 @pytest.fixture
@@ -141,6 +168,7 @@ def test_get_metadata_cols(actual_metadata_df):
     expected_cols = ['rel_filepath', 'abs_filepath',
                      'note_exists',
                      'n_backlinks', 'n_wikilinks',
+                     'n_embedded_files',
                      'modified_time']
     assert actual_metadata_df.columns.tolist() == expected_cols
 
@@ -151,6 +179,7 @@ def test_get_metadata_dtypes(actual_metadata_df):
     assert actual_metadata_df['note_exists'].dtype == 'bool'
     assert actual_metadata_df['n_backlinks'].dtype == 'int'
     assert actual_metadata_df['n_wikilinks'].dtype == 'float'
+    assert actual_metadata_df['n_embedded_files'].dtype == 'float'
     assert actual_metadata_df['modified_time'].dtype == 'datetime64[ns]'
 
 
@@ -339,6 +368,12 @@ def test_nodes_gte_files(actual_connected_vault):
     act_n_len = len(actual_connected_vault.wikilinks_index)
 
     assert act_n_len >= act_f_len
+
+
+def test_embedded_files_index(
+        actual_connected_vault, expected_embedded_files_index):
+    actual_files_ix = actual_connected_vault.embedded_files_index
+    assert actual_files_ix == expected_embedded_files_index
 
 
 def test_md_links_index(
