@@ -186,18 +186,43 @@ def _remove_front_matter(html):
         return html
 
 
-def _get_all_wikilinks_from_html_content(html_str, *, remove_aliases=True):
+def _get_all_wikilinks_and_embedded_files(html_str):
     # basic regex that includes any aliases
-    wikilink_regex = r'\[{2}([^\]\]]+)\]{2}'
+    wikilink_regex = r'(!)?\[{2}([^\]\]]+)\]{2}'
 
     pattern = re.compile(wikilink_regex)
 
     link_matches_list = pattern.findall(html_str)
-    if remove_aliases:
-        link_matches_list = [(i.split("|")[0].rstrip()  # catch alias/alt-text
-                              .split('#', 1)[0])  # catch links to headers
-                             for i in link_matches_list]
     return link_matches_list
+
+
+def _remove_aliases_from_wikilink_regex_matches(link_matches_list):
+    return [(i.split("|")[0].rstrip()  # catch alias/alt-text
+             .split('#', 1)[0])  # catch links to headers
+            for i in link_matches_list]
+
+
+def _get_all_wikilinks_from_html_content(html_str, *, remove_aliases=True):
+    matches_list = _get_all_wikilinks_and_embedded_files(html_str)
+    link_matches_list = [g[1] for g in matches_list
+                         if g[0] == '']
+
+    if remove_aliases:
+        link_matches_list = _remove_aliases_from_wikilink_regex_matches(
+            link_matches_list)
+    return link_matches_list
+
+
+def _get_all_embedded_files_from_html_content(html_str, *,
+                                              remove_aliases=True):
+    matches_list = _get_all_wikilinks_and_embedded_files(html_str)
+    embedded_files_sublist = [g[1] for g in matches_list
+                              if g[0] == '!']
+
+    if remove_aliases:
+        embedded_files_sublist = _remove_aliases_from_wikilink_regex_matches(
+            embedded_files_sublist)
+    return embedded_files_sublist
 
 
 def _get_unique_wikilinks(html_str, *, remove_aliases=True):
