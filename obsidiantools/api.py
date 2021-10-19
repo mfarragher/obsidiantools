@@ -48,6 +48,7 @@ class Vault:
             get_backlinks
             get_backlink_counts
             get_wikilinks
+            get_embedded_files
             get_front_matter
             get_md_links
 
@@ -59,6 +60,7 @@ class Vault:
             file_index
             backlinks_index
             wikilinks_index
+            embedded_files_index
             md_links_index
             nonexistent_notes
             isolated_notes
