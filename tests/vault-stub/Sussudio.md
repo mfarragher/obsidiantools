@@ -15,7 +15,11 @@ Another word with absolutely no meaning 😄
 
 This will be a note inside the vault dir.  Others will be lipsum in a subdirectory.
 
+![[Sussudio.mp3]]
+
 The song has been compared to the Prince's "1999" ( #y1982 ) <- oh look, a tag!
+
+![[1999.flac]]
 
 More tags:
 - #y_1982

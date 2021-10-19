@@ -84,7 +84,7 @@ def expected_metadata_dict():
                         'Tydides': np.NaN,
                         'Dives': np.NaN,
                         'Aetna': np.NaN},
-        'n_embedded_files': {'Sussudio': 0.0,
+        'n_embedded_files': {'Sussudio': 2.0,
                              'Brevissimus moenia': 0.0,
                              'Ne fuit': 0.0,
                              'Alimenta': 0.0,
@@ -106,7 +106,7 @@ def expected_metadata_dict():
 
 @pytest.fixture
 def expected_embedded_files_index():
-    return {'Sussudio': [],
+    return {'Sussudio': ['Sussudio.mp3', '1999.flac'],
             'Brevissimus moenia': [],
             'Ne fuit': [],
             'Alimenta': [],
@@ -363,6 +363,13 @@ def test_front_matter_sussudio(actual_connected_vault):
     assert actual_fm == expected_fm
 
 
+def test_embedded_files_sussudio(actual_connected_vault):
+    expected_files = ['Sussudio.mp3', '1999.flac']
+
+    actual_files = actual_connected_vault.get_embedded_files('Sussudio')
+    assert actual_files == expected_files
+
+
 def test_nodes_gte_files(actual_connected_vault):
     act_f_len = len(actual_connected_vault.file_index)
     act_n_len = len(actual_connected_vault.wikilinks_index)
@@ -407,3 +414,8 @@ def test_md_links_not_existing(actual_connected_vault):
 def test_front_matter_not_existing(actual_connected_vault):
     with pytest.raises(ValueError):
         actual_connected_vault.get_front_matter('Tarpeia')
+
+
+def test_embedded_notes_not_existing(actual_connected_vault):
+    with pytest.raises(ValueError):
+        actual_connected_vault.get_embedded_files('Tarpeia')
