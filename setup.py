@@ -11,7 +11,8 @@ INSTALL_REQUIRES = [
     "numpy",
     "networkx",
     "python-frontmatter",
-    "beautifulsoup4"]
+    "beautifulsoup4",
+    "lxml"]
 
 CLASSIFIERS = [
     "Development Status :: 3 - Alpha",

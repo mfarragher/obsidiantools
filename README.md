@@ -26,6 +26,7 @@ This is how **`obsidiantools`** can complement your workflows for note-taking:
 - **Retrieve detail about your notes' links and metadata as built-in Python types**
     - The various types of links:
         - Wikilinks (incl. header links, links with alt text)
+        - Embedded files
         - Backlinks
         - Markdown links
     - You can access all the links in one place, or you can load them for an individual note:
@@ -51,13 +52,18 @@ Developed for Python 3.9 but may still work on lower versions.
 As of Sep 2021, NetworkX requires Python 3.7 or higher (similar for Pandas too) so that is recommended as a minimum.
 
 ## 🖇️ Dependencies
-- markdown
-- html2text
-- pandas
-- numpy
-- networkx
-- python-frontmatter
-- beautifulsoup4
+- Main libraries:
+    - markdown
+    - html2text
+    - pandas
+    - numpy
+    - networkx
+- Libraries for parsing front matter:
+    - python-frontmatter
+    - beautifulsoup4
+    - lxml
+
+All of these libraries are needed so that the package can separate note text from front matter in a generalised approach.
 
 ## 🏗️ Tests
 A small 'dummy vault' vault of lipsum notes is in `tests/vault-stub` (generated with help of the [lorem-markdownum](https://github.com/jaspervdj/lorem-markdownum) tool).  Sense-checking on the API functionality was also done on a personal vault of up to 100 notes.

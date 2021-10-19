@@ -5,3 +5,4 @@ numpy
 networkx
 python-frontmatter
 beautifulsoup4
+lxml  # front matter parsing
