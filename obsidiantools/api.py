@@ -8,7 +8,9 @@ from pathlib import Path
 from .md_utils import (get_md_relpaths_from_dir, get_unique_md_links,
                        get_unique_wikilinks,
                        get_md_links,
-                       get_wikilinks, get_front_matter)
+                       get_wikilinks,
+                       get_embedded_files,
+                       get_front_matter)
 
 
 class Vault:
@@ -71,6 +73,7 @@ class Vault:
         self._is_connected = False
         self._backlinks_index = {}
         self._wikilinks_index = {}
+        self._embedded_files_index = {}
         self._md_links_index = {}
         self._nonexistent_notes = []
         self._isolated_notes = []
@@ -102,6 +105,12 @@ class Vault:
         """dict of lists: filename (k) to lists (v).  v is [] if k
         has no wikilinks."""
         return self._wikilinks_index
+
+    @property
+    def embedded_files_index(self):
+        """dict: note name (k) to embedded file strimg (v).  v is [] if
+        k has no embedded files."""
+        return self._embedded_files_index
 
     @property
     def md_links_index(self):
@@ -156,6 +165,7 @@ class Vault:
 
             self._nonexistent_notes = self._get_nonexistent_notes()
             self._isolated_notes = self._get_isolated_notes(graph=G)
+            self._embedded_files_index = self._get_embedded_files_index()
             self._front_matter_index = self._get_front_matter_index()
 
             self._is_connected = True
@@ -227,6 +237,28 @@ class Vault:
         else:
             return self._wikilinks_index[file_name]
 
+    def get_embedded_files(self, file_name):
+        """Get embedded files for a note (given its filename).
+
+        Embedded files can only appear in notes that already exist, so if a
+        note is not in the file_index at all then the function will raise
+        a ValueError.
+
+        Args:
+            file_name (str): the filename string that is in the file_index.
+                This is NOT the filepath!
+
+        Returns:
+            list
+        """
+        if not self._is_connected:
+            raise AttributeError('Connect notes before calling the function')
+
+        if file_name not in self._file_index:
+            raise ValueError('"{}" does not exist so it cannot have embedded files.'.format(file_name))
+        else:
+            return self._embedded_files_index[file_name]
+
     def get_md_links(self, file_name):
         """Get markdown links for a note (given its filename).
 
@@ -295,6 +327,13 @@ class Vault:
         where k is the md filename
         and v is list of ALL wikilinks found in k"""
         return {k: get_wikilinks(self._dirpath / v)
+                for k, v in self._file_index.items()}
+
+    def _get_embedded_files_index(self):
+        """Return k,v pairs
+        where k is the md filename
+        and v is list of ALL embedded files found in k"""
+        return {k: get_embedded_files(self._dirpath / v)
                 for k, v in self._file_index.items()}
 
     def _get_unique_wikilinks_index(self):
@@ -370,6 +409,11 @@ class Vault:
                                      [len(self._wikilinks_index.get(f, []))
                                      for f in df.index],
                                      np.NaN)
+        df['n_embedded_files'] = np.where(df['note_exists'],
+                                          [len(self._embedded_files_index.get(
+                                              f, []))
+                                           for f in df.index],
+                                          np.NaN)
         df['modified_time'] = pd.to_datetime(
             [os.path.getmtime(f) if not pd.isna(f) else np.NaN
              for f in df['abs_filepath']],

@@ -51,6 +51,30 @@ def get_wikilinks(filepath):
     return wikilinks
 
 
+def get_embedded_files(filepath):
+    """Get ALL embedded files from a md file.
+    The embedded files' order of appearance in the file IS preserved in the output.
+
+    This accounts for:
+    - Aliases / alt text, so [[Lorem ipsum|L.I.]]
+    will be represented as 'Lorem ipsum'.
+
+    The links' order of appearance in the file IS preserved in the output.
+
+    Args:
+        filepath (pathlib Path): Path object representing the file from
+            which info will be extracted.
+
+    Returns:
+        list of strings
+    """
+    plaintext = _get_ascii_plaintext_from_md_file(filepath)
+
+    files = _get_all_embedded_files_from_html_content(
+        plaintext, remove_aliases=True)
+    return files
+
+
 def get_unique_wikilinks(filepath):
     """Get UNIQUE wikilinks from a md file.
     The links' order of appearance in the file IS preserved in the output.
