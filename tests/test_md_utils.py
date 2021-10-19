@@ -2,6 +2,7 @@ import pytest
 
 
 from obsidiantools.md_utils import (_get_all_wikilinks_from_html_content,
+                                    _get_all_embedded_files_from_html_content,
                                     _get_unique_wikilinks,
                                     _get_all_md_link_info_from_ascii_plaintext,
                                     _get_unique_md_links_from_ascii_plaintext,
@@ -24,10 +25,15 @@ def html_wikilinks_stub():
     Oh and did I say [[Bananas | BANANAS]]??
     There's no link for [Cherries].  Though there is for [[Durians]].
 
+    ![[Egg.jpg]]
+
     ## Drinks
     - [[Apples|Freshly squeezed apple juice]]
     - [[Bananas|Banana smoothie]]
     - [[Protein shakes#Protein powder|Vanilla whey protein]]
+
+    ![[Easter egg.png]]
+    ![[Egg.jpg | 125]]
     """
     return html
 
@@ -82,6 +88,23 @@ def test_get_all_wikilinks_from_html_content_keep_aliases(html_wikilinks_stub):
                         'Apples|Freshly squeezed apple juice',
                         'Bananas|Banana smoothie',
                         'Protein shakes#Protein powder|Vanilla whey protein']
+
+    assert actual_results == expected_results
+
+
+def test_get_all_embedded_files_from_html_content(html_wikilinks_stub):
+    actual_results = _get_all_embedded_files_from_html_content(
+        html_wikilinks_stub)
+    expected_results = ['Egg.jpg', 'Easter egg.png', 'Egg.jpg']
+
+    assert actual_results == expected_results
+
+
+def test_get_all_embedded_files_from_html_content_keep_aliases(
+        html_wikilinks_stub):
+    actual_results = _get_all_embedded_files_from_html_content(
+        html_wikilinks_stub, remove_aliases=False)
+    expected_results = ['Egg.jpg', 'Easter egg.png', 'Egg.jpg | 125']
 
     assert actual_results == expected_results
 
