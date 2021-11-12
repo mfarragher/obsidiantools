@@ -163,7 +163,7 @@ def _get_html_from_md_file(filepath, remove_front_matter=False):
         md = f.read()
         if remove_front_matter:
             md = _remove_front_matter_md(md)
-        html = markdown.markdown(f.read(), output_format='html')
+        html = markdown.markdown(md, output_format='html')
     return html
 
 
