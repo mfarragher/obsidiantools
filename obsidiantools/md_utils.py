@@ -157,9 +157,12 @@ def get_front_matter(filepath):
     return frontmatter.load(filepath).metadata
 
 
-def _get_html_from_md_file(filepath):
+def _get_html_from_md_file(filepath, remove_front_matter=False):
     """md -> html, via markdown lib."""
     with open(filepath) as f:
+        md = f.read()
+        if remove_front_matter:
+            md = _remove_front_matter_md(md)
         html = markdown.markdown(f.read(), output_format='html')
     return html
 
@@ -187,11 +190,18 @@ def _get_ascii_plaintext_from_html(html):
 
 def _get_ascii_plaintext_from_md_file(filepath):
     """md file -> html -> ASCII plaintext"""
-    html = _get_html_from_md_file(filepath)
+    html = _get_html_from_md_file(filepath, remove_front_matter=True)
     # strip out front matter (if any):
     html = _remove_front_matter(html)
     return _get_ascii_plaintext_from_html(html)
 
+
+def _remove_front_matter_md(md):
+    """Remove front matter from a markdown string."""
+    # remove front matter:
+    front_matter_regex = r'^---\n(.*?)\n---\n'
+    md = re.sub(front_matter_regex, '', md, flags=re.DOTALL)
+    return md
 
 def _remove_front_matter(html):
     soup = BeautifulSoup(html, 'lxml')
