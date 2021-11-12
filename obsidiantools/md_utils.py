@@ -190,9 +190,8 @@ def _get_ascii_plaintext_from_html(html):
 
 def _get_ascii_plaintext_from_md_file(filepath):
     """md file -> html -> ASCII plaintext"""
-    html = _get_html_from_md_file(filepath, remove_front_matter=True)
     # strip out front matter (if any):
-    html = _remove_front_matter(html)
+    html = _get_html_from_md_file(filepath, remove_front_matter=True)
     return _get_ascii_plaintext_from_html(html)
 
 
