@@ -25,6 +25,7 @@ More tags:
 - #y_1982
 - #y-1982
 - #y1982/sep
+- #y2000/party-over/oops/out-of-time
 
 However these shouldn't be recognised as tags:
 - (#y1985 )
