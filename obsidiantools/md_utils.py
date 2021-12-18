@@ -196,15 +196,23 @@ def _get_ascii_plaintext_from_md_file(filepath):
 def _remove_front_matter(html):
     soup = BeautifulSoup(html, 'lxml')
 
+    initial_soup_str = str(soup)
     hr_content = soup.hr
 
-    if hr_content:
+    if hr_content and initial_soup_str.startswith('<html><body><hr/>'):
         # wipe out content from first hr (the front matter)
-        for fm_detail in hr_content.find_next('p'):
-            fm_detail.extract()
+        next_content = hr_content.find_next('p')
+        if next_content:
+            for fm_detail in next_content:
+                fm_detail.extract()
         # then wipe all hr elements
         for fm in soup.find_all('hr'):
             fm.decompose()
+        # and any inferred headers (which arise from gaps in front matter):
+        for fm in soup.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6']):
+            fm.decompose()
+        soup.body.hidden = True
+        soup.html.hidden = True
         return str(soup)
     else:
         return html
