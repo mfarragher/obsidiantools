@@ -10,7 +10,8 @@ from .md_utils import (get_md_relpaths_from_dir, get_unique_md_links,
                        get_md_links,
                        get_wikilinks,
                        get_embedded_files,
-                       get_front_matter)
+                       get_front_matter,
+                       get_tags)
 
 
 class Vault:
@@ -51,6 +52,7 @@ class Vault:
             get_embedded_files
             get_front_matter
             get_md_links
+            get_tags
 
         Methods for analysis across multiple notes:
             get_note_metadata
@@ -62,6 +64,7 @@ class Vault:
             wikilinks_index
             embedded_files_index
             md_links_index
+            tags_index
             nonexistent_notes
             isolated_notes
             graph
@@ -77,6 +80,7 @@ class Vault:
         self._wikilinks_index = {}
         self._embedded_files_index = {}
         self._md_links_index = {}
+        self._tags_index = {}
         self._nonexistent_notes = []
         self._isolated_notes = []
         self._front_matter_index = {}
@@ -119,6 +123,12 @@ class Vault:
         """dict of lists: filename (k) to lists (v).  v is [] if k
         has no markdown links."""
         return self._md_links_index
+
+    @property
+    def tags_index(self):
+        """dict of lists: filename (k) to lists (v).  v is [] if k
+        has no tags."""
+        return self._tags_index
 
     @property
     def nonexistent_notes(self):
@@ -164,7 +174,7 @@ class Vault:
             self._backlinks_index = self._get_backlinks_index(graph=G)
             self._wikilinks_index = wiki_link_map
             self._md_links_index = self._get_md_links_index()
-
+            self._tags_index = self._get_tags_index()
             self._nonexistent_notes = self._get_nonexistent_notes()
             self._isolated_notes = self._get_isolated_notes(graph=G)
             self._embedded_files_index = self._get_embedded_files_index()
@@ -286,7 +296,6 @@ class Vault:
     def get_front_matter(self, file_name):
         """Get front matter for a note (given its filename).
 
-
         Front matter can only appear in notes that already exist, so if a
         note is not in the file_index at all then the function will raise
         a ValueError.
@@ -304,6 +313,28 @@ class Vault:
             raise ValueError('"{}" does not exist so it cannot have front matter.'.format(file_name))
         else:
             return self._front_matter_index[file_name]
+
+    def get_tags(self, file_name):
+        """Get tags for a note (given its filename).
+        Only top-level tags are supported (NOT nested tags).
+
+        Tags can only appear in notes that already exist, so if a
+        note is not in the file_index at all then the function will raise
+        a ValueError.
+
+        Args:
+            file_name (str): the filename string that is in the file_index.
+                This is NOT the filepath!
+
+        Returns:
+            list
+        """
+        if not self._is_connected:
+            raise AttributeError('Connect notes before calling the function')
+        if file_name not in self._file_index:
+            raise ValueError('"{}" does not exist so it cannot have tags.'.format(file_name))
+        else:
+            return self._tags_index[file_name]
 
     def _get_md_relpaths(self):
         """Return list of filepaths *relative* to the directory instantiated
@@ -371,6 +402,13 @@ class Vault:
         where k is the md filename
         and v is list of file matter metadata found in k"""
         return {k: get_front_matter(self._dirpath / v)
+                for k, v in self._file_index.items()}
+
+    def _get_tags_index(self):
+        """Return k,v pairs
+        where k is the md filename
+        and v is list of tags found in k"""
+        return {k: get_tags(self._dirpath / v)
                 for k, v in self._file_index.items()}
 
     def get_note_metadata(self):
