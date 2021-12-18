@@ -7,14 +7,14 @@ from obsidiantools.md_utils import (_get_all_wikilinks_from_html_content,
                                     _get_all_md_link_info_from_ascii_plaintext,
                                     _get_unique_md_links_from_ascii_plaintext,
                                     _get_html_from_md_file,
-                                    _get_ascii_plaintext_from_md_file,
-                                    get_front_matter, get_tags)
+                                    _get_ascii_plaintext_from_md_file, get_embedded_files,
+                                    get_front_matter, get_tags, get_wikilinks)
 
 
 @pytest.fixture
 def html_wikilinks_stub():
     html = r"""
-    <pre><code># Intro
+    <pre># Intro</pre>
     This is a very basic string representation.
 
     ## Shopping list
@@ -193,3 +193,20 @@ def test_sussudio_tags():
         'tests/vault-stub/Sussudio.md')
     expected_tags = ['y1982', 'y_1982', 'y-1982', 'y1982', 'y2000']
     assert actual_tags == expected_tags
+
+
+def test_embedded_files_alias_scaling():
+    actual_embedded_images = get_embedded_files(
+        'tests/general/embedded-images_in-table.md')
+    expected_embedded_images = ['test-image_1_before.png',
+                                'test-image_1_after.png',
+                                'test-image_2_before.png',
+                                'test-image_2_after.png']
+    assert actual_embedded_images == expected_embedded_images
+
+
+def test_wikilinks_code_block():
+    actual_links = get_wikilinks(
+        'tests/general/wikilinks_exclude-code.md')
+    expected_links = []
+    assert actual_links == expected_links
