@@ -156,7 +156,7 @@ def test_get_unique_md_links_has_unique_links(txt_md_links_stub):
 
 def test_pretend_wikilink_not_extracted_from_front_matter(txt_sussudio_stub):
     actual_links = _get_unique_wikilinks(txt_sussudio_stub)
-    assert not set(['American Psycho (film)']).issubset(set(actual_links))
+    assert not set(['Polka Party!']).issubset(set(actual_links))
 
 
 def test_sussudio_front_matter():

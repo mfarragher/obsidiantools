@@ -16,11 +16,13 @@ WKD = Path(os.getcwd())
 def expected_metadata_dict():
     return {
         'rel_filepath': {'Sussudio': Path('Sussudio.md'),
+                         'Isolated note': Path('Isolated note.md'),
                          'Brevissimus moenia': Path('lipsum/Brevissimus moenia.md'),
                          'Ne fuit': Path('lipsum/Ne fuit.md'),
                          'Alimenta': Path('lipsum/Alimenta.md'),
                          'Vulnera ubera': Path('lipsum/Vulnera ubera.md'),
                          'Causam mihi': Path('lipsum/Causam mihi.md'),
+                         'American Psycho (film)': np.NaN,
                          'Tarpeia': np.NaN,
                          'Caelum': np.NaN,
                          'Vita': np.NaN,
@@ -34,11 +36,13 @@ def expected_metadata_dict():
                          'Aetna': np.NaN},
         # abs_filepath would be here
         'note_exists': {'Sussudio': True,
+                        'Isolated note': True,
                         'Brevissimus moenia': True,
                         'Ne fuit': True,
                         'Alimenta': True,
                         'Vulnera ubera': True,
                         'Causam mihi': True,
+                        'American Psycho (film)': False,
                         'Tarpeia': False,
                         'Caelum': False,
                         'Vita': False,
@@ -51,11 +55,13 @@ def expected_metadata_dict():
                         'Dives': False,
                         'Aetna': False},
         'n_backlinks': {'Sussudio': 0,
+                        'Isolated note': 0,
                         'Brevissimus moenia': 1,
                         'Ne fuit': 2,
                         'Alimenta': 0,
                         'Vulnera ubera': 0,
                         'Causam mihi': 1,
+                        'American Psycho (film)': 1,
                         'Tarpeia': 3,
                         'Caelum': 3,
                         'Vita': 3,
@@ -67,12 +73,14 @@ def expected_metadata_dict():
                         'Tydides': 1,
                         'Dives': 1,
                         'Aetna': 1},
-        'n_wikilinks': {'Sussudio': 0.0,
+        'n_wikilinks': {'Sussudio': 1.0,
+                        'Isolated note': 0.0,
                         'Brevissimus moenia': 3.0,
                         'Ne fuit': 6.0,
                         'Alimenta': 12.0,
                         'Vulnera ubera': 3.0,
                         'Causam mihi': 4.0,
+                        'American Psycho (film)': np.NaN,
                         'Tarpeia': np.NaN,
                         'Caelum': np.NaN,
                         'Vita': np.NaN,
@@ -84,12 +92,14 @@ def expected_metadata_dict():
                         'Tydides': np.NaN,
                         'Dives': np.NaN,
                         'Aetna': np.NaN},
-        'n_embedded_files': {'Sussudio': 2.0,
+        'n_embedded_files': {'Isolated note': 0.0,
+                             'Sussudio': 2.0,
                              'Brevissimus moenia': 0.0,
                              'Ne fuit': 0.0,
                              'Alimenta': 0.0,
                              'Vulnera ubera': 0.0,
                              'Causam mihi': 0.0,
+                             'American Psycho (film)': np.NaN,
                              'Tarpeia': np.NaN,
                              'Caelum': np.NaN,
                              'Vita': np.NaN,
@@ -106,7 +116,8 @@ def expected_metadata_dict():
 
 @pytest.fixture
 def expected_embedded_files_index():
-    return {'Sussudio': ['Sussudio.mp3', '1999.flac'],
+    return {'Isolated note': [],
+            'Sussudio': ['Sussudio.mp3', '1999.flac'],
             'Brevissimus moenia': [],
             'Ne fuit': [],
             'Alimenta': [],
@@ -116,7 +127,8 @@ def expected_embedded_files_index():
 
 @pytest.fixture
 def expected_front_matter_index():
-    return {'Sussudio': {'title': 'Sussudio',
+    return {'Isolated note': {},
+            'Sussudio': {'title': 'Sussudio',
                          'artist': 'Phil Collins',
                          'category': 'music',
                          'year': 1985,
@@ -136,7 +148,8 @@ def expected_front_matter_index():
 
 @pytest.fixture
 def expected_md_links_index():
-    return {'Sussudio': [],
+    return {'Isolated note': [],
+            'Sussudio': [],
             'Brevissimus moenia': ['http://www.alii.io/',
                                    'http://fronti.com/tumiseris.html'],
             'Ne fuit': ['http://vires.io/',
@@ -287,7 +300,7 @@ def test_wikilink_individual_notes(actual_connected_vault):
 
     # these notes exist
     expected_wl_subset = {
-        'Sussudio': [],
+        'Sussudio': ['American Psycho (film)'],
         'Alimenta': ['Manus', 'Bacchus', 'Amor', 'Ne fuit', 'Virtus',
                      'Brevissimus moenia', 'Tarpeia', 'Tydides', 'Vita',
                      'Bacchus', 'Bacchus', 'Bacchus'],
@@ -315,7 +328,8 @@ def test_wikilink_individual_notes(actual_connected_vault):
 def test_nonexistent_notes(actual_connected_vault, actual_metadata_df):
     expected_non_e_notes = ['Tarpeia', 'Caelum', 'Vita', 'Aras Teucras',
                             'Manus', 'Bacchus', 'Amor', 'Virtus',
-                            'Tydides', 'Dives', 'Aetna']
+                            'Tydides', 'Dives', 'Aetna',
+                            'American Psycho (film)']
 
     assert isinstance(actual_connected_vault.nonexistent_notes, list)
 
@@ -327,7 +341,7 @@ def test_nonexistent_notes(actual_connected_vault, actual_metadata_df):
 
 
 def test_isolated_notes(actual_connected_vault):
-    expected_isol_notes = ['Sussudio']
+    expected_isol_notes = ['Isolated note']
 
     assert isinstance(actual_connected_vault.isolated_notes, list)
 

@@ -30,3 +30,4 @@ More tags:
 However these shouldn't be recognised as tags:
 - (#y1985 )
 - #1985
+- [[American Psycho (film)#Patrick Bateman]]
