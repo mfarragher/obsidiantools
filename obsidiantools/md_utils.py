@@ -6,6 +6,9 @@ import markdown
 import html2text
 import frontmatter
 
+# basic wikilink regex that includes any aliases
+WIKILINK_REGEX = r'(!)?\[{2}([^\]\]]+)\]{2}'
+
 
 def get_md_relpaths_from_dir(dir_path):
     """Get list of relative paths for markdown files in a given directory,
@@ -170,7 +173,7 @@ def get_tags(filepath):
         list
     """
     text_str = _get_ascii_plaintext_from_md_file(filepath)
-
+    text_str = _remove_wikilinks_from_ascii_plaintext(text_str)
     tags = _get_tags_from_ascii_plaintext(text_str)
     return tags
 
@@ -237,10 +240,7 @@ def _remove_front_matter(html):
 
 
 def _get_all_wikilinks_and_embedded_files(html_str):
-    # basic regex that includes any aliases
-    wikilink_regex = r'(!)?\[{2}([^\]\]]+)\]{2}'
-
-    pattern = re.compile(wikilink_regex)
+    pattern = re.compile(WIKILINK_REGEX)
 
     link_matches_list = pattern.findall(html_str)
     return link_matches_list
@@ -296,11 +296,12 @@ def _get_unique_md_links_from_ascii_plaintext(plaintext):
     return list(dict.fromkeys(links_list))
 
 
+def _remove_wikilinks_from_ascii_plaintext(plaintext):
+    return re.sub(r'[\[]{2}.*[\]]{2}', '', plaintext)
+
+
 def _get_tags_from_ascii_plaintext(plaintext):
     tags_regex = r'(?<!\()#{1}([A-z]+[0-9_\-]*[A-Z0-9]?)\/?'
     pattern = re.compile(tags_regex)
-
-    print(plaintext)
-
     tags_list = pattern.findall(plaintext)
     return tags_list
