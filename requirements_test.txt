@@ -1,5 +1,6 @@
 pytest
 pytest-cov
+pytest-mocker
 coverage
 codecov
 tox
