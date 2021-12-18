@@ -31,6 +31,7 @@ def test_vault_instantiation(tmp_path):
     assert actual_vault.wikilinks_index == {}
     assert actual_vault.embedded_files_index == {}
     assert actual_vault.md_links_index == {}
+    assert actual_vault.tags_index == {}
     assert actual_vault.nonexistent_notes == []
     assert actual_vault.isolated_notes == []
     assert actual_vault.front_matter_index == {}
@@ -66,6 +67,11 @@ def test_get_unique_wikilinks_index(mock_initial_vault):
     assert isinstance(mock_output, dict)
 
 
+def test_get_tags_index(mock_initial_vault):
+    mock_output = mock_initial_vault._get_tags_index()
+    assert isinstance(mock_output, dict)
+
+
 def test_get_front_matter_index(mock_initial_vault):
     mock_output = mock_initial_vault._get_front_matter_index()
     assert isinstance(mock_output, dict)
@@ -80,6 +86,7 @@ def test_connect(mock_initial_vault):
     assert isinstance(mock_initial_vault.graph, nx.MultiDiGraph)
     assert isinstance(mock_initial_vault.backlinks_index, dict)
     assert isinstance(mock_initial_vault.wikilinks_index, dict)
+    assert isinstance(mock_initial_vault.tags_index, dict)
     assert isinstance(mock_initial_vault.embedded_files_index, dict)
     assert isinstance(mock_initial_vault.md_links_index, dict)
     assert isinstance(mock_initial_vault.nonexistent_notes, list)
@@ -98,6 +105,8 @@ def test_functions_to_fail_for_unconnected_vault(mock_initial_vault):
         mock_initial_vault.get_backlink_counts('A note that would not exist')
     with pytest.raises(AttributeError):
         mock_initial_vault.get_wikilinks('A note that would not exist')
+    with pytest.raises(AttributeError):
+        mock_initial_vault.get_tags('A note that would not exist')
     with pytest.raises(AttributeError):
         mock_initial_vault.get_embedded_files('A note that would not exist')
     with pytest.raises(AttributeError):

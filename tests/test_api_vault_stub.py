@@ -166,6 +166,17 @@ def expected_md_links_index():
 
 
 @pytest.fixture
+def expected_tags_index():
+    return {'Isolated note': [],
+            'Sussudio': ['y1982', 'y_1982', 'y-1982', 'y1982', 'y2000'],
+            'Brevissimus moenia': [],
+            'Ne fuit': [],
+            'Alimenta': [],
+            'Vulnera ubera': [],
+            'Causam mihi': []}
+
+
+@pytest.fixture
 def actual_connected_vault():
     return Vault(WKD / 'tests/vault-stub').connect()
 
@@ -403,6 +414,12 @@ def test_md_links_index(
     assert actual_md_links_ix == expected_md_links_index
 
 
+def test_tags_index(
+        actual_connected_vault, expected_tags_index):
+    actual_tags_ix = actual_connected_vault.tags_index
+    assert actual_tags_ix == expected_tags_index
+
+
 def test_unique_md_links(
         actual_connected_vault, expected_md_links_index):
     actual_u_md_links_ix = (actual_connected_vault.
@@ -420,9 +437,20 @@ def test_md_links_individual_notes(actual_connected_vault):
     assert actual_md_links == expected_md_links
 
 
+def test_tags_individual_notes(actual_connected_vault):
+    actual_md_links = actual_connected_vault.get_tags('Ne fuit')
+    expected_md_links = []
+    assert actual_md_links == expected_md_links
+
+
 def test_md_links_not_existing(actual_connected_vault):
     with pytest.raises(ValueError):
         actual_connected_vault.get_md_links('Tarpeia')
+
+
+def test_tags_not_existing(actual_connected_vault):
+    with pytest.raises(ValueError):
+        actual_connected_vault.get_tags('Tarpeia')
 
 
 def test_front_matter_not_existing(actual_connected_vault):
