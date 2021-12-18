@@ -47,7 +47,7 @@ def get_wikilinks(filepath):
     Returns:
         list of strings
     """
-    plaintext = _get_ascii_plaintext_from_md_file(filepath)
+    plaintext = _get_ascii_plaintext_from_md_file(filepath, remove_code=True)
 
     wikilinks = _get_all_wikilinks_from_html_content(
         plaintext, remove_aliases=True)
@@ -71,7 +71,7 @@ def get_embedded_files(filepath):
     Returns:
         list of strings
     """
-    plaintext = _get_ascii_plaintext_from_md_file(filepath)
+    plaintext = _get_ascii_plaintext_from_md_file(filepath, remove_code=True)
 
     files = _get_all_embedded_files_from_html_content(
         plaintext, remove_aliases=True)
@@ -95,7 +95,7 @@ def get_unique_wikilinks(filepath):
     Returns:
         list of strings
     """
-    plaintext = _get_ascii_plaintext_from_md_file(filepath)
+    plaintext = _get_ascii_plaintext_from_md_file(filepath, remove_code=True)
 
     wikilinks = _get_unique_wikilinks(plaintext, remove_aliases=True)
     return wikilinks
@@ -116,7 +116,7 @@ def get_md_links(filepath):
     Returns:
         list of strings
     """
-    text_str = _get_ascii_plaintext_from_md_file(filepath)
+    text_str = _get_ascii_plaintext_from_md_file(filepath, remove_code=True)
 
     links = _get_all_md_link_info_from_ascii_plaintext(text_str)
     if links:  # links only, not their text
@@ -140,7 +140,7 @@ def get_unique_md_links(filepath):
     Returns:
         list of strings
     """
-    text_str = _get_ascii_plaintext_from_md_file(filepath)
+    text_str = _get_ascii_plaintext_from_md_file(filepath, remove_code=True)
 
     links = _get_unique_md_links_from_ascii_plaintext(text_str)
     return links
@@ -172,7 +172,7 @@ def get_tags(filepath):
     Returns:
         list
     """
-    text_str = _get_ascii_plaintext_from_md_file(filepath)
+    text_str = _get_ascii_plaintext_from_md_file(filepath, remove_code=True)
     text_str = _remove_wikilinks_from_ascii_plaintext(text_str)
     tags = _get_tags_from_ascii_plaintext(text_str)
     return tags
@@ -206,12 +206,23 @@ def _get_ascii_plaintext_from_html(html):
     return doc
 
 
-def _get_ascii_plaintext_from_md_file(filepath):
+def _get_ascii_plaintext_from_md_file(filepath, *, remove_code=False):
     """md file -> html -> ASCII plaintext"""
     html = _get_html_from_md_file(filepath)
     # strip out front matter (if any):
     html = _remove_front_matter(html)
+    if remove_code:
+        html = _remove_code(html)
     return _get_ascii_plaintext_from_html(html)
+
+
+def _remove_code(html):
+    # exclude 'code' tags from link output:
+    soup = BeautifulSoup(html, 'lxml')
+    for s in soup.select('code'):
+        s.extract()
+    html_str = str(soup)
+    return html_str
 
 
 def _remove_front_matter(html):
@@ -239,15 +250,17 @@ def _remove_front_matter(html):
         return html
 
 
-def _get_all_wikilinks_and_embedded_files(html_str):
+def _get_all_wikilinks_and_embedded_files(html):
+    # extract links
     pattern = re.compile(WIKILINK_REGEX)
 
-    link_matches_list = pattern.findall(html_str)
+    link_matches_list = pattern.findall(html)
     return link_matches_list
 
 
 def _remove_aliases_from_wikilink_regex_matches(link_matches_list):
-    return [(i.split("|")[0].rstrip()  # catch alias/alt-text
+    return [(i.replace('\\', '')
+             .split("|")[0].rstrip()  # catch alias/alt-text
              .split('#', 1)[0])  # catch links to headers
             for i in link_matches_list]
 
