@@ -157,6 +157,24 @@ def get_front_matter(filepath):
     return frontmatter.load(filepath).metadata
 
 
+def get_tags(filepath):
+    """Get tags from a md file, based on the order they appear in the file.
+    Only top-level tags are extracted: nested tag detail is NOT supported.
+
+    If no tags are found for a file, the value will be [].
+
+    Args:
+        filepath (pathlib Path): Path object representing the file from
+            which info will be extracted.
+    Returns:
+        list
+    """
+    text_str = _get_ascii_plaintext_from_md_file(filepath)
+
+    tags = _get_tags_from_ascii_plaintext(text_str)
+    return tags
+
+
 def _get_html_from_md_file(filepath):
     """md -> html, via markdown lib."""
     with open(filepath) as f:
@@ -276,3 +294,13 @@ def _get_unique_md_links_from_ascii_plaintext(plaintext):
         plaintext)
     links_list = [link for _, link in links_detail]
     return list(dict.fromkeys(links_list))
+
+
+def _get_tags_from_ascii_plaintext(plaintext):
+    tags_regex = r'(?<!\()#{1}([A-z]+[0-9_\-]*[A-Z0-9]?)\/?'
+    pattern = re.compile(tags_regex)
+
+    print(plaintext)
+
+    tags_list = pattern.findall(plaintext)
+    return tags_list

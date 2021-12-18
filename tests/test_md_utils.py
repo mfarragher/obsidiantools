@@ -8,7 +8,7 @@ from obsidiantools.md_utils import (_get_all_wikilinks_from_html_content,
                                     _get_unique_md_links_from_ascii_plaintext,
                                     _get_html_from_md_file,
                                     _get_ascii_plaintext_from_md_file,
-                                    get_front_matter)
+                                    get_front_matter, get_tags)
 
 
 @pytest.fixture
@@ -186,3 +186,10 @@ def test_front_matter_only_parsing():
         actual_txt = _get_ascii_plaintext_from_md_file(f)
         expected_txt = '\n'
         assert actual_txt == expected_txt
+
+
+def test_sussudio_tags():
+    actual_tags = get_tags(
+        'tests/vault-stub/Sussudio.md')
+    expected_tags = ['y1982', 'y_1982', 'y-1982', 'y1982', 'y2000']
+    assert actual_tags == expected_tags
