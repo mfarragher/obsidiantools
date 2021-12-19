@@ -197,6 +197,15 @@ def test_separators_not_front_matter_parsing():
         assert actual_output == expected_output
 
 
+def test_handle_invalid_front_matter():
+    files = glob('tests/general/invalid-frontmatter*.md',
+                 recursive=True)
+    for f in files:
+        actual_output = get_front_matter(f)
+        expected_output = {}
+        assert actual_output == expected_output
+
+
 def test_sussudio_tags():
     actual_tags = get_tags(
         'tests/vault-stub/Sussudio.md')
