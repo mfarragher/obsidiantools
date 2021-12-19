@@ -157,7 +157,8 @@ def get_front_matter(filepath):
     Returns:
         dict
     """
-    return frontmatter.load(filepath).metadata
+    front_matter, _ = _get_md_front_matter_and_content(filepath)
+    return front_matter
 
 
 def get_tags(filepath):
@@ -178,13 +179,6 @@ def get_tags(filepath):
     return tags
 
 
-def _get_html_from_md_file(filepath):
-    """md -> html, via markdown lib."""
-    with open(filepath) as f:
-        html = markdown.markdown(f.read(), output_format='html')
-    return html
-
-
 def _get_html2text_obj_with_config():
     """Get HTML2Text object with config set."""
     txt_maker = html2text.HTML2Text()
@@ -199,6 +193,19 @@ def _get_html2text_obj_with_config():
     return txt_maker
 
 
+def _get_md_front_matter_and_content(filepath):
+    """parse md file into front matter and note content"""
+    with open(filepath) as f:
+        front_matter, content = frontmatter.parse(f.read())
+    return (front_matter, content)
+
+
+def _get_html_from_md_file(filepath):
+    """md file -> html (without front matter)"""
+    _, content = _get_md_front_matter_and_content(filepath)
+    return markdown.markdown(content, output_format='html')
+
+
 def _get_ascii_plaintext_from_html(html):
     """html -> ASCII plaintext, via HTML2Text."""
     txt_maker = _get_html2text_obj_with_config()
@@ -208,9 +215,8 @@ def _get_ascii_plaintext_from_html(html):
 
 def _get_ascii_plaintext_from_md_file(filepath, *, remove_code=False):
     """md file -> html -> ASCII plaintext"""
-    html = _get_html_from_md_file(filepath)
     # strip out front matter (if any):
-    html = _remove_front_matter(html)
+    html = _get_html_from_md_file(filepath)
     if remove_code:
         html = _remove_code(html)
     return _get_ascii_plaintext_from_html(html)
@@ -223,31 +229,6 @@ def _remove_code(html):
         s.extract()
     html_str = str(soup)
     return html_str
-
-
-def _remove_front_matter(html):
-    soup = BeautifulSoup(html, 'lxml')
-
-    initial_soup_str = str(soup)
-    hr_content = soup.hr
-
-    if hr_content and initial_soup_str.startswith('<html><body><hr/>'):
-        # wipe out content from first hr (the front matter)
-        next_content = hr_content.find_next('p')
-        if next_content:
-            for fm_detail in next_content:
-                fm_detail.extract()
-        # then wipe all hr elements
-        for fm in soup.find_all('hr'):
-            fm.decompose()
-        # and any inferred headers (which arise from gaps in front matter):
-        for fm in soup.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6']):
-            fm.decompose()
-        soup.body.hidden = True
-        soup.html.hidden = True
-        return str(soup)
-    else:
-        return html
 
 
 def _get_all_wikilinks_and_embedded_files(html):
