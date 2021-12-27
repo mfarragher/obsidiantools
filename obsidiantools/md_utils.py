@@ -48,7 +48,7 @@ def get_md_relpaths_matching_subdirs(dir_path, *,
     Args:
         dir_path (pathlib Path): Path object representing the directory
             to search.
-        include_subdirs (list], optional): list of string paths to include
+        include_subdirs (list, optional): list of string paths to include
             in the filtered list of md files (e.g. ['p1', 'p2', 'p3/sp1']).
             If no list is specified, then no filtering is done on paths.
             Defaults to None.

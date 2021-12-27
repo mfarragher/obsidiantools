@@ -11,7 +11,8 @@ from .md_utils import (get_md_relpaths_matching_subdirs, get_unique_md_links,
                        get_wikilinks,
                        get_embedded_files,
                        get_front_matter,
-                       get_tags)
+                       get_tags,
+                       _get_ascii_plaintext_from_md_file)
 
 
 class Vault:
@@ -28,10 +29,14 @@ class Vault:
         then there will be 2 wikilinks (to another note) visible when you do
         analysis of the edges & nodes.
 
-        The API is fluent so you can set up your vault and connect your
-        notes in one line:
+        By calling GATHER you store the plaintext of your vault in the notes
+        index attribute.  You can specify rules for how the text is
+        processed, e.g. whether code blocks should be removed.
 
-        vault = Vault(dirpath).connect()
+        The API is fluent so you can set up your vault, by connecting
+        and gathering your notes in one line:
+
+        vault = Vault(dirpath).connect().gather()
 
         The class supports subdirectories and relies heavily on relative
         paths for the API.
@@ -41,9 +46,16 @@ class Vault:
                 typically be the vault's directory.  If you have a
                 subdirectory of the vault with notes you want to inspect,
                 then you could pass that.
+            include_subdirs (list, optional): list of string paths to include
+                in the filtered list of md files (e.g. ['p1', 'p2', 'p3/sp1']).
+                If no list is specified, then no filtering is done on paths.
+                Defaults to None.
+            include_root (bool, optional): include files that are directly in
+                the dir_path (root dir).  Defaults to True.
 
         Methods for setup:
-            connect
+            connect: connect notes in a graph
+            gather: gather text content of notes
 
         Methods for analysis of an individual note:
             get_backlinks
@@ -53,6 +65,7 @@ class Vault:
             get_front_matter
             get_md_links
             get_tags
+            get_text
 
         Methods for analysis across multiple notes:
             get_note_metadata
@@ -68,7 +81,9 @@ class Vault:
             nonexistent_notes
             isolated_notes
             graph
+            text_index
             is_connected
+            is_gathered
         """
         self._dirpath = dirpath
         self._file_index = self._get_md_relpaths_by_name(
@@ -78,6 +93,7 @@ class Vault:
         # graph setup
         self._graph = None
         self._is_connected = False
+        self._is_gathered = False
         self._backlinks_index = {}
         self._wikilinks_index = {}
         self._embedded_files_index = {}
@@ -86,6 +102,7 @@ class Vault:
         self._nonexistent_notes = []
         self._isolated_notes = []
         self._front_matter_index = {}
+        self._text_index = {}
 
     @property
     def dirpath(self):
@@ -159,6 +176,17 @@ class Vault:
         """Bool: has the connect function been called to set up graph?"""
         return self._is_connected
 
+    @property
+    def is_gathered(self):
+        """Bool: has the gather function been called to gather text?"""
+        return self._is_gathered
+
+    @property
+    def text_index(self):
+        """dict of strings: filename (k) to plaintext string (v).  v is ''
+        if k has no text."""
+        return self._text_index
+
     def connect(self):
         """connect your notes together by representing the vault as a
         Networkx graph object, G.
@@ -183,6 +211,30 @@ class Vault:
             self._front_matter_index = self._get_front_matter_index()
 
             self._is_connected = True
+
+        return self  # fluent
+
+    def gather(self, *, remove_code=True):
+        """gather the content of your notes so that all the plaintext is
+        stored in one place for easy access.  The content of each note is
+        stored in the note_index attribute.
+
+        With your vault connected, gather your note content through:
+            vault.gather()
+
+        Args:
+            remove_code (Bool): remove code blocks from the note content.
+                Defaults to True.
+        """
+        if not self._is_connected:
+            raise AttributeError('Connect vault before gathering notes.')
+
+        self._text_index = {
+            k: _get_ascii_plaintext_from_md_file(self._dirpath / v,
+                                                 remove_code=remove_code)
+            for k, v in self._file_index.items()}
+
+        self._is_gathered = True
 
         return self  # fluent
 
@@ -337,6 +389,30 @@ class Vault:
             raise ValueError('"{}" does not exist so it cannot have tags.'.format(file_name))
         else:
             return self._tags_index[file_name]
+
+    def get_text(self, file_name):
+        """Get text for a note (given its filename).  This requires the vault
+        functions 'connect' AND 'gather' to have been called.  Change the
+        arguments of the 'gather' function to specify how the text of notes
+        should be read, e.g. whether code blocks should be included.
+
+        Text can only appear in notes that already exist, so if a
+        note is not in the file_index at all then the function will raise
+        a ValueError.
+
+        Args:
+            file_name (str): the filename string that is in the file_index.
+                This is NOT the filepath!
+
+        Returns:
+            str
+        """
+        if not self._is_gathered:
+            raise AttributeError('Gather notes before calling the function')
+        if file_name not in self._file_index:
+            raise ValueError('"{}" does not exist so it cannot have text.'.format(file_name))
+        else:
+            return self._text_index[file_name]
 
     def _get_md_relpaths(self, **kwargs):
         """Return list of filepaths *relative* to the directory instantiated
