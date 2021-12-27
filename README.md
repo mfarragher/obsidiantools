@@ -41,6 +41,7 @@ This is how **`obsidiantools`** can complement your workflows for note-taking:
     - Tags via `vault.get_tags(<NOTE>)` or `vault.tags_index`
     - Check which notes are isolated (`vault.isolated_notes`)
     - Check which notes do not exist as files yet (`vault.nonexistent_notes`)
+    - Get text of note (via `vault.get_text(<NOTE>)`, as long as `gather()` has been called)
 
 Check out the functionality in the demo repo.  Launch the '10 minutes' demo in a virtual machine via Binder:
 
