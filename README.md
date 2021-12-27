@@ -21,6 +21,7 @@ This is how **`obsidiantools`** can complement your workflows for note-taking:
 - **Access a `networkx` graph of your vault** (`vault.graph`)
     - NetworkX is the main Python library for network analysis, enabling sophisticated analyses of your vault.
     - NetworkX also supports the ability to export your graph to other data formats.
+    - When instantiating a `vault`, the analysis can also be filtered on specific subdirectories.
 - **Get summary stats about your notes, e.g. number of backlinks and wikilinks, in a Pandas dataframe**
     - Get the dataframe via `vault.get_note_metadata()`
 - **Retrieve detail about your notes' links and metadata as built-in Python types**
