@@ -5,7 +5,7 @@ import pandas as pd
 from collections import Counter
 from pathlib import Path
 
-from .md_utils import (get_md_relpaths_from_dir, get_unique_md_links,
+from .md_utils import (get_md_relpaths_matching_subdirs, get_unique_md_links,
                        get_unique_wikilinks,
                        get_md_links,
                        get_wikilinks,
@@ -15,7 +15,7 @@ from .md_utils import (get_md_relpaths_from_dir, get_unique_md_links,
 
 
 class Vault:
-    def __init__(self, dirpath):
+    def __init__(self, dirpath, *, include_subdirs=None, include_root=True):
         """A Vault object lets you dig into your Obsidian vault, by giving
         you a toolkit for analysing its contents.  Specify a dirpath to
         instantiate the class.  This class is intended to support multiple
@@ -71,7 +71,9 @@ class Vault:
             is_connected
         """
         self._dirpath = dirpath
-        self._file_index = self._get_md_relpaths_by_name()
+        self._file_index = self._get_md_relpaths_by_name(
+            include_subdirs=include_subdirs,
+            include_root=include_root)
 
         # graph setup
         self._graph = None
@@ -336,16 +338,16 @@ class Vault:
         else:
             return self._tags_index[file_name]
 
-    def _get_md_relpaths(self):
+    def _get_md_relpaths(self, **kwargs):
         """Return list of filepaths *relative* to the directory instantiated
         for the class.
 
         Returns:
             list
         """
-        return get_md_relpaths_from_dir(self._dirpath)
+        return get_md_relpaths_matching_subdirs(self._dirpath, **kwargs)
 
-    def _get_md_relpaths_by_name(self):
+    def _get_md_relpaths_by_name(self, **kwargs):
         """Return k,v pairs
         where k is the file name
         and v is the relpath of the md file
@@ -353,7 +355,7 @@ class Vault:
         Returns:
             dict
         """
-        return {f.stem: f for f in self._get_md_relpaths()}
+        return {f.stem: f for f in self._get_md_relpaths(**kwargs)}
 
     def _get_wikilinks_index(self):
         """Return k,v pairs
