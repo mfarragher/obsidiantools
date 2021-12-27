@@ -29,6 +29,49 @@ def get_md_relpaths_from_dir(dir_path):
             for p in glob(str(dir_path / '**/*.md'), recursive=True)]
 
 
+def get_md_relpaths_matching_subdirs(dir_path, *,
+                                     include_subdirs=None, include_root=True):
+    """Get list of relative paths for markdown files in a given directory,
+    filtered to include specified subdirectories (with include_subdirs
+    kwarg).  The default arguments align with get_md_relpaths_from_dir
+    function, but this function enables more flexibility.
+
+    For example, if you had a vault with folders named by category, and
+    filter them like this in Obsidian:
+        path:Category1/ OR path:Category2/ OR path:Category4/
+    then you can use the include_subdirs kwarg to do that with this function:
+        include_subdirs = ['Category1', 'Category2', 'Category4']
+
+    You can also specify deeper levels to filter on, e.g.:
+        include_subdirs = ['Category1/TopicA', 'Category1/TopicB']
+
+    Args:
+        dir_path (pathlib Path): Path object representing the directory
+            to search.
+        include_subdirs (list], optional): list of string paths to include
+            in the filtered list of md files (e.g. ['p1', 'p2', 'p3/sp1']).
+            If no list is specified, then no filtering is done on paths.
+            Defaults to None.
+        include_root (bool, optional): include files that are directly in
+            the dir_path (root dir).  Defaults to True.
+
+    Returns:
+        list of Path objects
+    """
+    if not include_subdirs and include_root:
+        return get_md_relpaths_from_dir(dir_path)
+    elif not include_subdirs and not include_root:
+        return [i for i in get_md_relpaths_from_dir(dir_path)
+                if str(i.parent) != '.']
+    else:
+        if include_root:
+            return [i for i in get_md_relpaths_from_dir(dir_path)
+                    if str(i.parent) in include_subdirs + ['.']]
+        else:
+            return [i for i in get_md_relpaths_from_dir(dir_path)
+                    if str(i.parent) in include_subdirs]
+
+
 def get_wikilinks(filepath):
     """Get ALL wikilinks from a md file.
     The links' order of appearance in the file IS preserved in the output.
