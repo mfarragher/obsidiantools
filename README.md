@@ -33,6 +33,7 @@ This is how **`obsidiantools`** can complement your workflows for note-taking:
         - e.g. `vault.backlinks_index` for all backlinks in the vault
         - e.g. `vault.get_backlinks(<NOTE>)` for the backlinks of an individual note
     - Front matter via `vault.get_front_matter(<NOTE>)` or `vault.front_matter_index`
+    - Tags via `vault.get_tags(<NOTE>)` or `vault.tags_index`
     - Check which notes are isolated (`vault.isolated_notes`)
     - Check which notes do not exist as files yet (`vault.nonexistent_notes`)
 
