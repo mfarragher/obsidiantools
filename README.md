@@ -9,8 +9,12 @@ It's incredibly easy to explore structured data on your vault through this fluen
 ```python
 import obsidiantools.api as otools
 
-vault = otools.Vault(<VAULT_DIRECTORY>).connect()
+vault = otools.Vault(<VAULT_DIRECTORY>).connect().gather()
 ```
+
+These are the basics of the function calls:
+- `connect()`: connect your notes together in a graph structure and get metadata on links (e.g. wikilinks, backlinks, etc.)
+- `gather()`: gather the plaintext content from your notes in one place
 
 See some of the **key features** below - all accessible from the `vault` object either through a method or an attribute.
 
