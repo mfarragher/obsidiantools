@@ -239,7 +239,7 @@ def _get_html2text_obj_with_config():
 
 def _get_md_front_matter_and_content(filepath):
     """parse md file into front matter and note content"""
-    with open(filepath) as f:
+    with open(filepath, encoding='utf-8') as f:
         try:
             front_matter, content = frontmatter.parse(f.read())
         except yaml.scanner.ScannerError:
