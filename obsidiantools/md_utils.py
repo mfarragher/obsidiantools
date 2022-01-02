@@ -58,6 +58,10 @@ def get_md_relpaths_matching_subdirs(dir_path, *,
     Returns:
         list of Path objects
     """
+    if include_subdirs:
+        include_subdirs_final = [str(Path(i).as_posix())
+                                 for i in include_subdirs]
+
     if not include_subdirs and include_root:
         return get_md_relpaths_from_dir(dir_path)
     elif not include_subdirs and not include_root:
@@ -66,10 +70,10 @@ def get_md_relpaths_matching_subdirs(dir_path, *,
     else:
         if include_root:
             return [i for i in get_md_relpaths_from_dir(dir_path)
-                    if str(i.parent) in include_subdirs + ['.']]
+                    if str(i.parent) in include_subdirs_final + ['.']]
         else:
             return [i for i in get_md_relpaths_from_dir(dir_path)
-                    if str(i.parent) in include_subdirs]
+                    if str(i.parent) in include_subdirs_final]
 
 
 def get_wikilinks(filepath):
