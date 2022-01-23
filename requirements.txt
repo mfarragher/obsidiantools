@@ -1,4 +1,5 @@
 markdown
+pymdown-extensions
 html2text
 pandas
 numpy
