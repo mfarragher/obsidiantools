@@ -177,6 +177,17 @@ def expected_tags_index():
 
 
 @pytest.fixture
+def expected_math_index():
+    return {'Isolated note': [],
+            'Sussudio': [],
+            'Brevissimus moenia': [],
+            'Ne fuit': [],
+            'Alimenta': [],
+            'Vulnera ubera': [],
+            'Causam mihi': []}
+
+
+@pytest.fixture
 def actual_connected_vault():
     return Vault(WKD / 'tests/vault-stub').connect()
 
@@ -406,6 +417,12 @@ def test_embedded_files_index(
         actual_connected_vault, expected_embedded_files_index):
     actual_files_ix = actual_connected_vault.embedded_files_index
     assert actual_files_ix == expected_embedded_files_index
+
+
+def test_math_index(
+        actual_connected_vault, expected_math_index):
+    actual_math_index = actual_connected_vault.math_index
+    assert actual_math_index == expected_math_index
 
 
 def test_md_links_index(

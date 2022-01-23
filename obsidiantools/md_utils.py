@@ -339,6 +339,11 @@ def _get_all_latex_from_html_content(html):
     return latex_found_list
 
 
+def _get_all_latex_from_md_file(filepath):
+    return _get_all_latex_from_html_content(
+        _get_html_from_md_file(filepath))
+
+
 def _get_unique_wikilinks(html_str, *, remove_aliases=True):
     wikilinks = _get_all_wikilinks_from_html_content(
         html_str, remove_aliases=remove_aliases)

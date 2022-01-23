@@ -12,7 +12,8 @@ from .md_utils import (get_md_relpaths_matching_subdirs, get_unique_md_links,
                        get_embedded_files,
                        get_front_matter,
                        get_tags,
-                       _get_ascii_plaintext_from_md_file)
+                       _get_ascii_plaintext_from_md_file,
+                       _get_all_latex_from_md_file)
 
 
 class Vault:
@@ -62,6 +63,7 @@ class Vault:
             get_backlink_counts
             get_wikilinks
             get_embedded_files
+            get_math
             get_front_matter
             get_md_links
             get_tags
@@ -76,6 +78,7 @@ class Vault:
             backlinks_index
             wikilinks_index
             embedded_files_index
+            math_index
             md_links_index
             tags_index
             nonexistent_notes
@@ -97,6 +100,7 @@ class Vault:
         self._backlinks_index = {}
         self._wikilinks_index = {}
         self._embedded_files_index = {}
+        self._math_index = {}
         self._md_links_index = {}
         self._tags_index = {}
         self._nonexistent_notes = []
@@ -133,9 +137,15 @@ class Vault:
 
     @property
     def embedded_files_index(self):
-        """dict: note name (k) to embedded file strimg (v).  v is [] if
-        k has no embedded files."""
+        """dict: note name (k) to list of embedded file strimg (v).
+        v is [] if k has no embedded files."""
         return self._embedded_files_index
+
+    @property
+    def math_index(self):
+        """dict: note name (k) to list of LaTeX math strimg (v).  v is [] if
+        k has no LaTeX."""
+        return self._math_index
 
     @property
     def md_links_index(self):
@@ -208,6 +218,7 @@ class Vault:
             self._nonexistent_notes = self._get_nonexistent_notes()
             self._isolated_notes = self._get_isolated_notes(graph=G)
             self._embedded_files_index = self._get_embedded_files_index()
+            self._math_index = self._get_math_index()
             self._front_matter_index = self._get_front_matter_index()
 
             self._is_connected = True
@@ -217,7 +228,7 @@ class Vault:
     def gather(self, *, remove_code=True):
         """gather the content of your notes so that all the plaintext is
         stored in one place for easy access.  The content of each note is
-        stored in the note_index attribute.
+        stored in the text_index attribute.
 
         With your vault connected, gather your note content through:
             vault.gather()
@@ -445,6 +456,13 @@ class Vault:
         where k is the md filename
         and v is list of ALL embedded files found in k"""
         return {k: get_embedded_files(self._dirpath / v)
+                for k, v in self._file_index.items()}
+
+    def _get_math_index(self):
+        """Return k,v pairs
+        where k is the md filename
+        and v is list of ALL LaTeX math strings found in k"""
+        return {k: _get_all_latex_from_md_file(self._dirpath / v)
                 for k, v in self._file_index.items()}
 
     def _get_unique_wikilinks_index(self):
