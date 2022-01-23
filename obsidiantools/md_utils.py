@@ -330,6 +330,15 @@ def _get_all_embedded_files_from_html_content(html_str, *,
     return embedded_files_sublist
 
 
+def _get_all_latex_from_html_content(html):
+    soup = BeautifulSoup(html, 'html.parser')
+
+    s_content = soup.find_all('span', {'class': 'MathJax_Preview'},
+                              text=True)
+    latex_found_list = [i.text for i in s_content]
+    return latex_found_list
+
+
 def _get_unique_wikilinks(html_str, *, remove_aliases=True):
     wikilinks = _get_all_wikilinks_from_html_content(
         html_str, remove_aliases=remove_aliases)

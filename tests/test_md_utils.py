@@ -8,7 +8,8 @@ from obsidiantools.md_utils import (_get_all_wikilinks_from_html_content,
                                     _get_unique_md_links_from_ascii_plaintext,
                                     _get_html_from_md_file,
                                     _get_ascii_plaintext_from_md_file, get_embedded_files,
-                                    get_front_matter, get_tags, get_wikilinks)
+                                    get_front_matter, get_tags, get_wikilinks,
+                                    _get_all_latex_from_html_content)
 
 
 @pytest.fixture
@@ -228,3 +229,14 @@ def test_wikilinks_code_block():
         'tests/general/wikilinks_exclude-code.md')
     expected_links = []
     assert actual_links == expected_links
+
+
+def test_latex():
+    html = _get_html_from_md_file('tests/general/latex.md')
+    actual_latex_list = _get_all_latex_from_html_content(html)
+    expected_latex_list = ['\\beta', '\\beta',
+                           '\\hat{\\beta}_{GEE} \\xrightarrow{D} N(\\beta_{0}, \\Sigma(\\beta_{0}))',
+                           '\\beta',
+                           'U_{GEE}(\\beta, \\alpha, \\phi) = \\sum_{i=1}^{n} D_{i}^T~V_{i}(\\alpha; \\phi)^{-1} (y_{i} - \\mu_{i}) = 0 \\tag{1} \\label{eq1}',
+                           '\\eqref{eq1}']
+    assert actual_latex_list == expected_latex_list
