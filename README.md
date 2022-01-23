@@ -39,6 +39,7 @@ This is how **`obsidiantools`** can complement your workflows for note-taking:
         - e.g. `vault.get_backlinks(<NOTE>)` for the backlinks of an individual note
     - Front matter via `vault.get_front_matter(<NOTE>)` or `vault.front_matter_index`
     - Tags via `vault.get_tags(<NOTE>)` or `vault.tags_index`
+    - LaTeX math via `vault.get_math(<NOTE>)` or `vault.math_index`
     - Check which notes are isolated (`vault.isolated_notes`)
     - Check which notes do not exist as files yet (`vault.nonexistent_notes`)
     - Get text of note (via `vault.get_text(<NOTE>)`, as long as `gather()` has been called)
@@ -61,6 +62,7 @@ As of Sep 2021, NetworkX requires Python 3.7 or higher (similar for Pandas too) 
 ## 🖇️ Dependencies
 - Main libraries:
     - markdown
+    - pymdown-extensions
     - html2text
     - pandas
     - numpy
