@@ -257,7 +257,14 @@ def _get_md_front_matter_and_content(filepath):
 def _get_html_from_md_file(filepath):
     """md file -> html (without front matter)"""
     _, content = _get_md_front_matter_and_content(filepath)
-    return markdown.markdown(content, output_format='html')
+    html = markdown.markdown(content, output_format='html',
+                             extensions=['pymdownx.arithmatex',
+                                         'pymdownx.mark',
+                                         'pymdownx.tilde',
+                                         'pymdownx.saneheaders',
+                                         'sane_lists',
+                                         'tables'])
+    return html
 
 
 def _get_ascii_plaintext_from_html(html):
