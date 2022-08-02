@@ -143,7 +143,8 @@ def expected_front_matter_index():
                             'author': 'Ovid',
                             'category': 'literature',
                             'year': 8,
-                            'language': 'la'}}
+                            'language': 'la',
+                            'description': '\\{\\{description\\}\\}'}}
 
 
 @pytest.fixture
@@ -397,6 +398,11 @@ def test_front_matter_sussudio(actual_connected_vault):
 
     actual_fm = actual_connected_vault.get_front_matter('Sussudio')
     assert actual_fm == expected_fm
+
+
+def test_front_matter_constructorerror(actual_connected_vault):
+    actual_fm = actual_connected_vault.get_front_matter('Causam mihi')
+    assert actual_fm['description'] == '\\{\\{description\\}\\}'
 
 
 def test_embedded_files_sussudio(actual_connected_vault):

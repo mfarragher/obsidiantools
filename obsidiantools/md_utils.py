@@ -252,6 +252,13 @@ def _get_md_front_matter_and_content(filepath):
         # for invalid YAML, return the whole file as content:
         except yaml.scanner.ScannerError:
             return {}, file_string
+        # handle template {{}} chars in front matter:
+        except yaml.constructor.ConstructorError:
+            file_string_esc = file_string.translate(
+                str.maketrans({"{": r"\{",
+                               "}": r"\}"}))
+            return frontmatter.parse(file_string_esc)
+
 
 def _get_html_from_md_file(filepath):
     """md file -> html (without front matter)"""
@@ -264,6 +271,7 @@ def _get_html_from_md_file(filepath):
                                          'sane_lists',
                                          'tables'])
     return html
+
 
 def _get_ascii_plaintext_from_html(html):
     """html -> ASCII plaintext, via HTML2Text."""
