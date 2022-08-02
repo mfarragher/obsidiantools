@@ -247,12 +247,10 @@ def _get_md_front_matter_and_content(filepath):
     """parse md file into front matter and note content"""
     with open(filepath, encoding='utf-8') as f:
         try:
-            front_matter, content = frontmatter.parse(f.read())
+            file_string = f.read()
+            return frontmatter.parse(file_string)
         except yaml.scanner.ScannerError:
-            # for invalid YAML, return the whole file as content:
-            return {}, frontmatter.parse(f.read())
-    return (front_matter, content)
-
+            return {}, file_string
 
 def _get_html_from_md_file(filepath):
     """md file -> html (without front matter)"""
@@ -265,7 +263,6 @@ def _get_html_from_md_file(filepath):
                                          'sane_lists',
                                          'tables'])
     return html
-
 
 def _get_ascii_plaintext_from_html(html):
     """html -> ASCII plaintext, via HTML2Text."""
