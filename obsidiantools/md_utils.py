@@ -249,6 +249,7 @@ def _get_md_front_matter_and_content(filepath):
         try:
             file_string = f.read()
             return frontmatter.parse(file_string)
+        # for invalid YAML, return the whole file as content:
         except yaml.scanner.ScannerError:
             return {}, file_string
 
