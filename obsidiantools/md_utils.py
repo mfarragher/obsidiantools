@@ -26,7 +26,7 @@ def get_md_relpaths_from_dir(dir_path):
         list of Path objects
     """
     return [Path(p).relative_to(dir_path)
-            for p in glob(str(dir_path / '**/*.md'), recursive=True)]
+            for p in glob(f"{dir_path}/**/*.md", recursive=True)]
 
 
 def get_md_relpaths_matching_subdirs(dir_path, *,
