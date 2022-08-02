@@ -268,6 +268,8 @@ def _get_html_from_md_file(filepath):
                                          'pymdownx.mark',
                                          'pymdownx.tilde',
                                          'pymdownx.saneheaders',
+                                         'footnotes',
+                                         'md_mermaid',
                                          'sane_lists',
                                          'tables'],
                              extension_configs={'pymdownx.tilde':
