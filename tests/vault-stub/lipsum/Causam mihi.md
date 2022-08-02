@@ -4,6 +4,7 @@ author: Ovid
 category: literature
 year: 8
 language: la
+description: {{description}}
 ---
 # Causam mihi
 
