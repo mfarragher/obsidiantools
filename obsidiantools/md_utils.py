@@ -269,7 +269,9 @@ def _get_html_from_md_file(filepath):
                                          'pymdownx.tilde',
                                          'pymdownx.saneheaders',
                                          'sane_lists',
-                                         'tables'])
+                                         'tables'],
+                             extension_configs={'pymdownx.tilde':
+                                                {'subscript': False}})
     return html
 
 
