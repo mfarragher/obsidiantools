@@ -238,8 +238,6 @@ def _get_html2text_obj_with_config():
     txt_maker.body_width = 0
     txt_maker.protect_links = True
     txt_maker.wrap_links = False
-    # remove md formatting chars
-    txt_maker.ignore_emphasis = True
     return txt_maker
 
 
