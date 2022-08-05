@@ -8,6 +8,7 @@ from obsidiantools.md_utils import (_get_all_wikilinks_from_html_content,
                                     _get_unique_md_links_from_ascii_plaintext,
                                     _get_html_from_md_file,
                                     _get_ascii_plaintext_from_md_file, get_embedded_files,
+                                    _transform_md_file_string_for_tag_parsing,
                                     get_front_matter, get_tags, get_wikilinks,
                                     _get_all_latex_from_html_content)
 
@@ -205,6 +206,15 @@ def test_handle_invalid_front_matter():
         actual_output = get_front_matter(f)
         expected_output = {}
         assert actual_output == expected_output
+
+
+def test_hash_char_parsing_func():
+    # '\#' in md file keeps # but stops text from being a tag
+    in_str = "\#hash #tag"
+    out_str = _transform_md_file_string_for_tag_parsing(in_str)
+
+    expected_str = "hash #tag"
+    assert out_str == expected_str
 
 
 def test_sussudio_tags():
