@@ -223,7 +223,9 @@ def get_tags(filepath):
     Returns:
         list
     """
-    text_str = _get_ascii_plaintext_from_md_file(filepath, remove_code=True)
+    text_str = _get_ascii_plaintext_from_md_file(
+        filepath, remove_code=True,
+        str_transform_func=_transform_md_file_string_for_tag_parsing)
     text_str = _remove_wikilinks_from_ascii_plaintext(text_str)
     tags = _get_tags_from_ascii_plaintext(text_str)
     return tags
@@ -241,11 +243,13 @@ def _get_html2text_obj_with_config():
     return txt_maker
 
 
-def _get_md_front_matter_and_content(filepath):
+def _get_md_front_matter_and_content(filepath, *, str_transform_func=None):
     """parse md file into front matter and note content"""
     with open(filepath, encoding='utf-8') as f:
         try:
             file_string = f.read()
+            if str_transform_func:
+                file_string = str_transform_func(file_string)
             return frontmatter.parse(file_string)
         # for invalid YAML, return the whole file as content:
         except yaml.scanner.ScannerError:
@@ -258,9 +262,11 @@ def _get_md_front_matter_and_content(filepath):
             return frontmatter.parse(file_string_esc)
 
 
-def _get_html_from_md_file(filepath):
+def _get_html_from_md_file(filepath, *, str_transform_func=None):
     """md file -> html (without front matter)"""
-    _, content = _get_md_front_matter_and_content(filepath)
+    _, content = _get_md_front_matter_and_content(
+        filepath,
+        str_transform_func=str_transform_func)
     html = markdown.markdown(content, output_format='html',
                              extensions=['pymdownx.arithmatex',
                                          'pymdownx.mark',
@@ -282,10 +288,13 @@ def _get_ascii_plaintext_from_html(html):
     return doc
 
 
-def _get_ascii_plaintext_from_md_file(filepath, *, remove_code=False):
+def _get_ascii_plaintext_from_md_file(filepath, *,
+                                      remove_code=False, str_transform_func=None):
     """md file -> html -> ASCII plaintext"""
     # strip out front matter (if any):
-    html = _get_html_from_md_file(filepath)
+    html = _get_html_from_md_file(
+        filepath,
+        str_transform_func=str_transform_func)
     if remove_code:
         html = _remove_code(html)
     return _get_ascii_plaintext_from_html(html)
@@ -375,6 +384,10 @@ def _get_unique_md_links_from_ascii_plaintext(plaintext):
 
 def _remove_wikilinks_from_ascii_plaintext(plaintext):
     return re.sub(r'[\[]{2}.*[\]]{2}', '', plaintext)
+
+
+def _transform_md_file_string_for_tag_parsing(file_string):
+    return file_string.replace('\\#', '')
 
 
 def _get_tags_from_ascii_plaintext(plaintext):
