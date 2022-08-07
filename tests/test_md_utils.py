@@ -4,15 +4,16 @@ from glob import glob
 from obsidiantools.md_utils import (_get_all_wikilinks_from_source_text,
                                     _get_all_embedded_files_from_source_text,
                                     _get_unique_wikilinks,
-                                    _get_all_md_link_info_from_ascii_plaintext,
-                                    _get_unique_md_links_from_ascii_plaintext,
+                                    _get_all_md_link_info_from_source_text,
+                                    _get_unique_md_links_from_source_text,
                                     _get_html_from_md_file,
-                                    _get_source_plaintext_from_md_file, get_embedded_files,
+                                    _get_source_text_from_md_file, get_embedded_files,
                                     _transform_md_file_string_for_tag_parsing,
                                     get_front_matter, get_tags, get_wikilinks,
                                     _get_all_latex_from_html_content,
-                                    _remove_wikilinks_from_ascii_plaintext,
-                                    _replace_wikilinks_with_their_text)
+                                    _remove_wikilinks_from_source_text,
+                                    _replace_wikilinks_with_their_text,
+                                    _replace_md_links_with_their_text)
 
 
 @pytest.fixture
@@ -72,6 +73,13 @@ def txt_sussudio_stub():
 @pytest.fixture
 def txt_wikilink_extraction_stub():
     with open('tests/general/wikilinks_extraction.md') as f:
+        in_str = f.read()
+    return in_str
+
+
+@pytest.fixture
+def txt_md_link_extraction_stub():
+    with open('tests/general/md_links_extraction.md') as f:
         in_str = f.read()
     return in_str
 
@@ -147,7 +155,7 @@ def test_get_all_md_link_info(txt_md_links_stub):
                       'https://www.thetimes.co.uk/article/chancellor-alistair-darling-on-brink-of-second-bailout-for-banks-n9l382mn62h'),
                       ('ADA', 'https://cardano.org/')
                       ]
-    actual_links = _get_all_md_link_info_from_ascii_plaintext(txt_md_links_stub)
+    actual_links = _get_all_md_link_info_from_source_text(txt_md_links_stub)
 
     assert actual_links == expected_links
 
@@ -155,13 +163,13 @@ def test_get_all_md_link_info(txt_md_links_stub):
 def test_get_unique_md_links_has_order_preserved(txt_md_links_stub):
     expected_links = ['https://www.thetimes.co.uk/article/chancellor-alistair-darling-on-brink-of-second-bailout-for-banks-n9l382mn62h',
                       'https://cardano.org/']
-    actual_links = _get_unique_md_links_from_ascii_plaintext(txt_md_links_stub)
+    actual_links = _get_unique_md_links_from_source_text(txt_md_links_stub)
 
     assert actual_links == expected_links
 
 
 def test_get_unique_md_links_has_unique_links(txt_md_links_stub):
-    actual_links = _get_unique_md_links_from_ascii_plaintext(txt_md_links_stub)
+    actual_links = _get_unique_md_links_from_source_text(txt_md_links_stub)
     assert len(set(actual_links)) == len(actual_links)
 
 
@@ -194,7 +202,7 @@ def test_front_matter_only_parsing():
     fm_only_files = glob('tests/general/frontmatter-only*.md',
                          recursive=True)
     for f in fm_only_files:
-        actual_txt = _get_source_plaintext_from_md_file(f)
+        actual_txt = _get_source_text_from_md_file(f)
         expected_txt = '\n'
         assert actual_txt == expected_txt
 
@@ -262,7 +270,7 @@ def test_latex():
 
 
 def test_remove_wikilinks(txt_wikilink_extraction_stub):
-    out_str = _remove_wikilinks_from_ascii_plaintext(
+    out_str = _remove_wikilinks_from_source_text(
         txt_wikilink_extraction_stub)
 
     expected_str = "\n" * 6
@@ -274,4 +282,17 @@ def test_wikilinks_as_readable_text(txt_wikilink_extraction_stub):
         txt_wikilink_extraction_stub)
 
     expected_str = "\n".join(["A", "B", "see", "dee", "ee", "A"]) + "\n"
+    assert out_str == expected_str
+
+
+def test_md_links_as_readable_text(txt_md_link_extraction_stub):
+    out_str = _replace_md_links_with_their_text(
+        txt_md_link_extraction_stub)
+
+    expected_str = (
+        """Obsidian.md homepage
+Github homepage
+https://obsidian.md
+Github homepage
+""")
     assert out_str == expected_str
