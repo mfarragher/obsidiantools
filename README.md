@@ -70,6 +70,7 @@ As of Aug 2022, NetworkX and Pandas require Python 3.8 or higher, so 3.8 is the 
     - `python-frontmatter`
     - `beautifulsoup4`
     - `lxml`
+    - `bleach`
 
 All of these libraries are needed so that the package can separate note text from front matter in a generalised approach.
 
