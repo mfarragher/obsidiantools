@@ -225,24 +225,21 @@ class Vault:
 
         return self  # fluent
 
-    def gather(self, *, remove_code=True):
+    def gather(self):
         """gather the content of your notes so that all the plaintext is
         stored in one place for easy access.  The content of each note is
         stored in the source_text_index attribute.
 
         With your vault connected, gather your note content through:
             vault.gather()
-
-        Args:
-            remove_code (Bool): remove code blocks from the note content.
-                Defaults to True.
         """
         if not self._is_connected:
             raise AttributeError('Connect vault before gathering notes.')
 
+        # source text will not remove any content:
         self._source_text_index = {
             k: _get_source_plaintext_from_md_file(self._dirpath / v,
-                                                  remove_code=remove_code)
+                                                  remove_code=False)
             for k, v in self._file_index.items()}
 
         self._is_gathered = True
