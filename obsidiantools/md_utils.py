@@ -10,7 +10,8 @@ import frontmatter
 # wikilink regex: regex that includes any aliases
 WIKILINK_REGEX = r'(!)?\[{2}([^\]\]]+)\]{2}'
 # md links regex: catch URLs or paths
-INLINE_LINK_REGEX = r'\[([^\]]+)\]\(<([^)]+)>\)'
+INLINE_LINK_AFTER_HTML_PROC_REGEX = r'\[([^\]]+)\]\(<([^)]+)>\)'
+INLINE_LINK_VIA_MD_ONLY_REGEX = r'\[([^\]]+)\]\(([^)]+)\)'
 
 
 def get_md_relpaths_from_dir(dir_path):
@@ -99,7 +100,7 @@ def get_wikilinks(filepath):
     Returns:
         list of strings
     """
-    src_txt = _get_source_plaintext_from_md_file(filepath, remove_code=True)
+    src_txt = _get_source_text_from_md_file(filepath, remove_code=True)
 
     wikilinks = _get_all_wikilinks_from_source_text(
         src_txt, remove_aliases=True)
@@ -123,7 +124,7 @@ def get_embedded_files(filepath):
     Returns:
         list of strings
     """
-    src_txt = _get_source_plaintext_from_md_file(filepath, remove_code=True)
+    src_txt = _get_source_text_from_md_file(filepath, remove_code=True)
 
     files = _get_all_embedded_files_from_source_text(
         src_txt, remove_aliases=True)
@@ -147,7 +148,7 @@ def get_unique_wikilinks(filepath):
     Returns:
         list of strings
     """
-    src_txt = _get_source_plaintext_from_md_file(filepath, remove_code=True)
+    src_txt = _get_source_text_from_md_file(filepath, remove_code=True)
 
     wikilinks = _get_unique_wikilinks(src_txt, remove_aliases=True)
     return wikilinks
@@ -168,13 +169,13 @@ def get_md_links(filepath):
     Returns:
         list of strings
     """
-    src_txt = _get_source_plaintext_from_md_file(filepath, remove_code=True)
+    src_txt = _get_source_text_from_md_file(filepath, remove_code=True)
 
-    links = _get_all_md_link_info_from_ascii_plaintext(src_txt)
-    if links:  # links only, not their text
+    links = _get_all_md_link_info_from_source_text(src_txt)
+    if links:  # return links only, not their text
         return [t[-1] for t in links]
     else:
-        return links
+        return links  # empty list
 
 
 def get_unique_md_links(filepath):
@@ -192,9 +193,9 @@ def get_unique_md_links(filepath):
     Returns:
         list of strings
     """
-    src_txt = _get_source_plaintext_from_md_file(filepath, remove_code=True)
+    src_txt = _get_source_text_from_md_file(filepath, remove_code=True)
 
-    links = _get_unique_md_links_from_ascii_plaintext(src_txt)
+    links = _get_unique_md_links_from_source_text(src_txt)
     return links
 
 
@@ -226,12 +227,12 @@ def get_tags(filepath):
         list
     """
     # get text from source file, but remove any '\#' and code:
-    src_txt = _get_source_plaintext_from_md_file(
+    src_txt = _get_source_text_from_md_file(
         filepath, remove_code=True,
         str_transform_func=_transform_md_file_string_for_tag_parsing)
     # remove wikilinks so that '#' headers are not caught:
-    src_txt = _remove_wikilinks_from_ascii_plaintext(src_txt)
-    tags = _get_tags_from_ascii_plaintext(src_txt)
+    src_txt = _remove_wikilinks_from_source_text(src_txt)
+    tags = _get_tags_from_source_text(src_txt)
     return tags
 
 
@@ -297,8 +298,8 @@ def _get_source_plaintext_from_html(html):
     return doc
 
 
-def _get_source_plaintext_from_md_file(filepath, *,
-                                       remove_code=False, str_transform_func=None):
+def _get_source_text_from_md_file(filepath, *,
+                                  remove_code=False, str_transform_func=None):
     """md file -> html (without front matter) -> ASCII plaintext"""
     # strip out front matter (if any):
     html = _get_html_from_md_file(
@@ -345,7 +346,7 @@ def _get_all_wikilinks_from_source_text(html_str, *, remove_aliases=True):
 
 
 def _get_all_embedded_files_from_source_text(html_str, *,
-                                              remove_aliases=True):
+                                             remove_aliases=True):
     matches_list = _get_all_wikilinks_and_embedded_files(html_str)
     embedded_files_sublist = [g[1] for g in matches_list
                               if g[0] == '!']
@@ -376,21 +377,21 @@ def _get_unique_wikilinks(html_str, *, remove_aliases=True):
     return list(dict.fromkeys(wikilinks))
 
 
-def _get_all_md_link_info_from_ascii_plaintext(plaintext):
-    regex = re.compile(INLINE_LINK_REGEX)
+def _get_all_md_link_info_from_source_text(plaintext):
+    links_regex = re.compile(INLINE_LINK_AFTER_HTML_PROC_REGEX)
 
-    links_list_of_tuples = list(regex.findall(plaintext))
+    links_list_of_tuples = list(links_regex.findall(plaintext))
     return links_list_of_tuples
 
 
-def _get_unique_md_links_from_ascii_plaintext(plaintext):
-    links_detail = _get_all_md_link_info_from_ascii_plaintext(
+def _get_unique_md_links_from_source_text(plaintext):
+    links_detail = _get_all_md_link_info_from_source_text(
         plaintext)
     links_list = [link for _, link in links_detail]
     return list(dict.fromkeys(links_list))
 
 
-def _remove_wikilinks_from_ascii_plaintext(plaintext):
+def _remove_wikilinks_from_source_text(plaintext):
     return re.sub(WIKILINK_REGEX, '', plaintext)
 
 
@@ -398,17 +399,17 @@ def _transform_md_file_string_for_tag_parsing(file_string):
     return file_string.replace('\\#', '')
 
 
-def _get_tags_from_ascii_plaintext(plaintext):
+def _get_tags_from_source_text(plaintext):
     tags_regex = r'(?<!\()#{1}([A-z]+[0-9_\-]*[A-Z0-9]?)\/?'
     pattern = re.compile(tags_regex)
     tags_list = pattern.findall(plaintext)
     return tags_list
 
 
-def _replace_wikilinks_with_their_text(html_str):
+def _replace_wikilinks_with_their_text(src_txt):
     # get list of wikilinks as strings:
     links_list = _get_all_wikilinks_from_source_text(
-        html_str, remove_aliases=False)
+        src_txt, remove_aliases=False)
 
     # get links in their text format:
     readable_text_list = [(i.replace('\\', '')
@@ -417,8 +418,8 @@ def _replace_wikilinks_with_their_text(html_str):
                            .strip())
                           for i in links_list]
 
-    # loop over html content to replace "[[...]]" wikilinks w/ readable text:
-    out_str = html_str
+    # loop over txt content to replace "[[...]]" wikilinks w/ readable text:
+    out_str = src_txt
     links_w_brackets_list = ["".join(["[[", i, "]]"]) for i in links_list]
     switch_dict = dict(zip(links_w_brackets_list, readable_text_list))
 
@@ -427,5 +428,19 @@ def _replace_wikilinks_with_their_text(html_str):
     return out_str
 
 
-def _replace_md_links_with_their_text(html_str):
-    pass
+def _replace_md_links_with_their_text(src_txt):
+    # get list of wikilinks as strings:
+    matched_text_list = re.findall(r'\[[^\]]+\]\([^)]+\)', src_txt)
+    # get the detail from groups:
+    links_detail = re.findall(INLINE_LINK_VIA_MD_ONLY_REGEX, src_txt)
+
+    # get links in their text format:
+    readable_text_list = [text for text, _ in links_detail]
+
+    # loop over txt content to replace md links w/ readable text:
+    out_str = src_txt
+    switch_dict = dict(zip(matched_text_list, readable_text_list))
+
+    for k, v in switch_dict.items():
+        out_str = out_str.replace(k, v)
+    return out_str

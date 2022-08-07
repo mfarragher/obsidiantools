@@ -12,7 +12,7 @@ from .md_utils import (get_md_relpaths_matching_subdirs, get_unique_md_links,
                        get_embedded_files,
                        get_front_matter,
                        get_tags,
-                       _get_source_plaintext_from_md_file,
+                       _get_source_text_from_md_file,
                        _get_all_latex_from_md_file)
 
 
@@ -238,8 +238,8 @@ class Vault:
 
         # source text will not remove any content:
         self._source_text_index = {
-            k: _get_source_plaintext_from_md_file(self._dirpath / v,
-                                                  remove_code=False)
+            k: _get_source_text_from_md_file(self._dirpath / v,
+                                             remove_code=False)
             for k, v in self._file_index.items()}
 
         self._is_gathered = True
