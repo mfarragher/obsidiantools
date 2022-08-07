@@ -50,7 +50,7 @@ Check out the functionality in the demo repo.  Launch the '10 minutes' demo in a
 
 There are other API features that try to mirror the Obsidian.md app, for your convenience when working with Python, but they are no substitute for the interactivity of the app!
 
-The text from vault notes goes through this process: markdown → HTML → process front matter → ASCII plaintext.  The functions for text processing are in the `md_utils` module so they can be used to get text, e.g. for use in NLP analysis.
+The text from vault notes goes through this process: markdown → split out front matter from text → HTML → ASCII plaintext.  The functions for text processing are in the `md_utils` module so they can be used to get text, e.g. for use in NLP analysis.
 
 ## ⏲️ Installation
 ``pip install obsidiantools``
@@ -61,16 +61,17 @@ As of Sep 2021, NetworkX requires Python 3.7 or higher (similar for Pandas too) 
 
 ## 🖇️ Dependencies
 - Main libraries:
-    - markdown
-    - pymdown-extensions
-    - html2text
-    - pandas
-    - numpy
-    - networkx
-- Libraries for parsing front matter:
-    - python-frontmatter
-    - beautifulsoup4
-    - lxml
+    - `markdown`
+    - `pymdown-extensions`
+    - `html2text`
+    - `pandas`
+    - `numpy`
+    - `networkx`
+    - `md-mermaid`
+- Libraries for front matte and HTML:
+    - `python-frontmatter`
+    - `beautifulsoup4`
+    - `lxml`
 
 All of these libraries are needed so that the package can separate note text from front matter in a generalised approach.
 

@@ -46,11 +46,36 @@ Copyright (c) 2004-2021, NetworkX Developers
 Licence (BSD): https://github.com/networkx/networkx/blob/main/LICENSE.txt
 
 markdown
-Project code: https://python-markdown.github.io/
+Project code: https://python-markdown.github.io
 Copyright (c) 2007, 2008 The Python Markdown Project (v. 1.7 and later)
 Licence (BSD): https://github.com/Python-Markdown/markdown/blob/master/LICENSE.md
 
 html2text
-Project code: https://github.com/Alir3z4/html2text/
+Project code: https://github.com/Alir3z4/html2text
 Copyright (c) 2007, html2text developers (see https://github.com/Alir3z4/html2text/blob/master/AUTHORS.rst)
 Licence (GPL 3): https://github.com/Alir3z4/html2text/blob/master/COPYING
+
+pymdown-extensions
+Project code: https://github.com/facelessuser/pymdown-extensions
+Copyright (c) 2014-2022 Isaac Muse
+Licence (MIT): https://github.com/facelessuser/pymdown-extensions/blob/main/LICENSE.md
+
+md-mermaid
+Project code: https://github.com/oruelle/md_mermaid
+Copyright (c) 2019 Olivier Ruelle
+Licence (GPL 3): https://github.com/oruelle/md_mermaid/blob/master/LICENSE
+
+python-frontmatter
+Project code: https://github.com/eyeseast/python-frontmatter
+Copyright (c) 2021 Chris Amico
+Licence (MIT): https://github.com/eyeseast/python-frontmatter/blob/main/LICENSE
+
+beautifulsoup4
+Project code: https://www.crummy.com/software/BeautifulSoup
+Copyright (c) 2004-2022 Leonard Richardson
+Licence (MIT)
+
+lxml
+Project code: https://github.com/lxml/lxml
+Copyright (c) 2004 Infrae
+Licence (BSD): https://github.com/lxml/lxml/blob/master/doc/licenses/BSD.txt
