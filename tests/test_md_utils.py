@@ -1,8 +1,8 @@
 import pytest
 from glob import glob
 
-from obsidiantools.md_utils import (_get_all_wikilinks_from_html_content,
-                                    _get_all_embedded_files_from_html_content,
+from obsidiantools.md_utils import (_get_all_wikilinks_from_source_text,
+                                    _get_all_embedded_files_from_source_text,
                                     _get_unique_wikilinks,
                                     _get_all_md_link_info_from_ascii_plaintext,
                                     _get_unique_md_links_from_ascii_plaintext,
@@ -76,8 +76,8 @@ def txt_wikilink_extraction_stub():
     return in_str
 
 
-def test_get_all_wikilinks_from_html_content(html_wikilinks_stub):
-    actual_results = _get_all_wikilinks_from_html_content(html_wikilinks_stub)
+def test_get_all_wikilinks_from_source_text(html_wikilinks_stub):
+    actual_results = _get_all_wikilinks_from_source_text(html_wikilinks_stub)
     expected_results = ['Shopping list', 'Bananas', 'Banana splits',
                         'Apples',
                         'Flour', 'Flower',
@@ -88,8 +88,8 @@ def test_get_all_wikilinks_from_html_content(html_wikilinks_stub):
     assert actual_results == expected_results
 
 
-def test_get_all_wikilinks_from_html_content_keep_aliases(html_wikilinks_stub):
-    actual_results = _get_all_wikilinks_from_html_content(
+def test_get_all_wikilinks_from_source_text_keep_aliases(html_wikilinks_stub):
+    actual_results = _get_all_wikilinks_from_source_text(
         html_wikilinks_stub, remove_aliases=False)
     expected_results = ['Shopping list | shopping list',
                         'Bananas', 'Banana splits',
@@ -104,17 +104,17 @@ def test_get_all_wikilinks_from_html_content_keep_aliases(html_wikilinks_stub):
     assert actual_results == expected_results
 
 
-def test_get_all_embedded_files_from_html_content(html_wikilinks_stub):
-    actual_results = _get_all_embedded_files_from_html_content(
+def test_get_all_embedded_files_from_source_text(html_wikilinks_stub):
+    actual_results = _get_all_embedded_files_from_source_text(
         html_wikilinks_stub)
     expected_results = ['Egg.jpg', 'Easter egg.png', 'Egg.jpg']
 
     assert actual_results == expected_results
 
 
-def test_get_all_embedded_files_from_html_content_keep_aliases(
+def test_get_all_embedded_files_from_source_text_keep_aliases(
         html_wikilinks_stub):
-    actual_results = _get_all_embedded_files_from_html_content(
+    actual_results = _get_all_embedded_files_from_source_text(
         html_wikilinks_stub, remove_aliases=False)
     expected_results = ['Egg.jpg', 'Easter egg.png', 'Egg.jpg | 125']
 
