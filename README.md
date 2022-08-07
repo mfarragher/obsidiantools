@@ -43,16 +43,16 @@ This is how **`obsidiantools`** can complement your workflows for note-taking:
     - Check which notes are isolated (`vault.isolated_notes`)
     - Check which notes do not exist as files yet (`vault.nonexistent_notes`)
     - As long as `gather()` is called:
-        - Get source text of note (via `vault.get_source_text(<NOTE>)`).  This tries to represent how a note's text appears in 'source mode'.
+        - Get source text of note (via `vault.get_source_text(<NOTE>)`).  This tries to represent how a note's text appears in Obsidian's 'source mode'.
         - Get readable text of note (via `vault.get_readable_text(<NOTE>)`).  This tries to reduce note text to minimal markdown formatting, e.g. preserving paragraphs, headers and punctuation.  Only slight processing is needed for various forms of NLP analysis.
 
-Check out the functionality in the demo repo.  Launch the '10 minutes' demo in a virtual machine via Binder:
+Check out the functionality in the demo repo.  Launch the '15 minutes' demo in a virtual machine via Binder:
 
-[![Documentation](https://img.shields.io/badge/docs-obsidiantools--demo-orange)](https://github.com/mfarragher/obsidiantools-demo) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/mfarragher/obsidiantools-demo/HEAD?filepath=obsidiantools%20in%2010%20minutes.ipynb)
+[![Documentation](https://img.shields.io/badge/docs-obsidiantools--demo-orange)](https://github.com/mfarragher/obsidiantools-demo) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/mfarragher/obsidiantools-demo/HEAD?filepath=obsidiantools%20in%2015%20minutes.ipynb)
 
 There are other API features that try to mirror the Obsidian.md app, for your convenience when working with Python, but they are no substitute for the interactivity of the app!
 
-The text from vault notes goes through this process: markdown → split out front matter from text → HTML → ASCII plaintext.  The functions for text processing are in the `md_utils` module so they can be used to get text, e.g. for use in NLP analysis.
+The text from vault notes goes through this process: markdown → split out front matter from text → HTML → ASCII plaintext.
 
 ## ⏲️ Installation
 ``pip install obsidiantools``
