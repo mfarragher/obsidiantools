@@ -13,6 +13,7 @@ from .md_utils import (get_md_relpaths_matching_subdirs, get_unique_md_links,
                        get_front_matter,
                        get_tags,
                        _get_source_text_from_md_file,
+                       _get_readable_text_from_md_file,
                        _get_all_latex_from_md_file)
 
 
@@ -85,6 +86,7 @@ class Vault:
             isolated_notes
             graph
             source_text_index
+            readable_text_index
             is_connected
             is_gathered
         """
@@ -107,6 +109,7 @@ class Vault:
         self._isolated_notes = []
         self._front_matter_index = {}
         self._source_text_index = {}
+        self._readable_text_index = {}
 
     @property
     def dirpath(self):
@@ -193,9 +196,23 @@ class Vault:
 
     @property
     def source_text_index(self):
-        """dict of strings: filename (k) to plaintext string (v).  v is ''
-        if k has no text."""
+        """dict of strings: filename (k) to source text string (v).  v is ''
+        if k has no text.
+
+        Source text aims to preserve as much of the text written to a file
+        as possible.  This is done through the use of pymarkdown extensions
+        to maintain the additional markdown features that Obsidian uses."""
         return self._source_text_index
+
+    @property
+    def readable_text_index(self):
+        """dict of strings: filename (k) to 'readable' string (v).  v is ''
+        if k has no text.
+
+        Readable text has all the main formatting removed.  This makes it
+        easier to use the text for NLP analysis, with minimal processing
+        needed, while still maintaining the meaning of text."""
+        return self._readable_text_index
 
     def connect(self):
         """connect your notes together by representing the vault as a
@@ -225,13 +242,27 @@ class Vault:
 
         return self  # fluent
 
-    def gather(self):
+    def gather(self, *, tags=None):
         """gather the content of your notes so that all the plaintext is
-        stored in one place for easy access.  The content of each note is
-        stored in the source_text_index attribute.
+        stored in one place for easy access.
+
+        The content of each note is stored in the source_text_index attribute.
+        This enables text from the files to be accessible in one place.
+
+        The stripped down content of the notes' text is stored in the
+        readable_text_index attribute.  This enables text to be used more
+        easily in NLP analysis.
 
         With your vault connected, gather your note content through:
             vault.gather()
+
+        Args:
+            tags (list, optional): Defaults to None, to keep all headers
+                and paragraph formatting in the readable_text for notes.
+                Otherwise specify a list of HTML tags to use to preserve
+                their formatting in the final text.  For example, tags=[]
+                will remove all header formatting (e.g. '#', '##' chars)
+                and produces a one-line string.
         """
         if not self._is_connected:
             raise AttributeError('Connect vault before gathering notes.')
@@ -240,6 +271,10 @@ class Vault:
         self._source_text_index = {
             k: _get_source_text_from_md_file(self._dirpath / v,
                                              remove_code=False)
+            for k, v in self._file_index.items()}
+        self._readable_text_index = {
+            k: _get_readable_text_from_md_file(self._dirpath / v,
+                                               tags=tags)
             for k, v in self._file_index.items()}
 
         self._is_gathered = True
@@ -400,9 +435,7 @@ class Vault:
 
     def get_source_text(self, file_name):
         """Get text for a note (given its filename).  This requires the vault
-        functions 'connect' AND 'gather' to have been called.  Change the
-        arguments of the 'gather' function to specify how the text of notes
-        should be read, e.g. whether code blocks should be included.
+        functions 'connect' AND 'gather' to have been called.
 
         Text can only appear in notes that already exist, so if a
         note is not in the file_index at all then the function will raise
@@ -421,6 +454,33 @@ class Vault:
             raise ValueError('"{}" does not exist so it cannot have text.'.format(file_name))
         else:
             return self._source_text_index[file_name]
+
+    def get_readable_text(self, file_name):
+        """Get readable text for a note (given its filename).
+        This requires the vault functions 'connect' AND 'gather' to have
+        been called.
+        
+        Change the arguments of the 'gather' function to specify how the text
+        output should be stored, e.g. whether all HTML tags should be removed
+        before the final output.
+
+        Text can only appear in notes that already exist, so if a
+        note is not in the file_index at all then the function will raise
+        a ValueError.
+
+        Args:
+            file_name (str): the filename string that is in the file_index.
+                This is NOT the filepath!
+
+        Returns:
+            str
+        """
+        if not self._is_gathered:
+            raise AttributeError('Gather notes before calling the function')
+        if file_name not in self._file_index:
+            raise ValueError('"{}" does not exist so it cannot have text.'.format(file_name))
+        else:
+            return self._readable_text_index[file_name]
 
     def _get_md_relpaths(self, **kwargs):
         """Return list of filepaths *relative* to the directory instantiated
