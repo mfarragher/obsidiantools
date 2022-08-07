@@ -67,7 +67,7 @@ class Vault:
             get_front_matter
             get_md_links
             get_tags
-            get_text
+            get_source_text
 
         Methods for analysis across multiple notes:
             get_note_metadata
@@ -84,7 +84,7 @@ class Vault:
             nonexistent_notes
             isolated_notes
             graph
-            text_index
+            source_text_index
             is_connected
             is_gathered
         """
@@ -106,7 +106,7 @@ class Vault:
         self._nonexistent_notes = []
         self._isolated_notes = []
         self._front_matter_index = {}
-        self._text_index = {}
+        self._source_text_index = {}
 
     @property
     def dirpath(self):
@@ -192,10 +192,10 @@ class Vault:
         return self._is_gathered
 
     @property
-    def text_index(self):
+    def source_text_index(self):
         """dict of strings: filename (k) to plaintext string (v).  v is ''
         if k has no text."""
-        return self._text_index
+        return self._source_text_index
 
     def connect(self):
         """connect your notes together by representing the vault as a
@@ -228,7 +228,7 @@ class Vault:
     def gather(self, *, remove_code=True):
         """gather the content of your notes so that all the plaintext is
         stored in one place for easy access.  The content of each note is
-        stored in the text_index attribute.
+        stored in the source_text_index attribute.
 
         With your vault connected, gather your note content through:
             vault.gather()
@@ -240,7 +240,7 @@ class Vault:
         if not self._is_connected:
             raise AttributeError('Connect vault before gathering notes.')
 
-        self._text_index = {
+        self._source_text_index = {
             k: _get_source_plaintext_from_md_file(self._dirpath / v,
                                                   remove_code=remove_code)
             for k, v in self._file_index.items()}
@@ -401,7 +401,7 @@ class Vault:
         else:
             return self._tags_index[file_name]
 
-    def get_text(self, file_name):
+    def get_source_text(self, file_name):
         """Get text for a note (given its filename).  This requires the vault
         functions 'connect' AND 'gather' to have been called.  Change the
         arguments of the 'gather' function to specify how the text of notes
@@ -423,7 +423,7 @@ class Vault:
         if file_name not in self._file_index:
             raise ValueError('"{}" does not exist so it cannot have text.'.format(file_name))
         else:
-            return self._text_index[file_name]
+            return self._source_text_index[file_name]
 
     def _get_md_relpaths(self, **kwargs):
         """Return list of filepaths *relative* to the directory instantiated
