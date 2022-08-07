@@ -13,6 +13,7 @@ INSTALL_REQUIRES = [
     "networkx",
     "python-frontmatter",
     "beautifulsoup4",
+    "bleach",
     "lxml",
     "md-mermaid"]
 

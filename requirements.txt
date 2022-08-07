@@ -6,5 +6,6 @@ numpy
 networkx
 python-frontmatter
 beautifulsoup4
+bleach
 lxml  # front matter parsing
 md-mermaid
