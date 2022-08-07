@@ -7,7 +7,7 @@ import markdown
 import html2text
 import frontmatter
 
-# basic wikilink regex that includes any aliases
+# wikilink regex that includes any aliases
 WIKILINK_REGEX = r'(!)?\[{2}([^\]\]]+)\]{2}'
 
 
@@ -388,7 +388,7 @@ def _get_unique_md_links_from_ascii_plaintext(plaintext):
 
 
 def _remove_wikilinks_from_ascii_plaintext(plaintext):
-    return re.sub(r'[\[]{2}.*[\]]{2}', '', plaintext)
+    return re.sub(WIKILINK_REGEX, '', plaintext)
 
 
 def _transform_md_file_string_for_tag_parsing(file_string):

@@ -10,7 +10,8 @@ from obsidiantools.md_utils import (_get_all_wikilinks_from_html_content,
                                     _get_ascii_plaintext_from_md_file, get_embedded_files,
                                     _transform_md_file_string_for_tag_parsing,
                                     get_front_matter, get_tags, get_wikilinks,
-                                    _get_all_latex_from_html_content)
+                                    _get_all_latex_from_html_content,
+                                    _remove_wikilinks_from_ascii_plaintext)
 
 
 @pytest.fixture
@@ -250,3 +251,12 @@ def test_latex():
                            'U_{GEE}(\\beta, \\alpha, \\phi) = \\sum_{i=1}^{n} D_{i}^T~V_{i}(\\alpha; \\phi)^{-1} (y_{i} - \\mu_{i}) = 0 \\tag{1} \\label{eq1}',
                            '\\eqref{eq1}']
     assert actual_latex_list == expected_latex_list
+
+
+def test_remove_wikilinks():
+    with open('tests/general/wikilinks_extraction.md') as f:
+        in_str = f.read()
+        out_str = _remove_wikilinks_from_ascii_plaintext(in_str)
+
+    expected_str = "\n" * 6
+    assert out_str == expected_str
