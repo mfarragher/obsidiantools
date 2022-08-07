@@ -2,11 +2,12 @@ import re
 import yaml
 from pathlib import Path
 from glob import glob
-from bs4 import BeautifulSoup
 import markdown
-import html2text
 import frontmatter
-import bleach
+from .html_processing import (_get_source_plaintext_from_html,
+                              _remove_code, _remove_latex, _remove_del_text,
+                              _remove_main_formatting,
+                              _get_all_latex_from_html_content)
 
 # wikilink regex: regex that includes any aliases
 WIKILINK_REGEX = r'(!)?\[{2}([^\]\]]+)\]{2}'
@@ -237,18 +238,6 @@ def get_tags(filepath):
     return tags
 
 
-def _get_html2text_obj_with_config():
-    """Get HTML2Text object with config set."""
-    txt_maker = html2text.HTML2Text()
-
-    # some settings to avoid newline problems with links
-    txt_maker.ignore_links = False
-    txt_maker.body_width = 0
-    txt_maker.protect_links = True
-    txt_maker.wrap_links = False
-    return txt_maker
-
-
 def _get_md_front_matter_and_content(filepath, *, str_transform_func=None):
     """parse md file into front matter and note content"""
     with open(filepath, encoding='utf-8') as f:
@@ -292,13 +281,6 @@ def _get_html_from_md_file(filepath, *, str_transform_func=None):
     return html
 
 
-def _get_source_plaintext_from_html(html):
-    """html -> ASCII plaintext, via HTML2Text."""
-    txt_maker = _get_html2text_obj_with_config()
-    doc = txt_maker.handle(html)
-    return doc
-
-
 def _get_source_text_from_md_file(filepath, *,
                                   remove_code=False, str_transform_func=None):
     """md file -> html (without front matter) -> ASCII plaintext"""
@@ -312,7 +294,7 @@ def _get_source_text_from_md_file(filepath, *,
 
 
 def _get_readable_text_from_md_file(filepath, *, tags=None):
-    """md file -> ... -> ASCII plaintext with major formatting removed."""
+    """md file -> html -> plaintext with major formatting removed."""
     # strip out front matter (if any):
     html = _get_html_from_md_file(
         filepath)
@@ -331,41 +313,11 @@ def _get_readable_text_from_md_file(filepath, *, tags=None):
     return _get_source_plaintext_from_html(html)
 
 
-def _remove_code(html):
-    # exclude 'code' tags from link output:
-    soup = BeautifulSoup(html, 'lxml')
-    for s in soup.select('code'):
-        s.extract()
-    html_str = str(soup)
-    return html_str
-
-
-def _remove_del_text(html):
-    soup = BeautifulSoup(html, 'lxml')
-    for s in soup.select('del'):
-        s.extract()
-    html_str = str(soup)
-    return html_str
-
-
-def _remove_main_formatting(html, *,
-                            tags=['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6']):
-    return bleach.clean(html, tags=tags, strip=True)
-
-
-def _remove_latex(html):
-    soup = BeautifulSoup(html, 'lxml')
-    for s in soup.select('span', {'class': 'MathJax_Preview'}):
-        s.extract()
-    html_str = str(soup)
-    return html_str
-
-
-def _get_all_wikilinks_and_embedded_files(html):
+def _get_all_wikilinks_and_embedded_files(src_txt):
     # extract links
     pattern = re.compile(WIKILINK_REGEX)
 
-    link_matches_list = pattern.findall(html)
+    link_matches_list = pattern.findall(src_txt)
     return link_matches_list
 
 
@@ -376,8 +328,8 @@ def _remove_aliases_from_wikilink_regex_matches(link_matches_list):
             for i in link_matches_list]
 
 
-def _get_all_wikilinks_from_source_text(html_str, *, remove_aliases=True):
-    matches_list = _get_all_wikilinks_and_embedded_files(html_str)
+def _get_all_wikilinks_from_source_text(src_txt, *, remove_aliases=True):
+    matches_list = _get_all_wikilinks_and_embedded_files(src_txt)
     link_matches_list = [g[1] for g in matches_list
                          if g[0] == '']
 
@@ -387,9 +339,9 @@ def _get_all_wikilinks_from_source_text(html_str, *, remove_aliases=True):
     return link_matches_list
 
 
-def _get_all_embedded_files_from_source_text(html_str, *,
+def _get_all_embedded_files_from_source_text(src_txt, *,
                                              remove_aliases=True):
-    matches_list = _get_all_wikilinks_and_embedded_files(html_str)
+    matches_list = _get_all_wikilinks_and_embedded_files(src_txt)
     embedded_files_sublist = [g[1] for g in matches_list
                               if g[0] == '!']
 
@@ -399,52 +351,43 @@ def _get_all_embedded_files_from_source_text(html_str, *,
     return embedded_files_sublist
 
 
-def _get_all_latex_from_html_content(html):
-    soup = BeautifulSoup(html, 'html.parser')
-
-    s_content = soup.find_all('span', {'class': 'MathJax_Preview'},
-                              text=True)
-    latex_found_list = [i.text for i in s_content]
-    return latex_found_list
-
-
 def _get_all_latex_from_md_file(filepath):
     return _get_all_latex_from_html_content(
         _get_html_from_md_file(filepath))
 
 
-def _get_unique_wikilinks(html_str, *, remove_aliases=True):
+def _get_unique_wikilinks(src_txt, *, remove_aliases=True):
     wikilinks = _get_all_wikilinks_from_source_text(
-        html_str, remove_aliases=remove_aliases)
+        src_txt, remove_aliases=remove_aliases)
     return list(dict.fromkeys(wikilinks))
 
 
-def _get_all_md_link_info_from_source_text(plaintext):
+def _get_all_md_link_info_from_source_text(src_txt):
     links_regex = re.compile(INLINE_LINK_AFTER_HTML_PROC_REGEX)
 
-    links_list_of_tuples = list(links_regex.findall(plaintext))
+    links_list_of_tuples = list(links_regex.findall(src_txt))
     return links_list_of_tuples
 
 
-def _get_unique_md_links_from_source_text(plaintext):
+def _get_unique_md_links_from_source_text(src_txt):
     links_detail = _get_all_md_link_info_from_source_text(
-        plaintext)
+        src_txt)
     links_list = [link for _, link in links_detail]
     return list(dict.fromkeys(links_list))
 
 
-def _remove_wikilinks_from_source_text(plaintext):
-    return re.sub(WIKILINK_REGEX, '', plaintext)
+def _remove_wikilinks_from_source_text(src_txt):
+    return re.sub(WIKILINK_REGEX, '', src_txt)
 
 
-def _transform_md_file_string_for_tag_parsing(file_string):
-    return file_string.replace('\\#', '')
+def _transform_md_file_string_for_tag_parsing(txt):
+    return txt.replace('\\#', '')
 
 
-def _get_tags_from_source_text(plaintext):
+def _get_tags_from_source_text(src_txt):
     tags_regex = r'(?<!\()#{1}([A-z]+[0-9_\-]*[A-Z0-9]?)\/?'
     pattern = re.compile(tags_regex)
-    tags_list = pattern.findall(plaintext)
+    tags_list = pattern.findall(src_txt)
     return tags_list
 
 
