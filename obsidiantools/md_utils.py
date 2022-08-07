@@ -263,7 +263,12 @@ def _get_md_front_matter_and_content(filepath, *, str_transform_func=None):
 
 
 def _get_html_from_md_file(filepath, *, str_transform_func=None):
-    """md file -> html (without front matter)"""
+    """md file -> html (without front matter).
+
+    pymarkdown extensions are used and configured to reflect the Obsidian
+    experience as much as possible.  For example, arithmatex is necessary
+    to parse math, md_mermaid for mermaid diagram support, etc.
+    """
     _, content = _get_md_front_matter_and_content(
         filepath,
         str_transform_func=str_transform_func)
@@ -290,7 +295,7 @@ def _get_ascii_plaintext_from_html(html):
 
 def _get_ascii_plaintext_from_md_file(filepath, *,
                                       remove_code=False, str_transform_func=None):
-    """md file -> html -> ASCII plaintext"""
+    """md file -> html (without front matter) -> ASCII plaintext"""
     # strip out front matter (if any):
     html = _get_html_from_md_file(
         filepath,
