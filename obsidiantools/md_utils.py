@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 import markdown
 import html2text
 import frontmatter
+import bleach
 
 # wikilink regex: regex that includes any aliases
 WIKILINK_REGEX = r'(!)?\[{2}([^\]\]]+)\]{2}'
@@ -310,10 +311,51 @@ def _get_source_text_from_md_file(filepath, *,
     return _get_source_plaintext_from_html(html)
 
 
+def _get_readable_text_from_md_file(filepath, *, tags=None):
+    """md file -> ... -> ASCII plaintext with major formatting removed."""
+    # strip out front matter (if any):
+    html = _get_html_from_md_file(
+        filepath)
+    # wikilinks and md links as text:
+    html = _replace_md_links_with_their_text(html)
+    html = _replace_wikilinks_with_their_text(html)
+    # remove code and remove major formatting on text:
+    html = _remove_code(html)
+    html = _remove_latex(html)
+    html = _remove_del_text(html)
+    if tags is not None:
+        html = _remove_main_formatting(html, tags=tags)
+    else:  # defaults
+        html = _remove_main_formatting(html)
+
+    return _get_source_plaintext_from_html(html)
+
+
 def _remove_code(html):
     # exclude 'code' tags from link output:
     soup = BeautifulSoup(html, 'lxml')
     for s in soup.select('code'):
+        s.extract()
+    html_str = str(soup)
+    return html_str
+
+
+def _remove_del_text(html):
+    soup = BeautifulSoup(html, 'lxml')
+    for s in soup.select('del'):
+        s.extract()
+    html_str = str(soup)
+    return html_str
+
+
+def _remove_main_formatting(html, *,
+                            tags=['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6']):
+    return bleach.clean(html, tags=tags, strip=True)
+
+
+def _remove_latex(html):
+    soup = BeautifulSoup(html, 'lxml')
+    for s in soup.select('span', {'class': 'MathJax_Preview'}):
         s.extract()
     html_str = str(soup)
     return html_str
