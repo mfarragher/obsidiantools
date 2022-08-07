@@ -403,7 +403,7 @@ def _get_tags_from_ascii_plaintext(plaintext):
 
 
 def _replace_wikilinks_with_their_text(html_str):
-    # get list of wikilinks as their "[[...]]" strings:
+    # get list of wikilinks as strings:
     links_list = _get_all_wikilinks_from_html_content(
         html_str, remove_aliases=False)
 
@@ -414,7 +414,7 @@ def _replace_wikilinks_with_their_text(html_str):
                            .strip())
                           for i in links_list]
 
-    # loop over html content to replace wikilinks with readable text:
+    # loop over html content to replace "[[...]]" wikilinks w/ readable text:
     out_str = html_str
     links_w_brackets_list = ["".join(["[[", i, "]]"]) for i in links_list]
     switch_dict = dict(zip(links_w_brackets_list, readable_text_list))
