@@ -68,7 +68,7 @@ As of Sep 2021, NetworkX requires Python 3.7 or higher (similar for Pandas too) 
     - `numpy`
     - `networkx`
     - `md-mermaid`
-- Libraries for front matte and HTML:
+- Libraries for front matter and HTML:
     - `python-frontmatter`
     - `beautifulsoup4`
     - `lxml`
