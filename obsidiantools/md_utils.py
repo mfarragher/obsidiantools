@@ -400,3 +400,25 @@ def _get_tags_from_ascii_plaintext(plaintext):
     pattern = re.compile(tags_regex)
     tags_list = pattern.findall(plaintext)
     return tags_list
+
+
+def _replace_wikilinks_with_their_text(html_str):
+    # get list of wikilinks as their "[[...]]" strings:
+    links_list = _get_all_wikilinks_from_html_content(
+        html_str, remove_aliases=False)
+
+    # get links in their text format:
+    readable_text_list = [(i.replace('\\', '')
+                           # get wikilinks w/o alias, otherwise alias:
+                           .split("|")[-1]
+                           .strip())
+                          for i in links_list]
+
+    # loop over html content to replace wikilinks with readable text:
+    out_str = html_str
+    links_w_brackets_list = ["".join(["[[", i, "]]"]) for i in links_list]
+    switch_dict = dict(zip(links_w_brackets_list, readable_text_list))
+
+    for k, v in switch_dict.items():
+        out_str = out_str.replace(k, v)
+    return out_str
