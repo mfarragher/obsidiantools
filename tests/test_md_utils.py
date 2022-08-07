@@ -321,3 +321,11 @@ def test_readable_text_strikethrough_is_deleted():
     expected_str = '\n'
 
     assert actual_str == expected_str
+
+
+def test_readable_text_embedded_files_are_removed():
+    actual_str = _get_readable_text_from_md_file(
+        'tests/general/embedded-files_in-body.md')
+    expected_str = '\n'
+
+    assert actual_str == expected_str

@@ -459,7 +459,7 @@ class Vault:
         """Get readable text for a note (given its filename).
         This requires the vault functions 'connect' AND 'gather' to have
         been called.
-        
+
         Change the arguments of the 'gather' function to specify how the text
         output should be stored, e.g. whether all HTML tags should be removed
         before the final output.

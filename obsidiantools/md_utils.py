@@ -302,6 +302,7 @@ def _get_readable_text_from_md_file(filepath, *, tags=None):
     # wikilinks and md links as text:
     html = _replace_md_links_with_their_text(html)
     html = _replace_wikilinks_with_their_text(html)
+    html = _remove_embedded_file_links_from_text(html)
     # remove code and remove major formatting on text:
     html = _remove_code(html)
     html = _remove_latex(html)
@@ -429,4 +430,17 @@ def _replace_md_links_with_their_text(src_txt):
 
     for k, v in switch_dict.items():
         out_str = out_str.replace(k, v)
+    return out_str
+
+
+def _remove_embedded_file_links_from_text(src_txt):
+    # get list of embedded file links as strings:
+    links_list = re.findall(r'!?\[{2}([^\]\]]+)\]{2}', src_txt)
+    # add in the ![[...]] chars:
+    links_list = ["".join(['![[', i, ']]']) for i in links_list]
+
+    # remove from text:
+    out_str = src_txt
+    for i in links_list:
+        out_str = out_str.replace(i, '')
     return out_str
