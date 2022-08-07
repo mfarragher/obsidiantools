@@ -1,3 +1,10 @@
+**/.obsidian/
+Makefile
+.pypirc
+.coveragerc
+codecov
+.gitignore
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -127,3 +134,8 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+.vscode/settings.json
+notebooks/
+.gitignore
+.gitignore
