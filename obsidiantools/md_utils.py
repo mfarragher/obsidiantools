@@ -97,10 +97,10 @@ def get_wikilinks(filepath):
     Returns:
         list of strings
     """
-    plaintext = _get_ascii_plaintext_from_md_file(filepath, remove_code=True)
+    src_txt = _get_source_plaintext_from_md_file(filepath, remove_code=True)
 
     wikilinks = _get_all_wikilinks_from_html_content(
-        plaintext, remove_aliases=True)
+        src_txt, remove_aliases=True)
     return wikilinks
 
 
@@ -121,10 +121,10 @@ def get_embedded_files(filepath):
     Returns:
         list of strings
     """
-    plaintext = _get_ascii_plaintext_from_md_file(filepath, remove_code=True)
+    src_txt = _get_source_plaintext_from_md_file(filepath, remove_code=True)
 
     files = _get_all_embedded_files_from_html_content(
-        plaintext, remove_aliases=True)
+        src_txt, remove_aliases=True)
     return files
 
 
@@ -145,9 +145,9 @@ def get_unique_wikilinks(filepath):
     Returns:
         list of strings
     """
-    plaintext = _get_ascii_plaintext_from_md_file(filepath, remove_code=True)
+    src_txt = _get_source_plaintext_from_md_file(filepath, remove_code=True)
 
-    wikilinks = _get_unique_wikilinks(plaintext, remove_aliases=True)
+    wikilinks = _get_unique_wikilinks(src_txt, remove_aliases=True)
     return wikilinks
 
 
@@ -166,9 +166,9 @@ def get_md_links(filepath):
     Returns:
         list of strings
     """
-    text_str = _get_ascii_plaintext_from_md_file(filepath, remove_code=True)
+    src_txt = _get_source_plaintext_from_md_file(filepath, remove_code=True)
 
-    links = _get_all_md_link_info_from_ascii_plaintext(text_str)
+    links = _get_all_md_link_info_from_ascii_plaintext(src_txt)
     if links:  # links only, not their text
         return [t[-1] for t in links]
     else:
@@ -190,9 +190,9 @@ def get_unique_md_links(filepath):
     Returns:
         list of strings
     """
-    text_str = _get_ascii_plaintext_from_md_file(filepath, remove_code=True)
+    src_txt = _get_source_plaintext_from_md_file(filepath, remove_code=True)
 
-    links = _get_unique_md_links_from_ascii_plaintext(text_str)
+    links = _get_unique_md_links_from_ascii_plaintext(src_txt)
     return links
 
 
@@ -224,12 +224,12 @@ def get_tags(filepath):
         list
     """
     # get text from source file, but remove any '\#' and code:
-    text_str = _get_ascii_plaintext_from_md_file(
+    src_txt = _get_source_plaintext_from_md_file(
         filepath, remove_code=True,
         str_transform_func=_transform_md_file_string_for_tag_parsing)
     # remove wikilinks so that '#' headers are not caught:
-    text_str = _remove_wikilinks_from_ascii_plaintext(text_str)
-    tags = _get_tags_from_ascii_plaintext(text_str)
+    src_txt = _remove_wikilinks_from_ascii_plaintext(src_txt)
+    tags = _get_tags_from_ascii_plaintext(src_txt)
     return tags
 
 
@@ -295,8 +295,8 @@ def _get_ascii_plaintext_from_html(html):
     return doc
 
 
-def _get_ascii_plaintext_from_md_file(filepath, *,
-                                      remove_code=False, str_transform_func=None):
+def _get_source_plaintext_from_md_file(filepath, *,
+                                       remove_code=False, str_transform_func=None):
     """md file -> html (without front matter) -> ASCII plaintext"""
     # strip out front matter (if any):
     html = _get_html_from_md_file(
