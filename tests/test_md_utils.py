@@ -13,7 +13,8 @@ from obsidiantools.md_utils import (_get_all_wikilinks_from_source_text,
                                     _get_all_latex_from_html_content,
                                     _remove_wikilinks_from_source_text,
                                     _replace_wikilinks_with_their_text,
-                                    _replace_md_links_with_their_text)
+                                    _replace_md_links_with_their_text,
+                                    _get_readable_text_from_md_file)
 
 
 @pytest.fixture
@@ -296,3 +297,18 @@ https://obsidian.md
 Github homepage
 """)
     assert out_str == expected_str
+
+
+def test_readable_text_from_latex_md_stub_default_tags():
+    actual_str = _get_readable_text_from_md_file(
+        'tests/general/latex.md')
+    expected_str = '# Note with LaTeX\n\n## GEE \n\nRegression coefficients estimated through GEE are asymptotically normal: \n\nThe underscore chars above need to be caught through MathJax - capture subscripts rather than emphasis in the parsing.\n\n## GEE estimation\n\nA few eqs more using deeper LaTeX functionality:\n\nEquations for GEE are solved for the regression parameters using: \n\nTaking the expectation of the equation system in ...\n'
+
+    assert actual_str == expected_str
+
+
+def test_readable_text_from_latex_md_stub_allow_no_tags():
+    actual_str = _get_readable_text_from_md_file(
+        'tests/general/latex.md', tags=[])
+    expected_str = 'Note with LaTeX GEE Regression coefficients estimated through GEE are asymptotically normal: The underscore chars above need to be caught through MathJax - capture subscripts rather than emphasis in the parsing. GEE estimation A few eqs more using deeper LaTeX functionality: Equations for GEE are solved for the regression parameters using: Taking the expectation of the equation system in ...\n'
+    assert actual_str == expected_str
