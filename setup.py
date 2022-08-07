@@ -6,13 +6,15 @@ with open("README.md", "r", encoding="utf8") as f:
 PROJECT_URLS = {"Source": "https://github.com/mfarragher/obsidiantools"}
 INSTALL_REQUIRES = [
     "markdown",
+    "pymdown-extensions",
     "html2text",
     "pandas",
     "numpy",
     "networkx",
     "python-frontmatter",
     "beautifulsoup4",
-    "lxml"]
+    "lxml",
+    "md-mermaid"]
 
 CLASSIFIERS = [
     "Development Status :: 3 - Alpha",
@@ -21,6 +23,7 @@ CLASSIFIERS = [
     "Topic :: Text Processing :: Markup :: Markdown",
     "Topic :: Office/Business",
     "Topic :: Education",
+    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.7",
