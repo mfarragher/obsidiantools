@@ -101,7 +101,7 @@ def get_wikilinks(filepath):
     """
     src_txt = _get_source_plaintext_from_md_file(filepath, remove_code=True)
 
-    wikilinks = _get_all_wikilinks_from_html_content(
+    wikilinks = _get_all_wikilinks_from_source_text(
         src_txt, remove_aliases=True)
     return wikilinks
 
@@ -125,7 +125,7 @@ def get_embedded_files(filepath):
     """
     src_txt = _get_source_plaintext_from_md_file(filepath, remove_code=True)
 
-    files = _get_all_embedded_files_from_html_content(
+    files = _get_all_embedded_files_from_source_text(
         src_txt, remove_aliases=True)
     return files
 
@@ -290,7 +290,7 @@ def _get_html_from_md_file(filepath, *, str_transform_func=None):
     return html
 
 
-def _get_ascii_plaintext_from_html(html):
+def _get_source_plaintext_from_html(html):
     """html -> ASCII plaintext, via HTML2Text."""
     txt_maker = _get_html2text_obj_with_config()
     doc = txt_maker.handle(html)
@@ -306,7 +306,7 @@ def _get_source_plaintext_from_md_file(filepath, *,
         str_transform_func=str_transform_func)
     if remove_code:
         html = _remove_code(html)
-    return _get_ascii_plaintext_from_html(html)
+    return _get_source_plaintext_from_html(html)
 
 
 def _remove_code(html):
@@ -333,7 +333,7 @@ def _remove_aliases_from_wikilink_regex_matches(link_matches_list):
             for i in link_matches_list]
 
 
-def _get_all_wikilinks_from_html_content(html_str, *, remove_aliases=True):
+def _get_all_wikilinks_from_source_text(html_str, *, remove_aliases=True):
     matches_list = _get_all_wikilinks_and_embedded_files(html_str)
     link_matches_list = [g[1] for g in matches_list
                          if g[0] == '']
@@ -344,7 +344,7 @@ def _get_all_wikilinks_from_html_content(html_str, *, remove_aliases=True):
     return link_matches_list
 
 
-def _get_all_embedded_files_from_html_content(html_str, *,
+def _get_all_embedded_files_from_source_text(html_str, *,
                                               remove_aliases=True):
     matches_list = _get_all_wikilinks_and_embedded_files(html_str)
     embedded_files_sublist = [g[1] for g in matches_list
@@ -371,7 +371,7 @@ def _get_all_latex_from_md_file(filepath):
 
 
 def _get_unique_wikilinks(html_str, *, remove_aliases=True):
-    wikilinks = _get_all_wikilinks_from_html_content(
+    wikilinks = _get_all_wikilinks_from_source_text(
         html_str, remove_aliases=remove_aliases)
     return list(dict.fromkeys(wikilinks))
 
@@ -407,7 +407,7 @@ def _get_tags_from_ascii_plaintext(plaintext):
 
 def _replace_wikilinks_with_their_text(html_str):
     # get list of wikilinks as strings:
-    links_list = _get_all_wikilinks_from_html_content(
+    links_list = _get_all_wikilinks_from_source_text(
         html_str, remove_aliases=False)
 
     # get links in their text format:
@@ -425,3 +425,7 @@ def _replace_wikilinks_with_their_text(html_str):
     for k, v in switch_dict.items():
         out_str = out_str.replace(k, v)
     return out_str
+
+
+def _replace_md_links_with_their_text(html_str):
+    pass
