@@ -7,8 +7,10 @@ import markdown
 import html2text
 import frontmatter
 
-# wikilink regex that includes any aliases
+# wikilink regex: regex that includes any aliases
 WIKILINK_REGEX = r'(!)?\[{2}([^\]\]]+)\]{2}'
+# md links regex: catch URLs or paths
+INLINE_LINK_REGEX = r'\[([^\]]+)\]\(<([^)]+)>\)'
 
 
 def get_md_relpaths_from_dir(dir_path):
@@ -375,10 +377,9 @@ def _get_unique_wikilinks(html_str, *, remove_aliases=True):
 
 
 def _get_all_md_link_info_from_ascii_plaintext(plaintext):
-    # basic regex e.g. catch URLs or paths
-    inline_link_regex = re.compile(r'\[([^\]]+)\]\(<([^)]+)>\)')
+    regex = re.compile(INLINE_LINK_REGEX)
 
-    links_list_of_tuples = list(inline_link_regex.findall(plaintext))
+    links_list_of_tuples = list(regex.findall(plaintext))
     return links_list_of_tuples
 
 
