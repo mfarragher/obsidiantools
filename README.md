@@ -67,7 +67,6 @@ As of Aug 2022, NetworkX and Pandas require Python 3.8 or higher, so 3.8 is the 
     - `pandas`
     - `numpy`
     - `networkx`
-    - `md-mermaid`
 - Libraries for front matter and HTML:
     - `python-frontmatter`
     - `beautifulsoup4`
