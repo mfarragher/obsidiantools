@@ -11,11 +11,11 @@ from obsidiantools.md_utils import (_get_all_wikilinks_from_source_text,
                                     get_embedded_files,
                                     _transform_md_file_string_for_tag_parsing,
                                     get_front_matter, get_tags, get_wikilinks,
-                                    _get_all_latex_from_html_content,
                                     _remove_wikilinks_from_source_text,
                                     _replace_wikilinks_with_their_text,
                                     _replace_md_links_with_their_text,
                                     _get_readable_text_from_md_file)
+from obsidiantools.html_processing import (_get_all_latex_from_html_content)
 
 
 @pytest.fixture
