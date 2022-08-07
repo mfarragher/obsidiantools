@@ -34,7 +34,7 @@ CLASSIFIERS = [
 
 setuptools.setup(
     name="obsidiantools",
-    version="0.8.0-a",
+    version="0.8.0",
     author="Mark Farragher",
     description="Obsidian Tools - a Python interface for Obsidian.md vaults",
     long_description=LONG_DESCRIPTION,
