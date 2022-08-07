@@ -226,6 +226,7 @@ def get_tags(filepath):
     text_str = _get_ascii_plaintext_from_md_file(
         filepath, remove_code=True,
         str_transform_func=_transform_md_file_string_for_tag_parsing)
+    # remove wikilinks so that '#' headers are not caught:
     text_str = _remove_wikilinks_from_ascii_plaintext(text_str)
     tags = _get_tags_from_ascii_plaintext(text_str)
     return tags
