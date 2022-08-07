@@ -81,7 +81,7 @@ def txt_wikilink_extraction_stub():
 
 @pytest.fixture
 def txt_md_link_extraction_stub():
-    with open('tests/general/md_links_extraction.md') as f:
+    with open('tests/general/md-links_extraction.md') as f:
         in_str = f.read()
     return in_str
 
@@ -312,4 +312,12 @@ def test_readable_text_from_latex_md_stub_allow_no_tags():
     actual_str = _get_readable_text_from_md_file(
         'tests/general/latex.md', tags=[])
     expected_str = 'Note with LaTeX GEE Regression coefficients estimated through GEE are asymptotically normal: The underscore chars above need to be caught through MathJax - capture subscripts rather than emphasis in the parsing. GEE estimation A few eqs more using deeper LaTeX functionality: Equations for GEE are solved for the regression parameters using: Taking the expectation of the equation system in ...\n'
+    assert actual_str == expected_str
+
+
+def test_readable_text_strikethrough_is_deleted():
+    actual_str = _get_readable_text_from_md_file(
+        'tests/general/readable-text_all-deleted.md')
+    expected_str = '\n'
+
     assert actual_str == expected_str
