@@ -223,6 +223,7 @@ def get_tags(filepath):
     Returns:
         list
     """
+    # get text from source file, but remove any '\#' and code:
     text_str = _get_ascii_plaintext_from_md_file(
         filepath, remove_code=True,
         str_transform_func=_transform_md_file_string_for_tag_parsing)
