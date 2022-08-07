@@ -42,7 +42,9 @@ This is how **`obsidiantools`** can complement your workflows for note-taking:
     - LaTeX math via `vault.get_math(<NOTE>)` or `vault.math_index`
     - Check which notes are isolated (`vault.isolated_notes`)
     - Check which notes do not exist as files yet (`vault.nonexistent_notes`)
-    - Get source text of note (via `vault.get_source_text(<NOTE>)`, as long as `gather()` has been called).  This tries to represent how a note's text appears in 'source mode'.
+    - As long as `gather()` is called:
+        - Get source text of note (via `vault.get_source_text(<NOTE>)`).  This tries to represent how a note's text appears in 'source mode'.
+        - Get readable text of note (via `vault.get_readable_text(<NOTE>)`).  This tries to reduce note text to minimal markdown formatting, e.g. preserving paragraphs, headers and punctuation.  Only slight processing is needed for various forms of NLP analysis.
 
 Check out the functionality in the demo repo.  Launch the '10 minutes' demo in a virtual machine via Binder:
 
