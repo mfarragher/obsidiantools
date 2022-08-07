@@ -7,7 +7,7 @@ from obsidiantools.md_utils import (_get_all_wikilinks_from_html_content,
                                     _get_all_md_link_info_from_ascii_plaintext,
                                     _get_unique_md_links_from_ascii_plaintext,
                                     _get_html_from_md_file,
-                                    _get_ascii_plaintext_from_md_file, get_embedded_files,
+                                    _get_source_plaintext_from_md_file, get_embedded_files,
                                     _transform_md_file_string_for_tag_parsing,
                                     get_front_matter, get_tags, get_wikilinks,
                                     _get_all_latex_from_html_content,
@@ -194,7 +194,7 @@ def test_front_matter_only_parsing():
     fm_only_files = glob('tests/general/frontmatter-only*.md',
                          recursive=True)
     for f in fm_only_files:
-        actual_txt = _get_ascii_plaintext_from_md_file(f)
+        actual_txt = _get_source_plaintext_from_md_file(f)
         expected_txt = '\n'
         assert actual_txt == expected_txt
 
