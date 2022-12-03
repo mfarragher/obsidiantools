@@ -4,7 +4,8 @@ from pathlib import Path
 from glob import glob
 import markdown
 import frontmatter
-from ._constants import (WIKILINK_REGEX, TAG_REGEX,
+from ._constants import (WIKILINK_REGEX,
+                         TAG_MAIN_ONLY_REGEX, TAG_INCLUDE_NESTED_REGEX,
                          WIKILINK_AS_STRING_REGEX,
                          EMBEDDED_FILE_LINK_AS_STRING_REGEX,
                          INLINE_LINK_AFTER_HTML_PROC_REGEX,
@@ -215,15 +216,19 @@ def get_front_matter(filepath):
     return front_matter
 
 
-def get_tags(filepath):
+def get_tags(filepath, *, show_nested=False):
     """Get tags from a md file, based on the order they appear in the file.
-    Only top-level tags are extracted: nested tag detail is NOT supported.
+    By default, only the highest level of any nested tags is shown in the
+    output.
 
     If no tags are found for a file, the value will be [].
 
     Args:
         filepath (pathlib Path): Path object representing the file from
             which info will be extracted.
+        show_nested (Boolean): show nested tags in the output.  Defaults to
+            False (which would mean only the highest level of any nested tags
+            are included in the output).
     Returns:
         list
     """
@@ -233,7 +238,7 @@ def get_tags(filepath):
         str_transform_func=_transform_md_file_string_for_tag_parsing)
     # remove wikilinks so that '#' headers are not caught:
     src_txt = _remove_wikilinks_from_source_text(src_txt)
-    tags = _get_tags_from_source_text(src_txt)
+    tags = _get_tags_from_source_text(src_txt, show_nested=show_nested)
     return tags
 
 
@@ -383,8 +388,11 @@ def _transform_md_file_string_for_tag_parsing(txt):
     return txt.replace('\\#', '')
 
 
-def _get_tags_from_source_text(src_txt):
-    pattern = re.compile(TAG_REGEX)
+def _get_tags_from_source_text(src_txt, *, show_nested=False):
+    if not show_nested:
+        pattern = re.compile(TAG_MAIN_ONLY_REGEX)
+    else:
+        pattern = re.compile(TAG_INCLUDE_NESTED_REGEX)
     tags_list = pattern.findall(src_txt)
     return tags_list
 

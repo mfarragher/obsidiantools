@@ -214,7 +214,7 @@ class Vault:
         needed, while still maintaining the meaning of text."""
         return self._readable_text_index
 
-    def connect(self):
+    def connect(self, *, show_nested_tags=False):
         """connect your notes together by representing the vault as a
         Networkx graph object, G.
 
@@ -222,6 +222,11 @@ class Vault:
             vault.connect()
 
         The graph G is written to the 'graph' attribute.
+
+        Args:
+            show_nested_tags (Boolean): show nested tags in the output.
+                Defaults to False (which would mean only the highest level
+                of any nested tags are included in the output).
         """
         if not self._is_connected:
             # default graph to mirror Obsidian's link counts
@@ -231,7 +236,8 @@ class Vault:
             self._backlinks_index = self._get_backlinks_index(graph=G)
             self._wikilinks_index = wiki_link_map
             self._md_links_index = self._get_md_links_index()
-            self._tags_index = self._get_tags_index()
+            self._tags_index = self._get_tags_index(
+                show_nested=show_nested_tags)
             self._nonexistent_notes = self._get_nonexistent_notes()
             self._isolated_notes = self._get_isolated_notes(graph=G)
             self._embedded_files_index = self._get_embedded_files_index()
@@ -411,9 +417,10 @@ class Vault:
         else:
             return self._front_matter_index[file_name]
 
-    def get_tags(self, file_name):
+    def get_tags(self, file_name, *, show_nested=False):
         """Get tags for a note (given its filename).
-        Only top-level tags are supported (NOT nested tags).
+        By default, only the highest level of any nested tags is shown
+        in the output.
 
         Tags can only appear in notes that already exist, so if a
         note is not in the file_index at all then the function will raise
@@ -557,11 +564,12 @@ class Vault:
         return {k: get_front_matter(self._dirpath / v)
                 for k, v in self._file_index.items()}
 
-    def _get_tags_index(self):
+    def _get_tags_index(self, *, show_nested=False):
         """Return k,v pairs
         where k is the md filename
         and v is list of tags found in k"""
-        return {k: get_tags(self._dirpath / v)
+        return {k: get_tags(self._dirpath / v,
+                            show_nested=show_nested)
                 for k, v in self._file_index.items()}
 
     def get_note_metadata(self):

@@ -3,7 +3,8 @@
 WIKILINK_REGEX = r'(!)?\[{2}([^\]\]]+)\]{2}'
 
 # TAGS
-TAG_REGEX = r'(?<!\()#{1}([A-z]+[0-9_\-]*[A-Z0-9]?)\/?'
+TAG_INCLUDE_NESTED_REGEX = r'(?<!\()(?<!\\)#{1}([A-z]+[0-9_\-]*[A-Z0-9]?[^\s]+(?![^\[\[]*\]\]))\/?'
+TAG_MAIN_ONLY_REGEX = r'(?<!\()#{1}([A-z]+[0-9_\-]*[A-Z0-9]?)\/?'
 
 # md links: catch URLs or paths
 INLINE_LINK_AFTER_HTML_PROC_REGEX = r'\[([^\]]+)\]\(<([^)]+)>\)'
