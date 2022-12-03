@@ -446,7 +446,7 @@ def test_tags_index(
 def test_unique_md_links(
         actual_connected_vault, expected_md_links_index):
     actual_u_md_links_ix = (actual_connected_vault.
-                            _get_unique_md_links_index())
+                            _unique_md_links_index)
     # all notes in stub have unique md links:
     assert actual_u_md_links_ix == expected_md_links_index
 

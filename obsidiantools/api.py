@@ -78,9 +78,11 @@ class Vault:
             file_index
             backlinks_index
             wikilinks_index
+            unique_wikilinks_index
             embedded_files_index
             math_index
             md_links_index
+            unique_md_links_index
             tags_index
             nonexistent_notes
             isolated_notes
@@ -101,9 +103,11 @@ class Vault:
         self._is_gathered = False
         self._backlinks_index = {}
         self._wikilinks_index = {}
+        self._unique_wikilinks_index = {}
         self._embedded_files_index = {}
         self._math_index = {}
         self._md_links_index = {}
+        self._unique_md_links_index = {}
         self._tags_index = {}
         self._nonexistent_notes = []
         self._isolated_notes = []
@@ -139,6 +143,12 @@ class Vault:
         return self._wikilinks_index
 
     @property
+    def unique_wikilinks_index(self):
+        """dict of lists: filename (k) to lists (v).  v is [] if k
+        has no wikilinks."""
+        return self._unique_wikilinks_index
+
+    @property
     def embedded_files_index(self):
         """dict: note name (k) to list of embedded file strimg (v).
         v is [] if k has no embedded files."""
@@ -155,6 +165,12 @@ class Vault:
         """dict of lists: filename (k) to lists (v).  v is [] if k
         has no markdown links."""
         return self._md_links_index
+
+    @property
+    def unique_md_links_index(self):
+        """dict of lists: filename (k) to lists (v).  v is [] if k
+        has no markdown links."""
+        return self._unique_md_links_index
 
     @property
     def tags_index(self):
@@ -229,20 +245,46 @@ class Vault:
                 of any nested tags are included in the output).
         """
         if not self._is_connected:
-            # default graph to mirror Obsidian's link counts
-            wiki_link_map = self._get_wikilinks_index()
-            G = nx.MultiDiGraph(wiki_link_map)
+            # index dicts, where k is a note name in the vault:
+            md_links_ix = {}
+            md_links_unique_ix = {}
+            embedded_files_ix = {}
+            tags_ix = {}
+            math_ix = {}
+            front_matter_ix = {}
+            wikilinks_ix = {}
+            wikilinks_unique_ix = {}
+
+            # loop through files:
+            for f, relpath in self._file_index.items():
+                # file-specific info:
+                md_links_ix[f] = get_md_links(self._dirpath / relpath)
+                md_links_unique_ix[f] = get_unique_md_links(self._dirpath / relpath)
+                embedded_files_ix[f] = get_embedded_files(self._dirpath / relpath)
+                tags_ix[f] = get_tags(self._dirpath / relpath, show_nested=show_nested_tags)
+                math_ix[f] = _get_all_latex_from_md_file(self._dirpath / relpath)
+                front_matter_ix[f] = get_front_matter(self._dirpath / relpath)
+                wikilinks_ix[f] = get_wikilinks(self._dirpath / relpath)
+                wikilinks_unique_ix[f] = get_unique_wikilinks(self._dirpath / relpath)
+
+            self._md_links_index = md_links_ix
+            self._unique_md_links_index = md_links_unique_ix
+            self._embedded_files_index = embedded_files_ix
+            self._tags_index = tags_ix
+            self._math_index = math_ix
+            self._front_matter_index = front_matter_ix
+            # to be used for graph:
+            self._wikilinks_index = wikilinks_ix
+            self._unique_wikilinks_index = wikilinks_unique_ix
+
+            # graph:
+            G = nx.MultiDiGraph(wikilinks_ix)
             self._graph = G
+
+            # info obtained from graph:
             self._backlinks_index = self._get_backlinks_index(graph=G)
-            self._wikilinks_index = wiki_link_map
-            self._md_links_index = self._get_md_links_index()
-            self._tags_index = self._get_tags_index(
-                show_nested=show_nested_tags)
             self._nonexistent_notes = self._get_nonexistent_notes()
             self._isolated_notes = self._get_isolated_notes(graph=G)
-            self._embedded_files_index = self._get_embedded_files_index()
-            self._math_index = self._get_math_index()
-            self._front_matter_index = self._get_front_matter_index()
 
             self._is_connected = True
 
@@ -508,47 +550,41 @@ class Vault:
         """
         return {f.stem: f for f in self._get_md_relpaths(**kwargs)}
 
-    def _get_wikilinks_index(self):
+    def _get_wikilinks_by_file(self, note):
         """Return k,v pairs
         where k is the md filename
         and v is list of ALL wikilinks found in k"""
-        return {k: get_wikilinks(self._dirpath / v)
-                for k, v in self._file_index.items()}
+        return {note: get_wikilinks(self._dirpath / self._file_index.get(note))}
 
-    def _get_embedded_files_index(self):
+    def _get_embedded_files_by_file(self, note):
         """Return k,v pairs
         where k is the md filename
         and v is list of ALL embedded files found in k"""
-        return {k: get_embedded_files(self._dirpath / v)
-                for k, v in self._file_index.items()}
+        return {note: get_embedded_files(self._dirpath / self._file_index.get(note))}
 
-    def _get_math_index(self):
+    def _get_math_by_file(self, note):
         """Return k,v pairs
         where k is the md filename
         and v is list of ALL LaTeX math strings found in k"""
-        return {k: _get_all_latex_from_md_file(self._dirpath / v)
-                for k, v in self._file_index.items()}
+        return {note: _get_all_latex_from_md_file(self._dirpath /self._file_index.get(note))}
 
-    def _get_unique_wikilinks_index(self):
+    def _get_unique_wikilinks_by_file(self, note):
         """Return k,v pairs
         where k is the md filename
         and v is list of UNIQUE wikilinks found in k"""
-        return {k: get_unique_wikilinks(self._dirpath / v)
-                for k, v in self._file_index.items()}
+        return {note: get_unique_wikilinks(self._dirpath / self._file_index.get(note))}
 
-    def _get_md_links_index(self):
+    def _get_md_links_by_file(self, note):
         """Return k,v pairs
         where k is the md note name
-        and v is list of ALL markdown links found in k"""
-        return {k: get_md_links(self._dirpath / v)
-                for k, v in self._file_index.items()}
+        and v is list of ALL markdown links found in note"""
+        return {note: get_md_links(self._dirpath / self._file_index.get(note))}
 
-    def _get_unique_md_links_index(self):
+    def _get_unique_md_links_by_file(self, note):
         """Return k,v pairs
         where k is the md note name
         and v is list of UNIQUE markdown links found in k"""
-        return {k: get_unique_md_links(self._dirpath / v)
-                for k, v in self._file_index.items()}
+        return {note: get_unique_md_links(self._dirpath / self._file_index.get(note))}
 
     def _get_backlinks_index(self, *, graph):
         """Return k,v pairs
@@ -557,20 +593,17 @@ class Vault:
         return {n: [n[0] for n in list(graph.in_edges(n))]
                 for n in self._graph.nodes}
 
-    def _get_front_matter_index(self):
+    def _get_front_matter_by_file(self, note):
         """Return k,v pairs
         where k is the md filename
         and v is list of file matter metadata found in k"""
-        return {k: get_front_matter(self._dirpath / v)
-                for k, v in self._file_index.items()}
+        return {note: get_front_matter(self._dirpath / self._file_index.get(note))}
 
-    def _get_tags_index(self, *, show_nested=False):
+    def _get_tags_by_file(self, note, *, show_nested=False):
         """Return k,v pairs
         where k is the md filename
         and v is list of tags found in k"""
-        return {k: get_tags(self._dirpath / v,
-                            show_nested=show_nested)
-                for k, v in self._file_index.items()}
+        return {note: get_tags(self._dirpath / self._file_index.get(note))}
 
     def get_note_metadata(self):
         """Structured dataset of metadata on the vault's notes.  This
