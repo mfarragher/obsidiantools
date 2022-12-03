@@ -348,6 +348,45 @@ def test_backlink_counts(actual_connected_vault):
         actual_connected_vault.get_backlink_counts("Note that isn't in vault at all")
 
 
+def test_wikilink_counts(actual_connected_vault):
+    expected_wl_count_subset = {
+        'Sussudio': {'American Psycho (film)': 1},
+        'Isolated note': {},
+        'Vulnera ubera': {'Caelum': 1,
+                          'Tarpeia': 1,
+                          'Vita': 1},
+        'Ne fuit': {'Aras Teucras': 1,
+                    'Manus': 1,
+                    'Bacchus': 1,
+                    'Amor': 1,
+                    'Caelum': 1,
+                    'Causam mihi': 1},
+        'Causam mihi': {'Dives': 1,
+                        'Manus': 1,
+                        'Ne fuit': 1,
+                        'Aetna': 1},
+        'Brevissimus moenia': {'Tarpeia': 1,
+                               'Caelum': 1,
+                               'Vita': 1},
+        'Alimenta': {'Manus': 1,
+                     'Bacchus': 4,
+                     'Amor': 1,
+                     'Ne fuit': 1,
+                     'Virtus': 1,
+                     'Brevissimus moenia': 1,
+                     'Tarpeia': 1,
+                     'Tydides': 1,
+                     'Vita': 1}
+    }
+
+    for k in list(expected_wl_count_subset.keys()):
+        assert (actual_connected_vault.get_wikilink_counts(k)
+                == expected_wl_count_subset.get(k))
+
+    with pytest.raises(ValueError):
+        actual_connected_vault.get_wikilink_counts("Note that isn't in vault at all")
+
+
 def test_wikilink_individual_notes(actual_connected_vault):
     actual_wl_ix = actual_connected_vault.wikilinks_index
 

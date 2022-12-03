@@ -69,6 +69,7 @@ class Vault:
             get_backlinks
             get_backlink_counts
             get_wikilinks
+            get_wikilink_counts
             get_embedded_files
             get_math
             get_front_matter
@@ -413,6 +414,25 @@ class Vault:
             raise ValueError('"{}" does not exist so it cannot have wikilinks.'.format(file_name))
         else:
             return self._wikilinks_index[file_name]
+
+    def get_wikilink_counts(self, note_name):
+        """Get counts of wikilinks for a note (given its name).
+
+        Args:
+            note_name (str): the string that is the name in the graph.
+                This is NOT a filepath!
+
+        Returns:
+            dict of integers >= 1
+        """
+        if not self._is_connected:
+            raise AttributeError('Connect notes before calling the function')
+
+        if note_name not in self._graph.nodes:
+            raise ValueError('"{}" not found in graph.'.format(note_name))
+        else:
+            wikilinks = self.get_wikilinks(note_name)
+            return dict(Counter(wikilinks))
 
     def get_embedded_files(self, file_name):
         """Get embedded files for a note (given its filename).
