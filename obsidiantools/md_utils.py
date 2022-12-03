@@ -251,7 +251,11 @@ def _get_md_front_matter_and_content(filepath, *, str_transform_func=None):
                 file_string = str_transform_func(file_string)
             return frontmatter.parse(file_string)
         # for invalid YAML, return the whole file as content:
-        except yaml.scanner.ScannerError:
+        except yaml.scanner.ScannerError as e:
+            print(f"Front matter not populated for {filepath.name}: {repr(e)}")
+            return {}, file_string
+        except yaml.parser.ParserError as e:
+            print(f"Front matter not populated for {filepath.name}: {repr(e)}")
             return {}, file_string
         # handle template {{}} chars in front matter:
         except yaml.constructor.ConstructorError:
@@ -259,6 +263,9 @@ def _get_md_front_matter_and_content(filepath, *, str_transform_func=None):
                 str.maketrans({"{": r"\{",
                                "}": r"\}"}))
             return frontmatter.parse(file_string_esc)
+        # any others:
+        except:
+            return {}, file_string
 
 
 def _get_html_from_md_file(filepath, *, str_transform_func=None):

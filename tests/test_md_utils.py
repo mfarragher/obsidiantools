@@ -1,5 +1,5 @@
 import pytest
-from glob import glob
+from pathlib import Path
 
 from obsidiantools.md_utils import (_get_all_wikilinks_from_source_text,
                                     _get_all_embedded_files_from_source_text,
@@ -201,8 +201,7 @@ def test_ne_fuit_front_matter():
 
 
 def test_front_matter_only_parsing():
-    fm_only_files = glob('tests/general/frontmatter-only*.md',
-                         recursive=True)
+    fm_only_files = Path('.').glob('tests/general/frontmatter-only*.md')
     for f in fm_only_files:
         actual_txt = _get_source_text_from_md_file(f)
         expected_txt = '\n'
@@ -210,8 +209,7 @@ def test_front_matter_only_parsing():
 
 
 def test_separators_not_front_matter_parsing():
-    files = glob('tests/general/not-frontmatter*.md',
-                 recursive=True)
+    files = Path('.').glob('tests/general/not-frontmatter*.md')
     for f in files:
         actual_output = get_front_matter(f)
         expected_output = {}
@@ -219,8 +217,7 @@ def test_separators_not_front_matter_parsing():
 
 
 def test_handle_invalid_front_matter():
-    files = glob('tests/general/invalid-frontmatter*.md',
-                 recursive=True)
+    files = Path('.').glob('tests/general/invalid-frontmatter*.md')
     for f in files:
         actual_output = get_front_matter(f)
         expected_output = {}
