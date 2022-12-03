@@ -4,7 +4,8 @@ from pathlib import Path
 from glob import glob
 import markdown
 import frontmatter
-from ._constants import (WIKILINK_REGEX, INLINE_LINK_AFTER_HTML_PROC_REGEX,
+from ._constants import (WIKILINK_REGEX, TAG_REGEX,
+                         INLINE_LINK_AFTER_HTML_PROC_REGEX,
                          INLINE_LINK_VIA_MD_ONLY_REGEX)
 from .html_processing import (_get_source_plaintext_from_html,
                               _remove_code, _remove_latex, _remove_del_text,
@@ -381,8 +382,7 @@ def _transform_md_file_string_for_tag_parsing(txt):
 
 
 def _get_tags_from_source_text(src_txt):
-    tags_regex = r'(?<!\()#{1}([A-z]+[0-9_\-]*[A-Z0-9]?)\/?'
-    pattern = re.compile(tags_regex)
+    pattern = re.compile(TAG_REGEX)
     tags_list = pattern.findall(src_txt)
     return tags_list
 
