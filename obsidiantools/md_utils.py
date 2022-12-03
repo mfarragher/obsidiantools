@@ -4,17 +4,12 @@ from pathlib import Path
 from glob import glob
 import markdown
 import frontmatter
+from ._constants import (WIKILINK_REGEX, INLINE_LINK_AFTER_HTML_PROC_REGEX,
+                         INLINE_LINK_VIA_MD_ONLY_REGEX)
 from .html_processing import (_get_source_plaintext_from_html,
                               _remove_code, _remove_latex, _remove_del_text,
                               _remove_main_formatting,
                               _get_all_latex_from_html_content)
-
-# wikilink & embedded file regex: regex that includes any aliases
-# group 0 captures embedded link; group 1 is everything inside [[]]
-WIKILINK_REGEX = r'(!)?\[{2}([^\]\]]+)\]{2}'
-# md links regex: catch URLs or paths
-INLINE_LINK_AFTER_HTML_PROC_REGEX = r'\[([^\]]+)\]\(<([^)]+)>\)'
-INLINE_LINK_VIA_MD_ONLY_REGEX = r'\[([^\]]+)\]\(([^)]+)\)'
 
 
 def get_md_relpaths_from_dir(dir_path):
