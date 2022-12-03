@@ -92,6 +92,25 @@ def expected_metadata_dict():
                         'Tydides': np.NaN,
                         'Dives': np.NaN,
                         'Aetna': np.NaN},
+        'n_tags': {'Sussudio': 5.0,
+                   'Isolated note': 0.0,
+                   'Brevissimus moenia': 0.0,
+                   'Ne fuit': 0.0,
+                   'Alimenta': 0.0,
+                   'Vulnera ubera': 0.0,
+                   'Causam mihi': 0.0,
+                   'American Psycho (film)': np.NaN,
+                   'Tarpeia': np.NaN,
+                   'Caelum': np.NaN,
+                   'Vita': np.NaN,
+                   'Aras Teucras': np.NaN,
+                   'Manus': np.NaN,
+                   'Bacchus': np.NaN,
+                   'Amor': np.NaN,
+                   'Virtus': np.NaN,
+                   'Tydides': np.NaN,
+                   'Dives': np.NaN,
+                   'Aetna': np.NaN},
         'n_embedded_files': {'Isolated note': 0.0,
                              'Sussudio': 2.0,
                              'Brevissimus moenia': 0.0,
@@ -204,6 +223,7 @@ def test_get_metadata_cols(actual_metadata_df):
     expected_cols = ['rel_filepath', 'abs_filepath',
                      'note_exists',
                      'n_backlinks', 'n_wikilinks',
+                     'n_tags',
                      'n_embedded_files',
                      'modified_time']
     assert actual_metadata_df.columns.tolist() == expected_cols
@@ -215,6 +235,7 @@ def test_get_metadata_dtypes(actual_metadata_df):
     assert actual_metadata_df['note_exists'].dtype == 'bool'
     assert actual_metadata_df['n_backlinks'].dtype == 'int'
     assert actual_metadata_df['n_wikilinks'].dtype == 'float'
+    assert actual_metadata_df['n_tags'].dtype == 'float'
     assert actual_metadata_df['n_embedded_files'].dtype == 'float'
     assert actual_metadata_df['modified_time'].dtype == 'datetime64[ns]'
 
@@ -255,6 +276,17 @@ def test_get_metadata_wikilinks(actual_metadata_df,
 def test_get_metadata_backlinks(actual_metadata_df,
                                 expected_metadata_dict):
     TEST_COL = 'n_backlinks'
+
+    actual_series = actual_metadata_df[TEST_COL]
+    expected_series = (pd.Series(expected_metadata_dict.get(TEST_COL),
+                                 name=TEST_COL)
+                       .rename_axis('note'))
+    assert_series_equal(actual_series, expected_series)
+
+
+def test_get_metadata_tags(actual_metadata_df,
+                                expected_metadata_dict):
+    TEST_COL = 'n_tags'
 
     actual_series = actual_metadata_df[TEST_COL]
     expected_series = (pd.Series(expected_metadata_dict.get(TEST_COL),

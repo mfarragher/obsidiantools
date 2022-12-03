@@ -615,6 +615,10 @@ class Vault:
                                      [len(self._wikilinks_index.get(f, []))
                                      for f in df.index],
                                      np.NaN)
+        df['n_tags'] = np.where(df['note_exists'],
+                                [len(self._tags_index.get(f, []))
+                                 for f in df.index],
+                                np.NaN)
         df['n_embedded_files'] = np.where(df['note_exists'],
                                           [len(self._embedded_files_index.get(
                                               f, []))
