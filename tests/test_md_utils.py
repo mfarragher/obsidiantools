@@ -3,14 +3,16 @@ from pathlib import Path
 
 from obsidiantools.md_utils import (_get_all_wikilinks_from_source_text,
                                     _get_all_embedded_files_from_source_text,
-                                    _get_unique_wikilinks,
+                                    _get_unique_wikilinks_from_source_text,
                                     _get_all_md_link_info_from_source_text,
                                     _get_unique_md_links_from_source_text,
                                     _get_html_from_md_file,
                                     _get_source_text_from_md_file,
-                                    get_embedded_files,
                                     _transform_md_file_string_for_tag_parsing,
-                                    get_front_matter, get_tags, get_wikilinks,
+                                    get_wikilinks,
+                                    get_embedded_files,
+                                    get_front_matter,
+                                    get_tags,
                                     _remove_wikilinks_from_source_text,
                                     _replace_wikilinks_with_their_text,
                                     _replace_md_links_with_their_text,
@@ -132,7 +134,7 @@ def test_get_all_embedded_files_from_source_text_keep_aliases(
 
 
 def test_get_unique_wikilinks_from_html_content(html_wikilinks_stub):
-    actual_results = _get_unique_wikilinks(
+    actual_results = _get_unique_wikilinks_from_source_text(
         html_wikilinks_stub, remove_aliases=True)
     expected_results = ['Shopping list',
                         'Bananas', 'Banana splits',
@@ -146,7 +148,7 @@ def test_get_unique_wikilinks_from_html_content(html_wikilinks_stub):
 
 
 def test_get_unique_wikilinks_from_html_content_has_unique_links(html_wikilinks_stub):
-    actual_links = _get_unique_wikilinks(html_wikilinks_stub)
+    actual_links = _get_unique_wikilinks_from_source_text(html_wikilinks_stub)
     assert len(set(actual_links)) == len(actual_links)
 
 
@@ -176,7 +178,7 @@ def test_get_unique_md_links_has_unique_links(txt_md_links_stub):
 
 
 def test_pretend_wikilink_not_extracted_from_front_matter(txt_sussudio_stub):
-    actual_links = _get_unique_wikilinks(txt_sussudio_stub)
+    actual_links = _get_unique_wikilinks_from_source_text(txt_sussudio_stub)
     assert not set(['Polka Party!']).issubset(set(actual_links))
 
 

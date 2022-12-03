@@ -5,11 +5,13 @@ import pandas as pd
 from collections import Counter
 from pathlib import Path
 
-from .md_utils import (get_md_relpaths_matching_subdirs, get_unique_md_links,
-                       get_unique_wikilinks,
-                       get_md_links,
-                       get_wikilinks,
-                       get_embedded_files,
+from .md_utils import (get_md_relpaths_matching_subdirs,
+                       _get_md_front_matter_and_content,
+                       _get_md_links_from_source_text,
+                       _get_unique_md_links_from_source_text,
+                       _get_unique_wikilinks_from_source_text,
+                       _get_all_wikilinks_from_source_text,
+                       _get_all_embedded_files_from_source_text,
                        get_front_matter,
                        get_tags,
                        _get_source_text_from_md_file,
@@ -257,15 +259,26 @@ class Vault:
 
             # loop through files:
             for f, relpath in self._file_index.items():
-                # file-specific info:
-                md_links_ix[f] = get_md_links(self._dirpath / relpath)
-                md_links_unique_ix[f] = get_unique_md_links(self._dirpath / relpath)
-                embedded_files_ix[f] = get_embedded_files(self._dirpath / relpath)
-                tags_ix[f] = get_tags(self._dirpath / relpath, show_nested=show_nested_tags)
+                front_matter, content = _get_md_front_matter_and_content(
+                    self._dirpath / relpath)
+                src_txt = _get_source_text_from_md_file(
+                    self._dirpath / relpath, remove_code=True)
+
+                # info from core text:
+                md_links_ix[f] = _get_md_links_from_source_text(src_txt)
+                md_links_unique_ix[f] = _get_unique_md_links_from_source_text(src_txt)
+                embedded_files_ix[f] = _get_all_embedded_files_from_source_text(
+                    src_txt, remove_aliases=True)
+                wikilinks_ix[f] = _get_all_wikilinks_from_source_text(
+                    src_txt, remove_aliases=True)
+                wikilinks_unique_ix[f] = _get_unique_wikilinks_from_source_text(
+                    src_txt, remove_aliases=True)
+                # info from html:
                 math_ix[f] = _get_all_latex_from_md_file(self._dirpath / relpath)
+                # info from transformed text:
+                tags_ix[f] = get_tags(self._dirpath / relpath, show_nested=show_nested_tags)
+                # split out front matter:
                 front_matter_ix[f] = get_front_matter(self._dirpath / relpath)
-                wikilinks_ix[f] = get_wikilinks(self._dirpath / relpath)
-                wikilinks_unique_ix[f] = get_unique_wikilinks(self._dirpath / relpath)
 
             self._md_links_index = md_links_ix
             self._unique_md_links_index = md_links_unique_ix
@@ -550,60 +563,12 @@ class Vault:
         """
         return {f.stem: f for f in self._get_md_relpaths(**kwargs)}
 
-    def _get_wikilinks_by_file(self, note):
-        """Return k,v pairs
-        where k is the md filename
-        and v is list of ALL wikilinks found in k"""
-        return {note: get_wikilinks(self._dirpath / self._file_index.get(note))}
-
-    def _get_embedded_files_by_file(self, note):
-        """Return k,v pairs
-        where k is the md filename
-        and v is list of ALL embedded files found in k"""
-        return {note: get_embedded_files(self._dirpath / self._file_index.get(note))}
-
-    def _get_math_by_file(self, note):
-        """Return k,v pairs
-        where k is the md filename
-        and v is list of ALL LaTeX math strings found in k"""
-        return {note: _get_all_latex_from_md_file(self._dirpath /self._file_index.get(note))}
-
-    def _get_unique_wikilinks_by_file(self, note):
-        """Return k,v pairs
-        where k is the md filename
-        and v is list of UNIQUE wikilinks found in k"""
-        return {note: get_unique_wikilinks(self._dirpath / self._file_index.get(note))}
-
-    def _get_md_links_by_file(self, note):
-        """Return k,v pairs
-        where k is the md note name
-        and v is list of ALL markdown links found in note"""
-        return {note: get_md_links(self._dirpath / self._file_index.get(note))}
-
-    def _get_unique_md_links_by_file(self, note):
-        """Return k,v pairs
-        where k is the md note name
-        and v is list of UNIQUE markdown links found in k"""
-        return {note: get_unique_md_links(self._dirpath / self._file_index.get(note))}
-
     def _get_backlinks_index(self, *, graph):
         """Return k,v pairs
         where k is the md note name
         and v is list of ALL backlinks found in k"""
         return {n: [n[0] for n in list(graph.in_edges(n))]
                 for n in self._graph.nodes}
-
-    def _get_front_matter_by_file(self, note):
-        """Return k,v pairs
-        where k is the md filename
-        and v is list of file matter metadata found in k"""
-        return {note: get_front_matter(self._dirpath / self._file_index.get(note))}
-
-    def _get_tags_by_file(self, note, *, show_nested=False):
-        """Return k,v pairs
-        where k is the md filename
-        and v is list of tags found in k"""
-        return {note: get_tags(self._dirpath / self._file_index.get(note))}
 
     def get_note_metadata(self):
         """Structured dataset of metadata on the vault's notes.  This

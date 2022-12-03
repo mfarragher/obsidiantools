@@ -152,7 +152,7 @@ def get_unique_wikilinks(filepath):
     """
     src_txt = _get_source_text_from_md_file(filepath, remove_code=True)
 
-    wikilinks = _get_unique_wikilinks(src_txt, remove_aliases=True)
+    wikilinks = _get_unique_wikilinks_from_source_text(src_txt, remove_aliases=True)
     return wikilinks
 
 
@@ -172,7 +172,10 @@ def get_md_links(filepath):
         list of strings
     """
     src_txt = _get_source_text_from_md_file(filepath, remove_code=True)
+    return _get_md_links_from_source_text(src_txt)
 
+
+def _get_md_links_from_source_text(src_txt):
     links = _get_all_md_link_info_from_source_text(src_txt)
     if links:  # return links only, not their text
         return [t[-1] for t in links]
@@ -367,7 +370,7 @@ def _get_all_latex_from_md_file(filepath):
         _get_html_from_md_file(filepath))
 
 
-def _get_unique_wikilinks(src_txt, *, remove_aliases=True):
+def _get_unique_wikilinks_from_source_text(src_txt, *, remove_aliases=True):
     wikilinks = _get_all_wikilinks_from_source_text(
         src_txt, remove_aliases=remove_aliases)
     return list(dict.fromkeys(wikilinks))
