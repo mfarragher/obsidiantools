@@ -102,7 +102,7 @@ def get_wikilinks(filepath):
     Returns:
         list of strings
     """
-    src_txt = _get_source_text_from_md_file(filepath, remove_code=True)
+    src_txt = get_source_text_from_md_file(filepath, remove_code=True)
 
     wikilinks = _get_all_wikilinks_from_source_text(
         src_txt, remove_aliases=True)
@@ -126,7 +126,7 @@ def get_embedded_files(filepath):
     Returns:
         list of strings
     """
-    src_txt = _get_source_text_from_md_file(filepath, remove_code=True)
+    src_txt = get_source_text_from_md_file(filepath, remove_code=True)
 
     files = _get_all_embedded_files_from_source_text(
         src_txt, remove_aliases=True)
@@ -150,7 +150,7 @@ def get_unique_wikilinks(filepath):
     Returns:
         list of strings
     """
-    src_txt = _get_source_text_from_md_file(filepath, remove_code=True)
+    src_txt = get_source_text_from_md_file(filepath, remove_code=True)
 
     wikilinks = _get_unique_wikilinks_from_source_text(src_txt, remove_aliases=True)
     return wikilinks
@@ -171,7 +171,7 @@ def get_md_links(filepath):
     Returns:
         list of strings
     """
-    src_txt = _get_source_text_from_md_file(filepath, remove_code=True)
+    src_txt = get_source_text_from_md_file(filepath, remove_code=True)
     return _get_md_links_from_source_text(src_txt)
 
 
@@ -198,7 +198,7 @@ def get_unique_md_links(filepath):
     Returns:
         list of strings
     """
-    src_txt = _get_source_text_from_md_file(filepath, remove_code=True)
+    src_txt = get_source_text_from_md_file(filepath, remove_code=True)
 
     links = _get_unique_md_links_from_source_text(src_txt)
     return links
@@ -236,7 +236,7 @@ def get_tags(filepath, *, show_nested=False):
         list
     """
     # get text from source file, but remove any '\#' and code:
-    src_txt = _get_source_text_from_md_file(
+    src_txt = get_source_text_from_md_file(
         filepath, remove_code=True,
         str_transform_func=_transform_md_file_string_for_tag_parsing)
     # remove wikilinks so that '#' headers are not caught:
@@ -278,10 +278,16 @@ def _get_html_from_md_file(filepath, *, str_transform_func=None):
     experience as much as possible.  For example, arithmatex is necessary
     to parse math, md_mermaid for mermaid diagram support, etc.
     """
-    _, content = _get_md_front_matter_and_content(
+    _, md_content = _get_md_front_matter_and_content(
         filepath,
         str_transform_func=str_transform_func)
-    html = markdown.markdown(content, output_format='html',
+    html = _get_html_from_md_content(md_content)
+    return html
+
+
+def _get_html_from_md_content(md_content):
+    """md content -> html (without front matter)"""
+    html = markdown.markdown(md_content, output_format='html',
                              extensions=['pymdownx.arithmatex',
                                          'pymdownx.mark',
                                          'pymdownx.tilde',
@@ -294,8 +300,16 @@ def _get_html_from_md_file(filepath, *, str_transform_func=None):
     return html
 
 
-def _get_source_text_from_md_file(filepath, *,
-                                  remove_code=False, str_transform_func=None):
+def get_source_text_from_html(html, *,
+                              remove_code=False):
+    """html (without front matter) -> ASCII plaintext"""
+    if remove_code:
+        html = _remove_code(html)
+    return _get_source_plaintext_from_html(html)
+
+
+def get_source_text_from_md_file(filepath, *,
+                                 remove_code=False, str_transform_func=None):
     """md file -> html (without front matter) -> ASCII plaintext"""
     # strip out front matter (if any):
     html = _get_html_from_md_file(
@@ -306,7 +320,7 @@ def _get_source_text_from_md_file(filepath, *,
     return _get_source_plaintext_from_html(html)
 
 
-def _get_readable_text_from_md_file(filepath, *, tags=None):
+def get_readable_text_from_md_file(filepath, *, tags=None):
     """md file -> html -> plaintext with major formatting removed."""
     # strip out front matter (if any):
     html = _get_html_from_md_file(

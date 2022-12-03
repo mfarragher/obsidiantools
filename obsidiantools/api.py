@@ -5,18 +5,22 @@ import pandas as pd
 from collections import Counter
 from pathlib import Path
 
-from .md_utils import (get_md_relpaths_matching_subdirs,
-                       _get_md_front_matter_and_content,
+# init
+from .md_utils import (get_md_relpaths_matching_subdirs)
+# connect
+from .md_utils import (_get_md_front_matter_and_content,
+                       _get_html_from_md_content,
                        _get_md_links_from_source_text,
                        _get_unique_md_links_from_source_text,
                        _get_unique_wikilinks_from_source_text,
                        _get_all_wikilinks_from_source_text,
                        _get_all_embedded_files_from_source_text,
-                       get_front_matter,
                        get_tags,
-                       _get_source_text_from_md_file,
-                       _get_readable_text_from_md_file,
-                       _get_all_latex_from_md_file)
+                       get_source_text_from_html,
+                       _get_all_latex_from_html_content)
+# gather
+from .md_utils import (get_source_text_from_md_file,
+                       get_readable_text_from_md_file)
 
 
 class Vault:
@@ -259,10 +263,12 @@ class Vault:
 
             # loop through files:
             for f, relpath in self._file_index.items():
+                # MAIN file read:
                 front_matter, content = _get_md_front_matter_and_content(
                     self._dirpath / relpath)
-                src_txt = _get_source_text_from_md_file(
-                    self._dirpath / relpath, remove_code=True)
+                html = _get_html_from_md_content(content)
+                src_txt = get_source_text_from_html(
+                    html, remove_code=True)
 
                 # info from core text:
                 md_links_ix[f] = _get_md_links_from_source_text(src_txt)
@@ -274,11 +280,13 @@ class Vault:
                 wikilinks_unique_ix[f] = _get_unique_wikilinks_from_source_text(
                     src_txt, remove_aliases=True)
                 # info from html:
-                math_ix[f] = _get_all_latex_from_md_file(self._dirpath / relpath)
-                # info from transformed text:
-                tags_ix[f] = get_tags(self._dirpath / relpath, show_nested=show_nested_tags)
+                math_ix[f] = _get_all_latex_from_html_content(html)
                 # split out front matter:
-                front_matter_ix[f] = get_front_matter(self._dirpath / relpath)
+                front_matter_ix[f] = front_matter
+
+                # MORE file reads needed for extra info:
+                tags_ix[f] = get_tags(self._dirpath / relpath,
+                                      show_nested=show_nested_tags)
 
             self._md_links_index = md_links_ix
             self._unique_md_links_index = md_links_unique_ix
@@ -293,7 +301,6 @@ class Vault:
             # graph:
             G = nx.MultiDiGraph(wikilinks_ix)
             self._graph = G
-
             # info obtained from graph:
             self._backlinks_index = self._get_backlinks_index(graph=G)
             self._nonexistent_notes = self._get_nonexistent_notes()
@@ -330,12 +337,12 @@ class Vault:
 
         # source text will not remove any content:
         self._source_text_index = {
-            k: _get_source_text_from_md_file(self._dirpath / v,
-                                             remove_code=False)
+            k: get_source_text_from_md_file(self._dirpath / v,
+                                            remove_code=False)
             for k, v in self._file_index.items()}
         self._readable_text_index = {
-            k: _get_readable_text_from_md_file(self._dirpath / v,
-                                               tags=tags)
+            k: get_readable_text_from_md_file(self._dirpath / v,
+                                              tags=tags)
             for k, v in self._file_index.items()}
 
         self._is_gathered = True

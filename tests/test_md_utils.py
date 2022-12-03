@@ -7,7 +7,7 @@ from obsidiantools.md_utils import (_get_all_wikilinks_from_source_text,
                                     _get_all_md_link_info_from_source_text,
                                     _get_unique_md_links_from_source_text,
                                     _get_html_from_md_file,
-                                    _get_source_text_from_md_file,
+                                    get_source_text_from_md_file,
                                     _transform_md_file_string_for_tag_parsing,
                                     get_wikilinks,
                                     get_embedded_files,
@@ -16,7 +16,7 @@ from obsidiantools.md_utils import (_get_all_wikilinks_from_source_text,
                                     _remove_wikilinks_from_source_text,
                                     _replace_wikilinks_with_their_text,
                                     _replace_md_links_with_their_text,
-                                    _get_readable_text_from_md_file)
+                                    get_readable_text_from_md_file)
 from obsidiantools.html_processing import (_get_all_latex_from_html_content)
 
 
@@ -205,7 +205,7 @@ def test_ne_fuit_front_matter():
 def test_front_matter_only_parsing():
     fm_only_files = Path('.').glob('tests/general/frontmatter-only*.md')
     for f in fm_only_files:
-        actual_txt = _get_source_text_from_md_file(f)
+        actual_txt = get_source_text_from_md_file(f)
         expected_txt = '\n'
         assert actual_txt == expected_txt
 
@@ -309,7 +309,7 @@ Github homepage
 
 
 def test_readable_text_from_latex_md_stub_default_tags():
-    actual_str = _get_readable_text_from_md_file(
+    actual_str = get_readable_text_from_md_file(
         'tests/general/latex.md')
     expected_str = '# Note with LaTeX\n\n## GEE \n\nRegression coefficients estimated through GEE are asymptotically normal: \n\nThe underscore chars above need to be caught through MathJax - capture subscripts rather than emphasis in the parsing.\n\n## GEE estimation\n\nA few eqs more using deeper LaTeX functionality:\n\nEquations for GEE are solved for the regression parameters using: \n\nTaking the expectation of the equation system in ...\n'
 
@@ -317,14 +317,14 @@ def test_readable_text_from_latex_md_stub_default_tags():
 
 
 def test_readable_text_from_latex_md_stub_allow_no_tags():
-    actual_str = _get_readable_text_from_md_file(
+    actual_str = get_readable_text_from_md_file(
         'tests/general/latex.md', tags=[])
     expected_str = 'Note with LaTeX GEE Regression coefficients estimated through GEE are asymptotically normal: The underscore chars above need to be caught through MathJax - capture subscripts rather than emphasis in the parsing. GEE estimation A few eqs more using deeper LaTeX functionality: Equations for GEE are solved for the regression parameters using: Taking the expectation of the equation system in ...\n'
     assert actual_str == expected_str
 
 
 def test_readable_text_strikethrough_is_deleted():
-    actual_str = _get_readable_text_from_md_file(
+    actual_str = get_readable_text_from_md_file(
         'tests/general/readable-text_all-deleted.md')
     expected_str = '\n'
 
@@ -332,7 +332,7 @@ def test_readable_text_strikethrough_is_deleted():
 
 
 def test_readable_text_embedded_files_are_removed():
-    actual_str = _get_readable_text_from_md_file(
+    actual_str = get_readable_text_from_md_file(
         'tests/general/embedded-files_in-body.md')
     expected_str = '\n'
 
