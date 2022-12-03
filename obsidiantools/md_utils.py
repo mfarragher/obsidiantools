@@ -5,6 +5,8 @@ from glob import glob
 import markdown
 import frontmatter
 from ._constants import (WIKILINK_REGEX, TAG_REGEX,
+                         WIKILINK_AS_STRING_REGEX,
+                         EMBEDDED_FILE_LINK_AS_STRING_REGEX,
                          INLINE_LINK_AFTER_HTML_PROC_REGEX,
                          INLINE_LINK_VIA_MD_ONLY_REGEX)
 from .html_processing import (_get_source_plaintext_from_html,
@@ -411,7 +413,7 @@ def _replace_wikilinks_with_their_text(src_txt):
 
 def _replace_md_links_with_their_text(src_txt):
     # get list of wikilinks as strings:
-    matched_text_list = re.findall(r'\[[^\]]+\]\([^)]+\)', src_txt)
+    matched_text_list = re.findall(WIKILINK_AS_STRING_REGEX, src_txt)
     # get the detail from groups:
     links_detail = re.findall(INLINE_LINK_VIA_MD_ONLY_REGEX, src_txt)
 
@@ -429,7 +431,7 @@ def _replace_md_links_with_their_text(src_txt):
 
 def _remove_embedded_file_links_from_text(src_txt):
     # get list of embedded file links as strings:
-    links_list = re.findall(r'!?\[{2}([^\]\]]+)\]{2}', src_txt)
+    links_list = re.findall(EMBEDDED_FILE_LINK_AS_STRING_REGEX, src_txt)
     # add in the ![[...]] chars:
     links_list = ["".join(['![[', i, ']]']) for i in links_list]
 
