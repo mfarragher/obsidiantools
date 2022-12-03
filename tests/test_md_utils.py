@@ -236,10 +236,19 @@ def test_hash_char_parsing_func():
     assert out_str == expected_str
 
 
-def test_sussudio_tags():
+def test_sussudio_tags_with_nesting_not_shown():
     actual_tags = get_tags(
         'tests/vault-stub/Sussudio.md')
-    expected_tags = ['y1982', 'y_1982', 'y-1982', 'y1982', 'y2000']
+    expected_tags = ['y1982', 'y_1982', 'y-1982',
+                     'y1982', 'y2000']
+    assert actual_tags == expected_tags
+
+
+def test_sussudio_tags_with_nesting_shown():
+    actual_tags = get_tags(
+        'tests/vault-stub/Sussudio.md', show_nested=True)
+    expected_tags = ['y1982', 'y_1982', 'y-1982',
+                     'y1982/sep', 'y2000/party-over/oops/out-of-time']
     assert actual_tags == expected_tags
 
 

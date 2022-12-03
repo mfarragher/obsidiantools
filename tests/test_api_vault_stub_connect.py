@@ -167,7 +167,7 @@ def expected_md_links_index():
 
 
 @pytest.fixture
-def expected_tags_index():
+def expected_tags_main_only_index():
     return {'Isolated note': [],
             'Sussudio': ['y1982', 'y_1982', 'y-1982', 'y1982', 'y2000'],
             'Brevissimus moenia': [],
@@ -438,9 +438,9 @@ def test_md_links_index(
 
 
 def test_tags_index(
-        actual_connected_vault, expected_tags_index):
+        actual_connected_vault, expected_tags_main_only_index):
     actual_tags_ix = actual_connected_vault.tags_index
-    assert actual_tags_ix == expected_tags_index
+    assert actual_tags_ix == expected_tags_main_only_index
 
 
 def test_unique_md_links(
