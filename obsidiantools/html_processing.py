@@ -12,10 +12,13 @@ def _get_html2text_obj_with_config():
     txt_maker.body_width = 0
     txt_maker.protect_links = True
     txt_maker.wrap_links = False
+
+    # table settings:
+    txt_maker.ignore_tables = True  # keep row content
     return txt_maker
 
 
-def _get_source_plaintext_from_html(html):
+def _get_plaintext_from_html(html):
     """html -> ASCII plaintext, via HTML2Text."""
     txt_maker = _get_html2text_obj_with_config()
     doc = txt_maker.handle(html)

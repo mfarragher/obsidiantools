@@ -10,7 +10,7 @@ from ._constants import (WIKILINK_REGEX,
                          EMBEDDED_FILE_LINK_AS_STRING_REGEX,
                          INLINE_LINK_AFTER_HTML_PROC_REGEX,
                          INLINE_LINK_VIA_MD_ONLY_REGEX)
-from .html_processing import (_get_source_plaintext_from_html,
+from .html_processing import (_get_plaintext_from_html,
                               _remove_code, _remove_latex, _remove_del_text,
                               _remove_main_formatting,
                               _get_all_latex_from_html_content)
@@ -301,23 +301,26 @@ def _get_html_from_md_content(md_content):
 
 
 def get_source_text_from_html(html, *,
-                              remove_code=False):
+                              remove_code=False, remove_math=False):
     """html (without front matter) -> ASCII plaintext"""
     if remove_code:
         html = _remove_code(html)
-    return _get_source_plaintext_from_html(html)
+    if remove_math:
+        html = _remove_latex(html)
+    return _get_plaintext_from_html(html)
 
 
 def get_source_text_from_md_file(filepath, *,
-                                 remove_code=False, str_transform_func=None):
+                                 remove_code=False, remove_math=False,
+                                 str_transform_func=None):
     """md file -> html (without front matter) -> ASCII plaintext"""
     # strip out front matter (if any):
     html = _get_html_from_md_file(
         filepath,
         str_transform_func=str_transform_func)
-    if remove_code:
-        html = _remove_code(html)
-    return _get_source_plaintext_from_html(html)
+
+    return get_source_text_from_html(html, remove_code=remove_code,
+                                     remove_math=remove_math)
 
 
 def get_readable_text_from_md_file(filepath, *, tags=None):
@@ -338,7 +341,7 @@ def get_readable_text_from_md_file(filepath, *, tags=None):
     else:  # defaults
         html = _remove_main_formatting(html)
 
-    return _get_source_plaintext_from_html(html)
+    return _get_plaintext_from_html(html)
 
 
 def _get_all_wikilinks_and_embedded_files(src_txt):

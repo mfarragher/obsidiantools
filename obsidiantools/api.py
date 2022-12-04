@@ -339,7 +339,8 @@ class Vault:
         # source text will not remove any content:
         self._source_text_index = {
             k: get_source_text_from_md_file(self._dirpath / v,
-                                            remove_code=False)
+                                            remove_code=True,
+                                            remove_math=True)
             for k, v in self._file_index.items()}
         self._readable_text_index = {
             k: get_readable_text_from_md_file(self._dirpath / v,
