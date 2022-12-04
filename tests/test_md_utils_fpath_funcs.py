@@ -33,7 +33,7 @@ def test_get_html_from_md_file(mocker_md_file):
     assert isinstance(actual_html, str)
 
 
-def testget_source_text_from_md_file(mocker_md_file):
+def test_get_source_text_from_md_file(mocker_md_file):
     # test fake file open returns str
     actual_txt = get_source_text_from_md_file(mocker_md_file)
 

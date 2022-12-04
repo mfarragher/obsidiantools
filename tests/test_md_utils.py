@@ -191,14 +191,14 @@ def test_sussudio_front_matter():
                          'references': [[['American Psycho (film)']], 'Polka Party!'],
                          'chart_peaks': [{'US': 1}, {'UK': 12}]}
     actual_metadata = get_front_matter(
-        'tests/vault-stub/Sussudio.md')
+        Path('.') / 'tests/vault-stub/Sussudio.md')
     assert actual_metadata == expected_metadata
 
 
 def test_ne_fuit_front_matter():
     expected_metadata = {}
     actual_metadata = get_front_matter(
-        'tests/vault-stub/lipsum/Ne fuit.md')
+        Path('.') / 'tests/vault-stub/lipsum/Ne fuit.md')
     assert actual_metadata == expected_metadata
 
 
@@ -237,7 +237,7 @@ def test_hash_char_parsing_func():
 
 def test_sussudio_tags_with_nesting_not_shown():
     actual_tags = get_tags(
-        'tests/vault-stub/Sussudio.md')
+        Path('.') / 'tests/vault-stub/Sussudio.md')
     expected_tags = ['y1982', 'y_1982', 'y-1982',
                      'y1982', 'y2000']
     assert actual_tags == expected_tags
@@ -245,7 +245,7 @@ def test_sussudio_tags_with_nesting_not_shown():
 
 def test_sussudio_tags_with_nesting_shown():
     actual_tags = get_tags(
-        'tests/vault-stub/Sussudio.md', show_nested=True)
+        Path('.') / 'tests/vault-stub/Sussudio.md', show_nested=True)
     expected_tags = ['y1982', 'y_1982', 'y-1982',
                      'y1982/sep', 'y2000/party-over/oops/out-of-time']
     assert actual_tags == expected_tags
@@ -253,7 +253,7 @@ def test_sussudio_tags_with_nesting_shown():
 
 def test_embedded_files_alias_scaling():
     actual_embedded_images = get_embedded_files(
-        'tests/general/embedded-images_in-table.md')
+        Path('.') / 'tests/general/embedded-images_in-table.md')
     expected_embedded_images = ['test-image_1_before.png',
                                 'test-image_1_after.png',
                                 'test-image_2_before.png',
@@ -263,13 +263,13 @@ def test_embedded_files_alias_scaling():
 
 def test_wikilinks_code_block():
     actual_links = get_wikilinks(
-        'tests/general/wikilinks_exclude-code.md')
+        Path('.') / 'tests/general/wikilinks_exclude-code.md')
     expected_links = []
     assert actual_links == expected_links
 
 
 def test_latex():
-    html = _get_html_from_md_file('tests/general/latex.md')
+    html = _get_html_from_md_file(Path('.') / 'tests/general/latex.md')
     actual_latex_list = _get_all_latex_from_html_content(html)
     expected_latex_list = ['\\beta', '\\beta',
                            '\\hat{\\beta}_{GEE} \\xrightarrow{D} N(\\beta_{0}, \\Sigma(\\beta_{0}))',
@@ -310,7 +310,7 @@ Github homepage
 
 def test_readable_text_from_latex_md_stub_default_tags():
     actual_str = get_readable_text_from_md_file(
-        'tests/general/latex.md')
+        Path('.') / 'tests/general/latex.md')
     expected_str = '# Note with LaTeX\n\n## GEE \n\nRegression coefficients estimated through GEE are asymptotically normal: \n\nThe underscore chars above need to be caught through MathJax - capture subscripts rather than emphasis in the parsing.\n\n## GEE estimation\n\nA few eqs more using deeper LaTeX functionality:\n\nEquations for GEE are solved for the regression parameters using: \n\nTaking the expectation of the equation system in ...\n'
 
     assert actual_str == expected_str
@@ -318,14 +318,14 @@ def test_readable_text_from_latex_md_stub_default_tags():
 
 def test_readable_text_from_latex_md_stub_allow_no_tags():
     actual_str = get_readable_text_from_md_file(
-        'tests/general/latex.md', tags=[])
+        Path('.') / 'tests/general/latex.md', tags=[])
     expected_str = 'Note with LaTeX GEE Regression coefficients estimated through GEE are asymptotically normal: The underscore chars above need to be caught through MathJax - capture subscripts rather than emphasis in the parsing. GEE estimation A few eqs more using deeper LaTeX functionality: Equations for GEE are solved for the regression parameters using: Taking the expectation of the equation system in ...\n'
     assert actual_str == expected_str
 
 
 def test_readable_text_strikethrough_is_deleted():
     actual_str = get_readable_text_from_md_file(
-        'tests/general/readable-text_all-deleted.md')
+        Path('.') / 'tests/general/readable-text_all-deleted.md')
     expected_str = '\n'
 
     assert actual_str == expected_str
@@ -333,7 +333,7 @@ def test_readable_text_strikethrough_is_deleted():
 
 def test_readable_text_embedded_files_are_removed():
     actual_str = get_readable_text_from_md_file(
-        'tests/general/embedded-files_in-body.md')
+        Path('.') / 'tests/general/embedded-files_in-body.md')
     expected_str = '\n'
 
     assert actual_str == expected_str
