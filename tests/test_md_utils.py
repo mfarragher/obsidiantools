@@ -337,3 +337,35 @@ def test_readable_text_embedded_files_are_removed():
     expected_str = '\n'
 
     assert actual_str == expected_str
+
+
+def test_source_text_has_text_after_problematic_latex():
+    expected_str = (
+        """# Generalised estimating equations
+
+**Generalised estimating equations (GEE)** are ...
+
+## Formulation
+
+Cras imperdiet enim felis, vitae placerat turpis egestas sed. Nulla maximus vel orci ullamcorper blandit.
+
+## Estimation
+
+Problematic equation for html2text: 
+
+...
+
+## Remaining content that isn't LaTeX
+
+Pellentesque rhoncus posuere lacinia. Aenean erat metus, dignissim sed luctus sed, condimentum vitae tortor. Vestibulum tristique nisl id purus volutpat, auctor tempus odio semper. Praesent suscipit, ex id consequat malesuada, elit ex dapibus libero, et pellentesque ipsum arcu et tortor. Nunc sodales vel lectus ac semper.
+
+### Another subheading
+
+Text that shouldn't disappear.
+""")
+
+    actual_str = get_source_text_from_md_file(
+        Path('.') / 'tests/general/source-text_handle-latex.md',
+        remove_math=True)
+
+    assert actual_str == expected_str
