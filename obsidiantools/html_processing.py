@@ -1,11 +1,11 @@
-import html2text
+from html2text import HTML2Text
 import bleach
 from bs4 import BeautifulSoup
 
 
 def _get_html2text_obj_with_config():
     """Get HTML2Text object with config set."""
-    txt_maker = html2text.HTML2Text()
+    txt_maker = HTML2Text()
 
     # some settings to avoid newline problems with links
     txt_maker.ignore_links = False
@@ -18,14 +18,14 @@ def _get_html2text_obj_with_config():
     return txt_maker
 
 
-def _get_plaintext_from_html(html):
+def _get_plaintext_from_html(html: str) -> str:
     """html -> ASCII plaintext, via HTML2Text."""
     txt_maker = _get_html2text_obj_with_config()
     doc = txt_maker.handle(html)
     return doc
 
 
-def _remove_code(html):
+def _remove_code(html: str) -> str:
     # exclude 'code' tags from link output:
     soup = BeautifulSoup(html, 'lxml')
     for s in soup.select('code'):
@@ -34,7 +34,7 @@ def _remove_code(html):
     return html_str
 
 
-def _remove_del_text(html):
+def _remove_del_text(html: str) -> str:
     soup = BeautifulSoup(html, 'lxml')
     for s in soup.select('del'):
         s.extract()
@@ -42,12 +42,13 @@ def _remove_del_text(html):
     return html_str
 
 
-def _remove_main_formatting(html, *,
-                            tags=['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6']):
+def _remove_main_formatting(
+        html: str, *,
+        tags: list[str] = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6']) -> str:
     return bleach.clean(html, tags=tags, strip=True)
 
 
-def _remove_latex(html):
+def _remove_latex(html: str) -> str:
     soup = BeautifulSoup(html, 'lxml')
     for s in soup.select('span', {'class': 'MathJax_Preview'}):
         s.extract()
@@ -55,7 +56,7 @@ def _remove_latex(html):
     return html_str
 
 
-def _get_all_latex_from_html_content(html):
+def _get_all_latex_from_html_content(html: str) -> list[str]:
     soup = BeautifulSoup(html, 'html.parser')
 
     s_content = soup.find_all('span', {'class': 'MathJax_Preview'},

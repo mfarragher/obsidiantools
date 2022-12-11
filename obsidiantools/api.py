@@ -24,7 +24,8 @@ from .md_utils import (get_source_text_from_md_file,
 
 
 class Vault:
-    def __init__(self, dirpath, *, include_subdirs=None, include_root=True):
+    def __init__(self, dirpath: Path, *,
+                 include_subdirs: list[str] = None, include_root: bool = True):
         """A Vault object lets you dig into your Obsidian vault, by giving
         you a toolkit for analysing its contents.  Specify a dirpath to
         instantiate the class.  This class is intended to support multiple
@@ -123,70 +124,70 @@ class Vault:
         self._readable_text_index = {}
 
     @property
-    def dirpath(self):
+    def dirpath(self) -> Path:
         """pathlib Path"""
         return self._dirpath
 
     @property
-    def file_index(self):
+    def file_index(self) -> dict[str, Path]:
         """dict: one-to-one mapping of filename (k) to relative path (v)"""
         return self._file_index
 
     @property
-    def graph(self):
+    def graph(self) -> nx.MultiDiGraph:
         """networkx Graph"""
         return self._graph
 
     @property
-    def backlinks_index(self):
+    def backlinks_index(self) -> dict[str, list[str]]:
         """dict of lists: note name (k) to lists (v).  v is [] if k
         has no backlinks."""
         return self._backlinks_index
 
     @property
-    def wikilinks_index(self):
+    def wikilinks_index(self) -> dict[str, list[str]]:
         """dict of lists: filename (k) to lists (v).  v is [] if k
         has no wikilinks."""
         return self._wikilinks_index
 
     @property
-    def unique_wikilinks_index(self):
+    def unique_wikilinks_index(self) -> dict[str, list[str]]:
         """dict of lists: filename (k) to lists (v).  v is [] if k
         has no wikilinks."""
         return self._unique_wikilinks_index
 
     @property
-    def embedded_files_index(self):
-        """dict: note name (k) to list of embedded file strimg (v).
+    def embedded_files_index(self) -> dict[str, list[str]]:
+        """dict: note name (k) to list of embedded file string (v).
         v is [] if k has no embedded files."""
         return self._embedded_files_index
 
     @property
-    def math_index(self):
-        """dict: note name (k) to list of LaTeX math strimg (v).  v is [] if
+    def math_index(self) -> dict[str, list[str]]:
+        """dict: note name (k) to list of LaTeX math string (v).  v is [] if
         k has no LaTeX."""
         return self._math_index
 
     @property
-    def md_links_index(self):
+    def md_links_index(self) -> dict[str, list[str]]:
         """dict of lists: filename (k) to lists (v).  v is [] if k
         has no markdown links."""
         return self._md_links_index
 
     @property
-    def unique_md_links_index(self):
+    def unique_md_links_index(self) -> dict[str, list[str]]:
         """dict of lists: filename (k) to lists (v).  v is [] if k
         has no markdown links."""
         return self._unique_md_links_index
 
     @property
-    def tags_index(self):
+    def tags_index(self) -> dict[str, list[str]]:
         """dict of lists: filename (k) to lists (v).  v is [] if k
         has no tags."""
         return self._tags_index
 
     @property
-    def nonexistent_notes(self):
+    def nonexistent_notes(self) -> list[str]:
         """list: notes without files, i.e. the notes have backlink(s) but
         their md files don't exist yet.
 
@@ -195,30 +196,30 @@ class Vault:
         return self._nonexistent_notes
 
     @property
-    def isolated_notes(self):
+    def isolated_notes(self) -> list[str]:
         """list: notes (with their own md files) that lack backlinks and
         lack wikilinks.  They are not connected to other notes in the
         Obsidian graph at all."""
         return self._isolated_notes
 
     @property
-    def front_matter_index(self):
+    def front_matter_index(self) -> dict[str, list[str]]:
         """dict: note name (k) to front matter (v).  v is {} if no front
         matter was extracted from note."""
         return self._front_matter_index
 
     @property
-    def is_connected(self):
+    def is_connected(self) -> bool:
         """Bool: has the connect function been called to set up graph?"""
         return self._is_connected
 
     @property
-    def is_gathered(self):
+    def is_gathered(self) -> bool:
         """Bool: has the gather function been called to gather text?"""
         return self._is_gathered
 
     @property
-    def source_text_index(self):
+    def source_text_index(self) -> dict[str, str]:
         """dict of strings: filename (k) to source text string (v).  v is ''
         if k has no text.
 
@@ -228,7 +229,7 @@ class Vault:
         return self._source_text_index
 
     @property
-    def readable_text_index(self):
+    def readable_text_index(self) -> dict[str, str]:
         """dict of strings: filename (k) to 'readable' string (v).  v is ''
         if k has no text.
 
@@ -237,7 +238,7 @@ class Vault:
         needed, while still maintaining the meaning of text."""
         return self._readable_text_index
 
-    def connect(self, *, show_nested_tags=False):
+    def connect(self, *, show_nested_tags: bool = False):
         """connect your notes together by representing the vault as a
         Networkx graph object, G.
 
@@ -311,7 +312,7 @@ class Vault:
 
         return self  # fluent
 
-    def gather(self, *, tags=None):
+    def gather(self, *, tags: list[str] = None):
         """gather the content of your notes so that all the plaintext is
         stored in one place for easy access.
 
@@ -351,7 +352,7 @@ class Vault:
 
         return self  # fluent
 
-    def get_backlinks(self, note_name):
+    def get_backlinks(self, note_name: str) -> list[str]:
         """Get backlinks for a note (given its name).
 
         If a note has not been created, but has wikilinks pointing to it
@@ -375,7 +376,7 @@ class Vault:
         else:
             return self._backlinks_index[note_name]
 
-    def get_backlink_counts(self, note_name):
+    def get_backlink_counts(self, note_name: str) -> dict[str, int]:
         """Get counts of backlinks for a note (given its name).
 
         Args:
@@ -394,7 +395,7 @@ class Vault:
             backlinks = self.get_backlinks(note_name)
             return dict(Counter(backlinks))
 
-    def get_wikilinks(self, file_name):
+    def get_wikilinks(self, file_name: str) -> list[str]:
         """Get wikilinks for a note (given its filename).
 
         Wikilinks can only appear in notes that already exist, so if a
@@ -416,7 +417,7 @@ class Vault:
         else:
             return self._wikilinks_index[file_name]
 
-    def get_wikilink_counts(self, note_name):
+    def get_wikilink_counts(self, note_name: str) -> dict[str, int]:
         """Get counts of wikilinks for a note (given its name).
 
         Args:
@@ -435,7 +436,7 @@ class Vault:
             wikilinks = self.get_wikilinks(note_name)
             return dict(Counter(wikilinks))
 
-    def get_embedded_files(self, file_name):
+    def get_embedded_files(self, file_name: str) -> list[str]:
         """Get embedded files for a note (given its filename).
 
         Embedded files can only appear in notes that already exist, so if a
@@ -457,7 +458,7 @@ class Vault:
         else:
             return self._embedded_files_index[file_name]
 
-    def get_md_links(self, file_name):
+    def get_md_links(self, file_name: str) -> list[str]:
         """Get markdown links for a note (given its filename).
 
         Markdown links can only appear in notes that already exist, so if a
@@ -479,7 +480,7 @@ class Vault:
         else:
             return self._md_links_index[file_name]
 
-    def get_front_matter(self, file_name):
+    def get_front_matter(self, file_name: str) -> list[dict]:
         """Get front matter for a note (given its filename).
 
         Front matter can only appear in notes that already exist, so if a
@@ -500,7 +501,8 @@ class Vault:
         else:
             return self._front_matter_index[file_name]
 
-    def get_tags(self, file_name, *, show_nested=False):
+    def get_tags(self, file_name: str, *,
+                 show_nested: bool = False) -> list[str]:
         """Get tags for a note (given its filename).
         By default, only the highest level of any nested tags is shown
         in the output.
@@ -523,7 +525,7 @@ class Vault:
         else:
             return self._tags_index[file_name]
 
-    def get_source_text(self, file_name):
+    def get_source_text(self, file_name: str) -> str:
         """Get text for a note (given its filename).  This requires the vault
         functions 'connect' AND 'gather' to have been called.
 
@@ -545,7 +547,7 @@ class Vault:
         else:
             return self._source_text_index[file_name]
 
-    def get_readable_text(self, file_name):
+    def get_readable_text(self, file_name: str) -> str:
         """Get readable text for a note (given its filename).
         This requires the vault functions 'connect' AND 'gather' to have
         been called.
@@ -572,7 +574,7 @@ class Vault:
         else:
             return self._readable_text_index[file_name]
 
-    def _get_md_relpaths(self, **kwargs):
+    def _get_md_relpaths(self, **kwargs) -> list[Path]:
         """Return list of filepaths *relative* to the directory instantiated
         for the class.
 
@@ -581,7 +583,7 @@ class Vault:
         """
         return get_md_relpaths_matching_subdirs(self._dirpath, **kwargs)
 
-    def _get_md_relpaths_by_name(self, **kwargs):
+    def _get_md_relpaths_by_name(self, **kwargs) -> dict[str, Path]:
         """Return k,v pairs
         where k is the file name
         and v is the relpath of the md file
@@ -591,14 +593,15 @@ class Vault:
         """
         return {f.stem: f for f in self._get_md_relpaths(**kwargs)}
 
-    def _get_backlinks_index(self, *, graph):
+    def _get_backlinks_index(self, *,
+                             graph: nx.MultiDiGraph) -> dict[str, list[str]]:
         """Return k,v pairs
         where k is the md note name
         and v is list of ALL backlinks found in k"""
         return {n: [n[0] for n in list(graph.in_edges(n))]
                 for n in self._graph.nodes}
 
-    def get_note_metadata(self):
+    def get_note_metadata(self) -> pd.DataFrame:
         """Structured dataset of metadata on the vault's notes.  This
         includes filepaths and counts of different link types.
 
@@ -621,7 +624,8 @@ class Vault:
               )
         return df
 
-    def _create_note_metadata_columns(self, df):
+    def _create_note_metadata_columns(self,
+                                      df: pd.DataFrame) -> pd.DataFrame:
         """pipe func for mutating df"""
         df['rel_filepath'] = [self._file_index.get(f, np.NaN)
                               for f in df.index]
@@ -652,7 +656,8 @@ class Vault:
         )
         return df
 
-    def _clean_up_note_metadata_dtypes(self, df):
+    def _clean_up_note_metadata_dtypes(self,
+                                       df: pd.DataFrame) -> pd.DataFrame:
         """pipe func for mutating df"""
         df['rel_filepath'] = np.where(df['rel_filepath'].notna(),
                                       [Path(str(f))
@@ -661,7 +666,7 @@ class Vault:
         df['n_wikilinks'] = df['n_wikilinks'].astype(float)  # for consistency
         return df
 
-    def _get_nonexistent_notes(self):
+    def _get_nonexistent_notes(self) -> list[str]:
         """Get notes that have backlinks but don't have md files.
 
         The comparison is done with sets but the result is returned
@@ -669,7 +674,8 @@ class Vault:
         return list(set(self.backlinks_index.keys())
                     .difference(set(self.file_index)))
 
-    def _get_isolated_notes(self, *, graph):
+    def _get_isolated_notes(self, *,
+                            graph: nx.MultiDiGraph) -> list[str]:
         """Get notes that are not connected to any other notes in the vault,
         i.e. they have 0 wikilinks and 0 backlinks.
 
