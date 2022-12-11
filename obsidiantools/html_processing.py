@@ -3,7 +3,7 @@ import bleach
 from bs4 import BeautifulSoup
 
 
-def _get_html2text_obj_with_config():
+def _get_html2text_obj_with_config() -> HTML2Text:
     """Get HTML2Text object with config set."""
     txt_maker = HTML2Text()
 
