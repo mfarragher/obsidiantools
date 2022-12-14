@@ -292,6 +292,7 @@ def _get_html_from_md_content(md_content: str) -> str:
     """md content -> html (without front matter)"""
     html = markdown.markdown(md_content, output_format='html',
                              extensions=['pymdownx.arithmatex',
+                                         'pymdownx.superfences',
                                          'pymdownx.mark',
                                          'pymdownx.tilde',
                                          'pymdownx.saneheaders',
