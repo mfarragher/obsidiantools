@@ -133,6 +133,10 @@ class Vault:
         """dict: one-to-one mapping of filename (k) to relative path (v)"""
         return self._file_index
 
+    @file_index.setter
+    def file_index(self, value) -> dict[str, Path]:
+        self._file_index = value
+
     @property
     def graph(self) -> nx.MultiDiGraph:
         """networkx Graph"""
@@ -228,6 +232,10 @@ class Vault:
         to maintain the additional markdown features that Obsidian uses."""
         return self._source_text_index
 
+    @source_text_index.setter
+    def source_text_index(self, value) -> dict[str, str]:
+        self._source_text_index = value
+
     @property
     def readable_text_index(self) -> dict[str, str]:
         """dict of strings: filename (k) to 'readable' string (v).  v is ''
@@ -237,6 +245,10 @@ class Vault:
         easier to use the text for NLP analysis, with minimal processing
         needed, while still maintaining the meaning of text."""
         return self._readable_text_index
+
+    @readable_text_index.setter
+    def readable_text_index(self, value) -> dict[str, str]:
+        self._readable_text_index = value
 
     def connect(self, *, show_nested_tags: bool = False):
         """connect your notes together by representing the vault as a
@@ -334,9 +346,6 @@ class Vault:
                 will remove all header formatting (e.g. '#', '##' chars)
                 and produces a one-line string.
         """
-        if not self._is_connected:
-            raise AttributeError('Connect vault before gathering notes.')
-
         # source text will not remove any content:
         self._source_text_index = {
             k: get_source_text_from_md_file(self._dirpath / v,

@@ -29,9 +29,8 @@ def test_vault_not_connected(actual_unconnected_vault):
     assert actual_unconnected_vault.source_text_index == {}
     assert actual_unconnected_vault.readable_text_index == {}
 
-    with pytest.raises(AttributeError):
-        actual_unconnected_vault.gather()
 
+def test_vault_not_gathered(actual_unconnected_vault):
     with pytest.raises(AttributeError):
         actual_unconnected_vault.get_source_text('Isolated note')
     with pytest.raises(AttributeError):
