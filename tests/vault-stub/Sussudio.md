@@ -32,3 +32,11 @@ However these shouldn't be recognised as tags:
 - #1985
 - [[American Psycho (film)#Patrick Bateman]]
 - \#hash_char_not_tag
+
+```python
+# #code_comment_not_tag
+# #code-comment-not-tag
+
+if '#i_just_say_the_word':
+    print('It feels so good')
+```
