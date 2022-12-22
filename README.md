@@ -57,7 +57,7 @@ The text from vault notes goes through this process: markdown → split out fron
 ## ⏲️ Installation
 ``pip install obsidiantools``
 
-As of Aug 2022, NetworkX and Pandas require Python 3.8 or higher, so 3.8 is the lowest Python version recommended.
+Requires Python 3.9 or higher.
 
 ## 🖇️ Dependencies
 - Main libraries:

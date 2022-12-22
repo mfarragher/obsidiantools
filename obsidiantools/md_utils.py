@@ -384,6 +384,10 @@ def _get_all_wikilinks_from_source_text(src_txt: str, *,
     if remove_aliases:
         link_matches_list = _remove_aliases_from_wikilink_regex_matches(
             link_matches_list)
+
+    # remove .md:
+    link_matches_list = [name.removesuffix('.md')
+                         for name in link_matches_list]
     return link_matches_list
 
 

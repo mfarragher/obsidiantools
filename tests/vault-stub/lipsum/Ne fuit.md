@@ -4,7 +4,7 @@
 
 Lorem markdownum Giganteo oculos: mox palmis sanguinis ille reppulit terra.
 Dempto duobus omnes concipiunt Latois, cum cuncti Phylius dimittit. Et Triopeius
-credi, Phrygiaeque gaudent? [[Aras Teucras]] habet illa: Ida caede *Iason dona* ore
+credi, Phrygiaeque gaudent? [[Aras Teucras.md]] habet illa: Ida caede *Iason dona* ore
 clausaeque, fingant sagitta fiducia, et cum progeniem.
 
 Mens unus dea nant concava genitor non, et natura. Illo ait Iuppiter orare;
