@@ -600,7 +600,25 @@ class Vault:
         Returns:
             dict
         """
-        return {f.stem: f for f in self._get_md_relpaths(**kwargs)}
+        # get note names (for k) and relpaths (for v):
+        relpaths_list = self._get_md_relpaths(**kwargs)
+        all_note_names_list = [f.stem for f in relpaths_list]
+
+        # get indices of dupe note names:
+        _, inverse_ix, counts = np.unique(
+            np.array(all_note_names_list),
+            return_inverse=True,
+            return_counts=True,
+            axis=0)
+        dupe_names_ix = np.where(counts[inverse_ix] > 1)[0]
+
+        # get shortest paths via mask:
+        shortest_paths_arr = np.array(all_note_names_list, dtype=object)
+        shortest_paths_arr[dupe_names_ix] = np.array(
+            [str(fpath.with_suffix(''))
+             for fpath in relpaths_list])[dupe_names_ix]
+
+        return {n: p for n, p in zip(shortest_paths_arr, relpaths_list)}
 
     def _get_backlinks_index(self, *,
                              graph: nx.MultiDiGraph) -> dict[str, list[str]]:

@@ -30,17 +30,9 @@ def get_md_relpaths_from_dir(dir_path: Path) -> list[Path]:
     Returns:
         list of Path objects
     """
-    dir_list = [Path(p).relative_to(dir_path)
-                for p in glob(f"{dir_path}/**/*.md", recursive=True)]
-
-    # check filenames are unique:
-    all_note_names_list = [f.stem for f in dir_list]
-    n_unique_names = len(set(all_note_names_list))
-    n_notes = len(all_note_names_list)
-    if n_unique_names != n_notes:
-        raise NotImplementedError(f"obsidiantools is only supported for vaults where each MD filename is unique: {n_unique_names} unique note names were found from {n_notes} files.")
-    else:
-        return dir_list
+    relpaths_list = [Path(p).relative_to(dir_path)
+                     for p in glob(f"{dir_path}/**/*.md", recursive=True)]
+    return relpaths_list
 
 
 def get_md_relpaths_matching_subdirs(dir_path: Path, *,
@@ -73,6 +65,10 @@ def get_md_relpaths_matching_subdirs(dir_path: Path, *,
     Returns:
         list of Path objects
     """
+    # Obsidian's 'shortest path' for notes uses forward slash across
+    # operating systems, so as_posix() is used to yield paths with
+    # forward slash consistently here.
+
     if include_subdirs:
         include_subdirs_final = [str(Path(i).as_posix())
                                  for i in include_subdirs]
