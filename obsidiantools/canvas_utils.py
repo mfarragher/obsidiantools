@@ -1,9 +1,10 @@
+import json
 from pathlib import Path
 from ._io import (get_relpaths_from_dir,
                   get_relpaths_matching_subdirs)
 
 
-def get_canvas_filepaths_from_dir(dir_path: Path) -> list[Path]:
+def get_canvas_relpaths_from_dir(dir_path: Path) -> list[Path]:
     """Get list of relative paths for canvas files in a given directory,
     including any subdirectories.
 
@@ -55,3 +56,17 @@ def get_canvas_relpaths_matching_subdirs(dir_path: Path, *,
         extension='canvas',
         include_subdirs=include_subdirs,
         include_root=include_root)
+
+
+def get_canvas_content(filepath: Path) -> dict:
+    """Get JSON content from canvas file as a Python dict.
+
+    Args:
+        filepath (Path): Path object representing the canvas file.
+
+    Returns:
+        dict
+    """
+    with open(filepath, encoding='utf-8') as f:
+        json_as_dict = json.load(f)
+    return json_as_dict

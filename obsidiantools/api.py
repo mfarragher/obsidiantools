@@ -7,6 +7,7 @@ from pathlib import Path
 
 # init
 from .md_utils import (get_md_relpaths_matching_subdirs)
+from .canvas_utils import (get_canvas_relpaths_matching_subdirs)
 # connect
 from .md_utils import (_get_md_front_matter_and_content,
                        _get_html_from_md_content,
@@ -21,6 +22,8 @@ from .md_utils import (_get_md_front_matter_and_content,
 # gather
 from .md_utils import (get_source_text_from_md_file,
                        get_readable_text_from_md_file)
+# canvas:
+from .canvas_utils import (get_canvas_content)
 
 
 class Vault:
@@ -81,9 +84,13 @@ class Vault:
         Methods for analysis across multiple notes:
             get_note_metadata
 
-        Attributes:
+        Attributes - general:
             dirpath (arg)
+            is_connected
+            is_gathered
+        Attributes - md related:
             file_index
+            graph
             backlinks_index
             wikilinks_index
             unique_wikilinks_index
@@ -94,21 +101,25 @@ class Vault:
             tags_index
             nonexistent_notes
             isolated_notes
-            graph
             source_text_index
             readable_text_index
-            is_connected
-            is_gathered
+        Attributes - canvas related:
+            canvas_file_index
+            canvas_content_index
         """
         self._dirpath = dirpath
         self._file_index = self._get_md_relpaths_by_name(
             include_subdirs=include_subdirs,
             include_root=include_root)
+        self._canvas_file_index = self._get_canvas_relpaths_by_name(
+            include_subdirs=include_subdirs,
+            include_root=include_root)
 
-        # graph setup
-        self._graph = None
         self._is_connected = False
         self._is_gathered = False
+
+        # via md content:
+        self._graph = None
         self._backlinks_index = {}
         self._wikilinks_index = {}
         self._unique_wikilinks_index = {}
@@ -123,6 +134,9 @@ class Vault:
         self._source_text_index = {}
         self._readable_text_index = {}
 
+        # via canvas content:
+        self._canvas_content_index = {}
+
     @property
     def dirpath(self) -> Path:
         """pathlib Path"""
@@ -130,12 +144,22 @@ class Vault:
 
     @property
     def file_index(self) -> dict[str, Path]:
-        """dict: one-to-one mapping of filename (k) to relative path (v)"""
+        """dict: one-to-one mapping of md filename (k) to relative path (v)"""
         return self._file_index
 
     @file_index.setter
     def file_index(self, value) -> dict[str, Path]:
         self._file_index = value
+
+    @property
+    def canvas_file_index(self) -> dict[str, Path]:
+        """dict: one-to-one mapping of canvas filename (k) to relative path
+        (v)"""
+        return self._canvas_file_index
+
+    @canvas_file_index.setter
+    def canvas_file_index(self, value) -> dict[str, Path]:
+        self._canvas_file_index = value
 
     @property
     def graph(self) -> nx.MultiDiGraph:
@@ -250,6 +274,16 @@ class Vault:
     def readable_text_index(self, value) -> dict[str, str]:
         self._readable_text_index = value
 
+    @property
+    def canvas_content_index(self) -> dict[str, str]:
+        """dict of dict: file shortest path with canvas ext (k), to canvas
+        content dict (v).  v is {} if k has no content."""
+        return self._canvas_content_index
+
+    @canvas_content_index.setter
+    def canvas_content_index(self, value) -> dict[str, str]:
+        self._canvas_content_index = value
+
     def connect(self, *, show_nested_tags: bool = False):
         """connect your notes together by representing the vault as a
         Networkx graph object, G.
@@ -257,13 +291,15 @@ class Vault:
         With your vault instantiated, set up the graph through:
             vault.connect()
 
-        The graph G is written to the 'graph' attribute.
+        The graph G is written to the 'graph' attribute, to represent the
+        Obsidian graph of your notes.
 
         Args:
             show_nested_tags (Boolean): show nested tags in the output.
                 Defaults to False (which would mean only the highest level
                 of any nested tags are included in the output).
         """
+        # md content:
         if not self._is_connected:
             # index dicts, where k is a note name in the vault:
             md_links_ix = {}
@@ -275,7 +311,7 @@ class Vault:
             wikilinks_ix = {}
             wikilinks_unique_ix = {}
 
-            # loop through files:
+            # loop through md files:
             for f, relpath in self._file_index.items():
                 # MAIN file read:
                 front_matter, content = _get_md_front_matter_and_content(
@@ -321,6 +357,14 @@ class Vault:
             self._isolated_notes = self._get_isolated_notes(graph=G)
 
             self._is_connected = True
+
+        # canvas content:
+        # loop through canvas files:
+        canvas_content_ix = {}
+        for f, relpath in self._canvas_file_index.items():
+            canvas_content_ix[f] = get_canvas_content(
+                self._dirpath / relpath)
+        self._canvas_content_index = canvas_content_ix
 
         return self  # fluent
 
@@ -584,7 +628,7 @@ class Vault:
             return self._readable_text_index[file_name]
 
     def _get_md_relpaths(self, **kwargs) -> list[Path]:
-        """Return list of filepaths *relative* to the directory instantiated
+        """Return list of md filepaths *relative* to the directory instantiated
         for the class.
 
         Returns:
@@ -592,33 +636,64 @@ class Vault:
         """
         return get_md_relpaths_matching_subdirs(self._dirpath, **kwargs)
 
-    def _get_md_relpaths_by_name(self, **kwargs) -> dict[str, Path]:
+    def _get_canvas_relpaths(self, **kwargs) -> list[Path]:
+        """Return list of canvas filepaths *relative* to the directory instantiated
+        for the class.
+
+        Returns:
+            list
+        """
+        return get_canvas_relpaths_matching_subdirs(self._dirpath,
+                                                    **kwargs)
+
+    def __get_relpaths_by_name(self, *, extension, **kwargs) -> dict[str, Path]:
         """Return k,v pairs
         where k is the file name
-        and v is the relpath of the md file
+        and v is the relpath of the {extension} file
 
         Returns:
             dict
         """
         # get note names (for k) and relpaths (for v):
-        relpaths_list = self._get_md_relpaths(**kwargs)
-        all_note_names_list = [f.stem for f in relpaths_list]
+        # keep or remove ext, based on how the file refs appear in wikilinks:
+        if extension == 'md':
+            relpaths_list = self._get_md_relpaths(
+                **kwargs)
+            # remove .md ext:
+            all_file_names_list = [f.stem for f in relpaths_list]
+        if extension == 'canvas':
+            relpaths_list = self._get_canvas_relpaths(
+                **kwargs)
+            # keep .canvas ext:
+            all_file_names_list = [f.name for f in relpaths_list]
 
         # get indices of dupe note names:
         _, inverse_ix, counts = np.unique(
-            np.array(all_note_names_list),
+            np.array(all_file_names_list),
             return_inverse=True,
             return_counts=True,
             axis=0)
         dupe_names_ix = np.where(counts[inverse_ix] > 1)[0]
 
         # get shortest paths via mask:
-        shortest_paths_arr = np.array(all_note_names_list, dtype=object)
-        shortest_paths_arr[dupe_names_ix] = np.array(
-            [str(fpath.with_suffix(''))
-             for fpath in relpaths_list])[dupe_names_ix]
-
+        shortest_paths_arr = np.array(all_file_names_list, dtype=object)
+        if extension == 'md':
+            shortest_paths_arr[dupe_names_ix] = np.array(
+                [str(fpath.with_suffix(''))
+                 for fpath in relpaths_list])[dupe_names_ix]
+        if extension == 'canvas':
+            shortest_paths_arr[dupe_names_ix] = np.array(
+                [str(fpath)
+                 for fpath in relpaths_list])[dupe_names_ix]
         return {n: p for n, p in zip(shortest_paths_arr, relpaths_list)}
+
+    def _get_md_relpaths_by_name(self, **kwargs) -> dict[str, Path]:
+        return self.__get_relpaths_by_name(extension='md',
+                                           **kwargs)
+
+    def _get_canvas_relpaths_by_name(self, **kwargs) -> dict[str, Path]:
+        return self.__get_relpaths_by_name(extension='canvas',
+                                           **kwargs)
 
     def _get_backlinks_index(self, *,
                              graph: nx.MultiDiGraph) -> dict[str, list[str]]:
