@@ -21,6 +21,7 @@ def expected_metadata_dict():
                          'Ne fuit': Path('lipsum/Ne fuit.md'),
                          'Alimenta': Path('lipsum/Alimenta.md'),
                          'Vulnera ubera': Path('lipsum/Vulnera ubera.md'),
+                         'lipsum/Isolated note': Path('lipsum/Isolated note.md'),
                          'Causam mihi': Path('lipsum/Causam mihi.md'),
                          'American Psycho (film)': np.NaN,
                          'Tarpeia': np.NaN,
@@ -41,6 +42,7 @@ def expected_metadata_dict():
                         'Ne fuit': True,
                         'Alimenta': True,
                         'Vulnera ubera': True,
+                        'lipsum/Isolated note': True,
                         'Causam mihi': True,
                         'American Psycho (film)': False,
                         'Tarpeia': False,
@@ -60,6 +62,7 @@ def expected_metadata_dict():
                         'Ne fuit': 2,
                         'Alimenta': 0,
                         'Vulnera ubera': 0,
+                        'lipsum/Isolated note': 0,
                         'Causam mihi': 1,
                         'American Psycho (film)': 1,
                         'Tarpeia': 3,
@@ -79,6 +82,7 @@ def expected_metadata_dict():
                         'Ne fuit': 6.0,
                         'Alimenta': 12.0,
                         'Vulnera ubera': 3.0,
+                        'lipsum/Isolated note': 0.0,
                         'Causam mihi': 4.0,
                         'American Psycho (film)': np.NaN,
                         'Tarpeia': np.NaN,
@@ -98,6 +102,7 @@ def expected_metadata_dict():
                    'Ne fuit': 0.0,
                    'Alimenta': 0.0,
                    'Vulnera ubera': 0.0,
+                   'lipsum/Isolated note': 0.0,
                    'Causam mihi': 0.0,
                    'American Psycho (film)': np.NaN,
                    'Tarpeia': np.NaN,
@@ -117,6 +122,7 @@ def expected_metadata_dict():
                              'Ne fuit': 0.0,
                              'Alimenta': 0.0,
                              'Vulnera ubera': 0.0,
+                             'lipsum/Isolated note': 0.0,
                              'Causam mihi': 0.0,
                              'American Psycho (film)': np.NaN,
                              'Tarpeia': np.NaN,
@@ -136,6 +142,7 @@ def expected_metadata_dict():
 @pytest.fixture
 def expected_embedded_files_index():
     return {'Isolated note': [],
+            'lipsum/Isolated note': [],
             'Sussudio': ['Sussudio.mp3', '1999.flac'],
             'Brevissimus moenia': [],
             'Ne fuit': [],
@@ -147,6 +154,7 @@ def expected_embedded_files_index():
 @pytest.fixture
 def expected_front_matter_index():
     return {'Isolated note': {},
+            'lipsum/Isolated note': {},
             'Sussudio': {'title': 'Sussudio',
                          'artist': 'Phil Collins',
                          'category': 'music',
@@ -169,6 +177,7 @@ def expected_front_matter_index():
 @pytest.fixture
 def expected_md_links_index():
     return {'Isolated note': [],
+            'lipsum/Isolated note': [],
             'Sussudio': [],
             'Brevissimus moenia': ['http://www.alii.io/',
                                    'http://fronti.com/tumiseris.html'],
@@ -188,6 +197,7 @@ def expected_md_links_index():
 @pytest.fixture
 def expected_tags_main_only_index():
     return {'Isolated note': [],
+            'lipsum/Isolated note': [],
             'Sussudio': ['y1982', 'y_1982', 'y-1982', 'y1982', 'y2000'],
             'Brevissimus moenia': [],
             'Ne fuit': [],
@@ -199,6 +209,7 @@ def expected_tags_main_only_index():
 @pytest.fixture
 def expected_math_index():
     return {'Isolated note': [],
+            'lipsum/Isolated note': [],
             'Sussudio': [],
             'Brevissimus moenia': [],
             'Ne fuit': [],
@@ -285,7 +296,7 @@ def test_get_metadata_backlinks(actual_metadata_df,
 
 
 def test_get_metadata_tags(actual_metadata_df,
-                                expected_metadata_dict):
+                           expected_metadata_dict):
     TEST_COL = 'n_tags'
 
     actual_series = actual_metadata_df[TEST_COL]
@@ -435,7 +446,7 @@ def test_nonexistent_notes(actual_connected_vault, actual_metadata_df):
 
 
 def test_isolated_notes(actual_connected_vault):
-    expected_isol_notes = ['Isolated note']
+    expected_isol_notes = ['Isolated note', 'lipsum/Isolated note']
 
     assert isinstance(actual_connected_vault.isolated_notes, list)
 
