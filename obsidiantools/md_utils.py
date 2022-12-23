@@ -10,6 +10,8 @@ from ._constants import (WIKILINK_REGEX,
                          EMBEDDED_FILE_LINK_AS_STRING_REGEX,
                          INLINE_LINK_AFTER_HTML_PROC_REGEX,
                          INLINE_LINK_VIA_MD_ONLY_REGEX)
+from ._io import (get_relpaths_from_dir,
+                  get_relpaths_matching_subdirs)
 from .html_processing import (_get_plaintext_from_html,
                               _remove_code, _remove_latex, _remove_del_text,
                               _remove_main_formatting,
@@ -30,9 +32,7 @@ def get_md_relpaths_from_dir(dir_path: Path) -> list[Path]:
     Returns:
         list of Path objects
     """
-    relpaths_list = [Path(p).relative_to(dir_path)
-                     for p in glob(f"{dir_path}/**/*.md", recursive=True)]
-    return relpaths_list
+    return get_relpaths_from_dir(dir_path, extension='md')
 
 
 def get_md_relpaths_matching_subdirs(dir_path: Path, *,
@@ -65,28 +65,11 @@ def get_md_relpaths_matching_subdirs(dir_path: Path, *,
     Returns:
         list of Path objects
     """
-    # Obsidian's 'shortest path' for notes uses forward slash across
-    # operating systems, so as_posix() is used to yield paths with
-    # forward slash consistently here.
-
-    if include_subdirs:
-        include_subdirs_final = [str(Path(i).as_posix())
-                                 for i in include_subdirs]
-
-    if not include_subdirs and include_root:
-        return get_md_relpaths_from_dir(dir_path)
-    elif not include_subdirs and not include_root:
-        return [i for i in get_md_relpaths_from_dir(dir_path)
-                if str(i.parent.as_posix()) != '.']
-    else:
-        if include_root:
-            return [i for i in get_md_relpaths_from_dir(dir_path)
-                    if str(i.parent.as_posix())
-                    in include_subdirs_final + ['.']]
-        else:
-            return [i for i in get_md_relpaths_from_dir(dir_path)
-                    if str(i.parent.as_posix())
-                    in include_subdirs_final]
+    return get_relpaths_matching_subdirs(
+        dir_path,
+        extension='md',
+        include_subdirs=include_subdirs,
+        include_root=include_root)
 
 
 def get_wikilinks(filepath: Path) -> list[str]:
