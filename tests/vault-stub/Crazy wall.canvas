@@ -1,11 +1,11 @@
 {
 	"nodes":[
-		{"id":"0fb63a211244ab98","x":-338,"y":-1140,"width":504,"height":294,"type":"text","text":"# Purple\n## Shades\n- [[Prince]] Ultra-Violet Pantone ![#5f4b8b](https://placehold.co/15x15/5f4b8b/5f4b8b.png) `#5f4b8b`\n- A colour for Obsidian.md: ![#826ed9](https://placehold.co/15x15/826ed9/826ed9.png) `#826ed9`\n"},
+		{"id":"0fb63a211244ab98","x":-338,"y":-1140,"width":504,"height":294,"color":"6","type":"text","text":"# Purple\n## Shades\n- [[Prince]] Ultra-Violet Pantone ![#5f4b8b](https://placehold.co/15x15/5f4b8b/5f4b8b.png) `#5f4b8b`\n- A colour for Obsidian.md: ![#826ed9](https://placehold.co/15x15/826ed9/826ed9.png) `#826ed9`\n"},
 		{"id":"5b04fb9cabc4b282","x":151,"y":540,"width":250,"height":173,"type":"text","text":"# Phil Collins\n\nSongs:\n- [[Sussudio]]"},
 		{"id":"8f032f9a663e27b5","x":-1072,"y":60,"width":400,"height":291,"type":"file","file":"Isolated note.md"},
 		{"id":"d3f112f83760095a","x":194,"y":-338,"width":414,"height":274,"type":"link","url":"https://www.youtube.com/watch?v=rblt2EtFfC4"},
 		{"id":"c168506f5b075d91","x":311,"y":60,"width":400,"height":400,"type":"file","file":"Sussudio.md"},
-		{"id":"9d13d42f967553bf","x":-547,"y":-715,"width":461,"height":603,"type":"text","text":"# Prince\n\n## Playlist ideas\n90-120 BPM 'sampler' playlist ideas (chronological for now):\n- [[1999]]\n- Let's Go Crazy\n- 17 Days\n- She's Always in My Hair\n- Kiss\n- Sign o' the Times\n- Alphabet Street\n- Cream\n- 7\n- The Most Beautiful Girl in the World\n- Space\n- Right Back Here in My Arms\n- Love Sign [Shock G's Silky Mix]\n- Musicology\n"},
+		{"id":"9d13d42f967553bf","x":-547,"y":-715,"width":461,"height":603,"color":"#5f4b8b","type":"text","text":"# Prince\n\n## Playlist ideas\n90-120 BPM 'sampler' playlist ideas (chronological for now):\n- [[1999]]\n- Let's Go Crazy\n- 17 Days\n- She's Always in My Hair\n- Kiss\n- Sign o' the Times\n- Alphabet Street\n- Cream\n- 7\n- The Most Beautiful Girl in the World\n- Space\n- Right Back Here in My Arms\n- Love Sign [Shock G's Silky Mix]\n- Musicology\n"},
 		{"id":"a10aaf054261706d","x":-567,"y":-735,"width":1298,"height":1468,"type":"group","label":"Music"},
 		{"id":"2919b72bf3df3791","x":-1363,"y":-812,"width":491,"height":474,"type":"file","file":"Crazy wall 2.canvas"}
 	],
