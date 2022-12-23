@@ -23,7 +23,8 @@ from .md_utils import (_get_md_front_matter_and_content,
 from .md_utils import (get_source_text_from_md_file,
                        get_readable_text_from_md_file)
 # canvas:
-from .canvas_utils import (get_canvas_content)
+from .canvas_utils import (get_canvas_content,
+                           get_canvas_graph_detail)
 
 
 class Vault:
@@ -106,6 +107,7 @@ class Vault:
         Attributes - canvas related:
             canvas_file_index
             canvas_content_index
+            canvas_graph_detail_index
         """
         self._dirpath = dirpath
         self._file_index = self._get_md_relpaths_by_name(
@@ -136,6 +138,7 @@ class Vault:
 
         # via canvas content:
         self._canvas_content_index = {}
+        self._canvas_graph_detail_index = {}
 
     @property
     def dirpath(self) -> Path:
@@ -276,13 +279,31 @@ class Vault:
 
     @property
     def canvas_content_index(self) -> dict[str, str]:
-        """dict of dict: file shortest path with canvas ext (k), to canvas
-        content dict (v).  v is {} if k has no content."""
+        """dict of dict: 'shortest path when possible' filepath with canvas
+        ext (k), to canvas content dict (v).  v is {} if k has no content."""
         return self._canvas_content_index
 
     @canvas_content_index.setter
     def canvas_content_index(self, value) -> dict[str, str]:
         self._canvas_content_index = value
+
+    @property
+    def canvas_graph_detail_index(self) -> \
+        dict[str, tuple[nx.MultiDiGraph,
+                        dict[str, tuple[int, int]],
+                        dict[tuple[str, str], str]]
+             ]:
+        """dict of tuple: 'shortest path when possible' filepath with canvas
+        ext (k), to canvas graph detail tuple (v)."""
+        return self._canvas_graph_detail_index
+
+    @canvas_graph_detail_index.setter
+    def canvas_graph_detail_index(self, value) -> \
+        dict[str, tuple[nx.MultiDiGraph,
+                        dict[str, tuple[int, int]],
+                        dict[tuple[str, str], str]]
+             ]:
+        self._canvas_graph_detail_index = value
 
     def connect(self, *, show_nested_tags: bool = False):
         """connect your notes together by representing the vault as a
@@ -361,10 +382,16 @@ class Vault:
         # canvas content:
         # loop through canvas files:
         canvas_content_ix = {}
+        canvas_graph_detail_ix = {}
         for f, relpath in self._canvas_file_index.items():
-            canvas_content_ix[f] = get_canvas_content(
+            content_c = get_canvas_content(
                 self._dirpath / relpath)
+            canvas_content_ix[f] = content_c
+            G_c, pos_c, edge_labels_c = get_canvas_graph_detail(
+                content_c)
+            canvas_graph_detail_ix[f] = G_c, pos_c, edge_labels_c
         self._canvas_content_index = canvas_content_ix
+        self._canvas_graph_detail_index = canvas_graph_detail_ix
 
         return self  # fluent
 

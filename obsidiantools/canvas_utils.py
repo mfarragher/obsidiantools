@@ -1,4 +1,5 @@
 import json
+import networkx as nx
 from pathlib import Path
 from ._io import (get_relpaths_from_dir,
                   get_relpaths_matching_subdirs)
@@ -70,3 +71,47 @@ def get_canvas_content(filepath: Path) -> dict:
     with open(filepath, encoding='utf-8') as f:
         json_as_dict = json.load(f)
     return json_as_dict
+
+
+def get_canvas_graph_detail(canvas_content: dict) -> \
+        tuple[nx.MultiDiGraph,
+              dict[str, tuple[int, int]],
+              dict[tuple[str, str], str]]:
+    """Get the content from a canvas in a NetworkX graph.  With all the
+    detail that is returned, it is possible to recreate the layout of the
+    material in the canvas.
+
+    If you only care about the graph connections and you are not trying to
+    visualise the canvas, use this pattern:
+        G, _, _ = get_canvas_graph_detail(...)
+
+    Args:
+        canvas_content (dict): dict that represents the JSON content from a
+            canvas file.
+
+    Returns:
+        G, pos, edge_labels:
+            G: NetworkX graph
+            pos: list of co-ordinates for each node in graph
+            edge_labels: list of labels for each edge in graph
+    """
+    G = nx.MultiDiGraph()
+    nodes_list = [i.get('id') for i in canvas_content['nodes']
+                  if i.get('type') != 'group']
+    G.add_nodes_from(nodes_list)
+
+    graph_edges_list = [(i.get('fromNode'), i.get('toNode'))
+                        for i in canvas_content['edges']
+                        if i.get('type') != 'group']
+    G.add_edges_from(graph_edges_list)
+
+    # y co-ord needs to be flipped to reflect app(?):
+    pos = {i.get('id'): (i.get('x'), -i.get('y'))
+           for i in canvas_content['nodes']
+           if i.get('type') != 'group'}
+
+    edge_labels = dict([((i.get('fromNode'), i.get('toNode')),
+                         f"{i.get('label', '')}")
+                        for i in canvas_content['edges']])
+
+    return G, pos, edge_labels
