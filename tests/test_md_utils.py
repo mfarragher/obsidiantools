@@ -6,6 +6,7 @@ from obsidiantools.md_utils import (_get_all_wikilinks_from_source_text,
                                     _get_unique_wikilinks_from_source_text,
                                     _get_all_md_link_info_from_source_text,
                                     _get_unique_md_links_from_source_text,
+                                    get_unique_md_links,
                                     _get_html_from_md_file,
                                     get_source_text_from_md_file,
                                     _transform_md_file_string_for_tag_parsing,
@@ -226,6 +227,14 @@ def test_handle_invalid_front_matter():
         assert actual_output == expected_output
 
 
+def test_front_matter_parse_double_curly():
+    fpath = Path('.') / 'tests/general/frontmatter_parse-double-curly.md'
+
+    actual_txt = get_source_text_from_md_file(fpath)
+    expected_txt = '\n'
+    assert actual_txt == expected_txt
+
+
 def test_hash_char_parsing_func():
     # '\#' in md file keeps # but stops text from being a tag
     in_str = "\#hash #tag"
@@ -306,6 +315,13 @@ https://obsidian.md
 Github homepage
 """)
     assert out_str == expected_str
+
+
+def test_unique_md_links():
+    actual_links = get_unique_md_links(
+        Path('.') / 'tests/general/md-links_extraction.md')
+    expected_links = ['http://obsidian.md', 'https://github.com']
+    assert actual_links == expected_links
 
 
 def test_readable_text_from_latex_md_stub_default_tags():
