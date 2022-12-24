@@ -14,7 +14,7 @@ def get_relpaths_from_dir(dir_path: Path, *, extension: str) -> list[Path]:
             to search.
         extension (str): file extension like 'md' or 'canvas'.
 
-    Returns:more 
+    Returns:
         list of Path objects
     """
     relpaths_list = [Path(p).relative_to(dir_path)

@@ -41,6 +41,7 @@ class Vault:
         counted rather than notes.  For example, if a note has 2 backlinks
         then there will be 2 wikilinks (to another note) visible when you do
         analysis of the edges & nodes.
+        Detail on canvas files is also stored when calling this method.
 
         By calling GATHER you store the plaintext of your vault in the notes
         index attribute.  You can specify rules for how the text is
@@ -81,6 +82,7 @@ class Vault:
             get_md_links
             get_tags
             get_source_text
+            get_readable_text
 
         Methods for analysis across multiple notes:
             get_note_metadata
@@ -89,7 +91,7 @@ class Vault:
             dirpath (arg)
             is_connected
             is_gathered
-        Attributes - md related:
+        Attributes - md-related:
             file_index
             graph
             backlinks_index
@@ -104,7 +106,7 @@ class Vault:
             isolated_notes
             source_text_index
             readable_text_index
-        Attributes - canvas related:
+        Attributes - canvas-related:
             canvas_file_index
             canvas_content_index
             canvas_graph_detail_index
