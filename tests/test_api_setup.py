@@ -73,6 +73,8 @@ def test_functions_to_fail_for_unconnected_vault(mock_initial_vault):
     with pytest.raises(AttributeError):
         mock_initial_vault.get_wikilinks('A note that would not exist')
     with pytest.raises(AttributeError):
+        mock_initial_vault.get_wikilink_counts('A note that would not exist')
+    with pytest.raises(AttributeError):
         mock_initial_vault.get_tags('A note that would not exist')
     with pytest.raises(AttributeError):
         mock_initial_vault.get_embedded_files('A note that would not exist')

@@ -430,6 +430,24 @@ def test_wikilink_individual_notes(actual_connected_vault):
                           Path)
 
 
+def test_unique_wikilinks(actual_connected_vault):
+    actual_u_wl_ix = actual_connected_vault.unique_wikilinks_index
+
+    assert isinstance(actual_u_wl_ix, dict)
+
+    # these notes exist
+    expected_u_wl_subset = {
+        'Sussudio': ['American Psycho (film)'],
+        'Alimenta': ['Manus', 'Bacchus', 'Amor', 'Ne fuit', 'Virtus',
+                     'Brevissimus moenia', 'Tarpeia', 'Tydides', 'Vita'],
+        'Ne fuit': ['Aras Teucras', 'Manus', 'Bacchus',
+                    'Amor', 'Caelum', 'Causam mihi']
+    }
+
+    assert (actual_u_wl_ix.get('Alimenta')
+            == expected_u_wl_subset.get('Alimenta'))
+
+
 def test_nonexistent_notes(actual_connected_vault, actual_metadata_df):
     expected_non_e_notes = ['Tarpeia', 'Caelum', 'Vita', 'Aras Teucras',
                             'Manus', 'Bacchus', 'Amor', 'Virtus',

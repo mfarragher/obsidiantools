@@ -45,6 +45,24 @@ def test_text_not_existing(actual_gathered_vault_defaults):
         actual_gathered_vault_defaults.get_readable_text('Tarpeia')
 
 
+def test_source_text_existing_file(actual_gathered_vault_defaults):
+    actual_in_text = (actual_gathered_vault_defaults
+                      .get_source_text('Isolated note'))
+    expected_start = '# Isolated note'
+    expected_end = 'an isolated note.\n'
+    assert actual_in_text.startswith(expected_start)
+    assert actual_in_text.endswith(expected_end)
+
+
+def test_readable_text_existing_file(actual_gathered_vault_defaults):
+    actual_in_text = (actual_gathered_vault_defaults
+                      .get_readable_text('Sussudio'))
+    expected_start = '# Sussudio'
+    expected_end = '\\- #hash_char_not_tag\n'
+    assert actual_in_text.startswith(expected_start)
+    assert actual_in_text.endswith(expected_end)
+
+
 def test_isolated_note_md_text(actual_gathered_vault_defaults):
     expected_text = r"""# Isolated note
 

@@ -607,7 +607,7 @@ class Vault:
 
     def get_source_text(self, file_name: str) -> str:
         """Get text for a note (given its filename).  This requires the vault
-        functions 'connect' AND 'gather' to have been called.
+        function 'gather' to have been called.
 
         Text can only appear in notes that already exist, so if a
         note is not in the file_index at all then the function will raise
@@ -629,8 +629,7 @@ class Vault:
 
     def get_readable_text(self, file_name: str) -> str:
         """Get readable text for a note (given its filename).
-        This requires the vault functions 'connect' AND 'gather' to have
-        been called.
+        This requires the vault function 'gather' to have been called.
 
         Change the arguments of the 'gather' function to specify how the text
         output should be stored, e.g. whether all HTML tags should be removed
