@@ -171,11 +171,19 @@ class Vault:
         """networkx Graph"""
         return self._graph
 
+    @graph.setter
+    def graph(self, value) -> nx.MultiDiGraph:
+        self._graph = value
+
     @property
     def backlinks_index(self) -> dict[str, list[str]]:
         """dict of lists: note name (k) to lists (v).  v is [] if k
         has no backlinks."""
         return self._backlinks_index
+
+    @backlinks_index.setter
+    def backlinks_index(self, value) -> dict[str, list[str]]:
+        self._backlinks_index = value
 
     @property
     def wikilinks_index(self) -> dict[str, list[str]]:
@@ -183,11 +191,19 @@ class Vault:
         has no wikilinks."""
         return self._wikilinks_index
 
+    @wikilinks_index.setter
+    def wikilinks_index(self, value) -> dict[str, list[str]]:
+        self._wikilinks_index = value
+
     @property
     def unique_wikilinks_index(self) -> dict[str, list[str]]:
         """dict of lists: filename (k) to lists (v).  v is [] if k
         has no wikilinks."""
         return self._unique_wikilinks_index
+
+    @unique_wikilinks_index.setter
+    def unique_wikilinks_index(self, value) -> dict[str, list[str]]:
+        self._unique_wikilinks_index = value
 
     @property
     def embedded_files_index(self) -> dict[str, list[str]]:
@@ -195,11 +211,19 @@ class Vault:
         v is [] if k has no embedded files."""
         return self._embedded_files_index
 
+    @embedded_files_index.setter
+    def embedded_files_index(self, value) -> dict[str, list[str]]:
+        self._embedded_files_index = value
+
     @property
     def math_index(self) -> dict[str, list[str]]:
         """dict: note name (k) to list of LaTeX math string (v).  v is [] if
         k has no LaTeX."""
         return self._math_index
+
+    @math_index.setter
+    def math_index(self, value) -> dict[str, list[str]]:
+        self._math_index = value
 
     @property
     def md_links_index(self) -> dict[str, list[str]]:
@@ -207,17 +231,29 @@ class Vault:
         has no markdown links."""
         return self._md_links_index
 
+    @md_links_index.setter
+    def md_links_index(self, value) -> dict[str, list[str]]:
+        self._md_links_index = value
+
     @property
     def unique_md_links_index(self) -> dict[str, list[str]]:
         """dict of lists: filename (k) to lists (v).  v is [] if k
         has no markdown links."""
         return self._unique_md_links_index
 
+    @unique_md_links_index.setter
+    def unique_md_links_index(self, value) -> dict[str, list[str]]:
+        self._unique_md_links_index = value
+
     @property
     def tags_index(self) -> dict[str, list[str]]:
         """dict of lists: filename (k) to lists (v).  v is [] if k
         has no tags."""
         return self._tags_index
+
+    @tags_index.setter
+    def tags_index(self, value) -> dict[str, list[str]]:
+        self._tags_index = value
 
     @property
     def nonexistent_notes(self) -> list[str]:
@@ -228,6 +264,10 @@ class Vault:
         be created as actual notes one day :-)"""
         return self._nonexistent_notes
 
+    @nonexistent_notes.setter
+    def nonexistent_notes(self, value) -> list[str]:
+        self._nonexistent_notes = value
+
     @property
     def isolated_notes(self) -> list[str]:
         """list: notes (with their own md files) that lack backlinks and
@@ -235,11 +275,19 @@ class Vault:
         Obsidian graph at all."""
         return self._isolated_notes
 
+    @isolated_notes.setter
+    def isolated_notes(self, value) -> list[str]:
+        self._isolated_notes = value
+
     @property
     def front_matter_index(self) -> dict[str, list[str]]:
         """dict: note name (k) to front matter (v).  v is {} if no front
         matter was extracted from note."""
         return self._front_matter_index
+
+    @front_matter_index.setter
+    def front_matter_index(self, value) -> dict[str, list[str]]:
+        self._front_matter_index = value
 
     @property
     def is_connected(self) -> bool:
@@ -325,54 +373,24 @@ class Vault:
         # md content:
         if not self._is_connected:
             # index dicts, where k is a note name in the vault:
-            md_links_ix = {}
-            md_links_unique_ix = {}
-            embedded_files_ix = {}
-            tags_ix = {}
-            math_ix = {}
-            front_matter_ix = {}
-            wikilinks_ix = {}
-            wikilinks_unique_ix = {}
+            self._md_links_index = {}
+            self._unique_md_links_index = {}
+            self._embedded_files_index = {}
+            self._tags_index = {}
+            self._math_index = {}
+            self._front_matter_index = {}
+            # to be used for graph:
+            self._wikilinks_index = {}
+            self._unique_wikilinks_index = {}
 
             # loop through md files:
             for f, relpath in self._file_index.items():
-                # MAIN file read:
-                front_matter, content = _get_md_front_matter_and_content(
-                    self._dirpath / relpath)
-                html = _get_html_from_md_content(content)
-                src_txt = get_source_text_from_html(
-                    html, remove_code=True)
-
-                # info from core text:
-                md_links_ix[f] = _get_md_links_from_source_text(src_txt)
-                md_links_unique_ix[f] = _get_unique_md_links_from_source_text(src_txt)
-                embedded_files_ix[f] = _get_all_embedded_files_from_source_text(
-                    src_txt, remove_aliases=True)
-                wikilinks_ix[f] = _get_all_wikilinks_from_source_text(
-                    src_txt, remove_aliases=True)
-                wikilinks_unique_ix[f] = _get_unique_wikilinks_from_source_text(
-                    src_txt, remove_aliases=True)
-                # info from html:
-                math_ix[f] = _get_all_latex_from_html_content(html)
-                # split out front matter:
-                front_matter_ix[f] = front_matter
-
-                # MORE file reads needed for extra info:
-                tags_ix[f] = get_tags(self._dirpath / relpath,
-                                      show_nested=show_nested_tags)
-
-            self._md_links_index = md_links_ix
-            self._unique_md_links_index = md_links_unique_ix
-            self._embedded_files_index = embedded_files_ix
-            self._tags_index = tags_ix
-            self._math_index = math_ix
-            self._front_matter_index = front_matter_ix
-            # to be used for graph:
-            self._wikilinks_index = wikilinks_ix
-            self._unique_wikilinks_index = wikilinks_unique_ix
+                self._connect_update_based_on_new_relpath(
+                    relpath, note=f,
+                    show_nested_tags=show_nested_tags)
 
             # graph:
-            G = nx.MultiDiGraph(wikilinks_ix)
+            G = nx.MultiDiGraph(self._wikilinks_index)
             self._graph = G
             # info obtained from graph:
             self._backlinks_index = self._get_backlinks_index(graph=G)
@@ -383,19 +401,56 @@ class Vault:
 
         # canvas content:
         # loop through canvas files:
-        canvas_content_ix = {}
-        canvas_graph_detail_ix = {}
+        self._canvas_content_index = {}
+        self._canvas_graph_detail_index = {}
         for f, relpath in self._canvas_file_index.items():
             content_c = get_canvas_content(
                 self._dirpath / relpath)
-            canvas_content_ix[f] = content_c
+            self._canvas_content_index[f] = content_c
             G_c, pos_c, edge_labels_c = get_canvas_graph_detail(
                 content_c)
-            canvas_graph_detail_ix[f] = G_c, pos_c, edge_labels_c
-        self._canvas_content_index = canvas_content_ix
-        self._canvas_graph_detail_index = canvas_graph_detail_ix
+            self._canvas_graph_detail_index[f] = G_c, pos_c, edge_labels_c
 
         return self  # fluent
+
+    def _connect_update_based_on_new_relpath(self, relpath: Path, *,
+                                             note: str,
+                                             show_nested_tags: bool):
+        """Individual file read & associated attrs update for the
+        connect method."""
+        # MAIN file read:
+        front_matter, content = _get_md_front_matter_and_content(
+            self._dirpath / relpath)
+        html = _get_html_from_md_content(content)
+        src_txt = get_source_text_from_html(
+            html, remove_code=True)
+
+        # info from core text:
+        self._md_links_index[note] = (
+            _get_md_links_from_source_text(src_txt))
+        self._unique_md_links_index[note] = (
+            _get_unique_md_links_from_source_text(src_txt))
+        self._embedded_files_index[note] = (
+            _get_all_embedded_files_from_source_text(
+                src_txt, remove_aliases=True)
+            # (aliases are redundant for connect method)
+            )
+        self._wikilinks_index[note] = (
+            _get_all_wikilinks_from_source_text(
+                src_txt, remove_aliases=True))
+        self._unique_wikilinks_index[note] = (
+            _get_unique_wikilinks_from_source_text(
+                src_txt, remove_aliases=True))
+        # info from html:
+        self._math_index[note] = (_get_all_latex_from_html_content(
+            html))
+        # split out front matter:
+        self._front_matter_index[note] = front_matter
+
+        # MORE file reads needed for extra info:
+        self._tags_index[note] = get_tags(
+            self._dirpath / relpath,
+            show_nested=show_nested_tags)
 
     def gather(self, *, tags: list[str] = None):
         """gather the content of your notes so that all the plaintext is
