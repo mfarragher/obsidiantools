@@ -1,2 +1,3 @@
 ignore:
-  - "tests/**/*"
+  - tests/**/*
+  - setup.py
