@@ -60,6 +60,6 @@ def _get_all_latex_from_html_content(html: str) -> list[str]:
     soup = BeautifulSoup(html, 'html.parser')
 
     s_content = soup.find_all('span', {'class': 'MathJax_Preview'},
-                              text=True)
+                              string=True)
     latex_found_list = [i.string for i in s_content]
     return latex_found_list
