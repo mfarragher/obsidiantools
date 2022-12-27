@@ -259,7 +259,8 @@ def test_get_metadata_rel_filepath(actual_metadata_df,
     expected_series = (pd.Series(expected_metadata_dict.get(TEST_COL),
                                  name=TEST_COL)
                        .rename_axis('note'))
-    assert_series_equal(actual_series, expected_series)
+    assert_series_equal(actual_series, expected_series,
+                        check_like=True)
 
 
 def test_get_metadata_note_exists(actual_metadata_df,
@@ -270,7 +271,8 @@ def test_get_metadata_note_exists(actual_metadata_df,
     expected_series = (pd.Series(expected_metadata_dict.get(TEST_COL),
                                  name=TEST_COL)
                        .rename_axis('note'))
-    assert_series_equal(actual_series, expected_series)
+    assert_series_equal(actual_series, expected_series,
+                        check_like=True)
 
 
 def test_get_metadata_wikilinks(actual_metadata_df,
@@ -281,7 +283,8 @@ def test_get_metadata_wikilinks(actual_metadata_df,
     expected_series = (pd.Series(expected_metadata_dict.get(TEST_COL),
                                  name=TEST_COL)
                        .rename_axis('note'))
-    assert_series_equal(actual_series, expected_series)
+    assert_series_equal(actual_series, expected_series,
+                        check_like=True)
 
 
 def test_get_metadata_backlinks(actual_metadata_df,
@@ -292,7 +295,8 @@ def test_get_metadata_backlinks(actual_metadata_df,
     expected_series = (pd.Series(expected_metadata_dict.get(TEST_COL),
                                  name=TEST_COL)
                        .rename_axis('note'))
-    assert_series_equal(actual_series, expected_series)
+    assert_series_equal(actual_series, expected_series,
+                        check_like=True)
 
 
 def test_get_metadata_tags(actual_metadata_df,
@@ -303,7 +307,8 @@ def test_get_metadata_tags(actual_metadata_df,
     expected_series = (pd.Series(expected_metadata_dict.get(TEST_COL),
                                  name=TEST_COL)
                        .rename_axis('note'))
-    assert_series_equal(actual_series, expected_series)
+    assert_series_equal(actual_series, expected_series,
+                        check_like=True)
 
 
 def test_backlink_and_wikilink_totals_equal(actual_metadata_df):

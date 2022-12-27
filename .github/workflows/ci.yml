@@ -5,23 +5,24 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest]
+        python-version: ['3.11', '3.10', '3.9']
     env:
       OS: ${{ matrix.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v1
-        with:
-          set-safe-directory: true
-      - name: Set up Python 3.11
+      - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
-          python-version: '3.11'
+          python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt
-          pip install -r requirements_test.txt
+          pip install -r requirements.txt --use-pep517
+          pip install -r requirements_test.txt --use-pep517
+          python setup.py sdist bdist_wheel
+          pip install dist/*.whl
       - name: Run tests and collect coverage
-        run: pytest --cov=obsidiantools/ --cov-report=xml
+        run: python -m pytest tests/ --cov=./ --cov-report=xml
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
