@@ -5,3 +5,4 @@ coverage
 codecov
 tox
 twine
+wheel
