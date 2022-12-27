@@ -6,3 +6,4 @@ codecov
 tox
 twine
 wheel
+pandas>=1.5
