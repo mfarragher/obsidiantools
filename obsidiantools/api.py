@@ -18,10 +18,10 @@ from .md_utils import (_get_md_front_matter_and_content,
                        _get_all_embedded_files_from_source_text,
                        get_tags,
                        get_source_text_from_html,
+                       _get_readable_text_from_html,
                        _get_all_latex_from_html_content)
-# gather
-from .md_utils import (get_source_text_from_md_file,
-                       get_readable_text_from_md_file)
+# gather:
+from .md_utils import (_get_readable_text_from_html)
 # canvas:
 from .canvas_utils import (get_canvas_content,
                            get_canvas_graph_detail)
@@ -474,20 +474,31 @@ class Vault:
                 will remove all header formatting (e.g. '#', '##' chars)
                 and produces a one-line string.
         """
-        # source text will not remove any content:
-        self._source_text_index = {
-            k: get_source_text_from_md_file(self._dirpath / v,
-                                            remove_code=True,
-                                            remove_math=True)
-            for k, v in self._file_index.items()}
-        self._readable_text_index = {
-            k: get_readable_text_from_md_file(self._dirpath / v,
-                                              tags=tags)
-            for k, v in self._file_index.items()}
-
+        for f, relpath in self._file_index.items():
+            self._gather_update_based_on_new_relpath(
+                relpath,
+                note=f, tags=tags)
         self._is_gathered = True
 
         return self  # fluent
+
+    def _gather_update_based_on_new_relpath(self, relpath: Path, *,
+                                            note: str, tags: list[str]):
+        """Individual file read & associated attrs update for the
+        gather method."""
+        # MAIN file read:
+        _, content = _get_md_front_matter_and_content(
+            self._dirpath / relpath)
+        html = _get_html_from_md_content(content)
+        # (also remove LaTeX for source text:)
+        src_txt = get_source_text_from_html(
+            html, remove_code=True, remove_math=True)
+
+        # 'source' text will not remove any content, but 'readable' will:
+        self._source_text_index[note] = src_txt
+        self._readable_text_index[note] = (
+            _get_readable_text_from_html(
+                html, tags=tags))
 
     def get_backlinks(self, note_name: str) -> list[str]:
         """Get backlinks for a note (given its name).

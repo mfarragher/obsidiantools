@@ -323,6 +323,13 @@ def get_readable_text_from_md_file(filepath: Path, *,
     # strip out front matter (if any):
     html = _get_html_from_md_file(
         filepath)
+    html = _get_readable_text_from_html(
+        html, tags=tags)
+    return html
+
+
+def _get_readable_text_from_html(html: str, *,
+                                 tags: list[str] = None) -> str:
     # wikilinks and md links as text:
     html = _replace_md_links_with_their_text(html)
     html = _replace_wikilinks_with_their_text(html)
