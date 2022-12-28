@@ -28,18 +28,28 @@ def _get_plaintext_from_html(html: str) -> str:
 def _remove_code(html: str) -> str:
     # exclude 'code' tags from link output:
     soup = BeautifulSoup(html, 'lxml')
-    for s in soup.select('code'):
-        s.extract()
+    soup = _remove_code_via_soup(soup)
     html_str = str(soup)
     return html_str
+
+
+def _remove_code_via_soup(soup):
+    for s in soup.select('code'):
+        s.extract()
+    return soup
 
 
 def _remove_del_text(html: str) -> str:
     soup = BeautifulSoup(html, 'lxml')
-    for s in soup.select('del'):
-        s.extract()
+    soup = _remove_del_text_via_soup(soup)
     html_str = str(soup)
     return html_str
+
+
+def _remove_del_text_via_soup(soup):
+    for s in soup.select('del'):
+        s.extract()
+    return soup
 
 
 def _remove_main_formatting(
@@ -50,10 +60,15 @@ def _remove_main_formatting(
 
 def _remove_latex(html: str) -> str:
     soup = BeautifulSoup(html, 'lxml')
-    for s in soup.select('span', {'class': 'MathJax_Preview'}):
-        s.extract()
+    soup = _remove_latex_via_soup(soup)
     html_str = str(soup)
     return html_str
+
+
+def _remove_latex_via_soup(soup):
+    for s in soup.select('span', {'class': 'MathJax_Preview'}):
+        s.extract()
+    return soup
 
 
 def _get_all_latex_from_html_content(html: str) -> list[str]:

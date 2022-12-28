@@ -2,6 +2,7 @@ import re
 import yaml
 from pathlib import Path
 from glob import glob
+from bs4 import BeautifulSoup
 import markdown
 import frontmatter
 from ._constants import (WIKILINK_REGEX,
@@ -13,7 +14,9 @@ from ._constants import (WIKILINK_REGEX,
 from ._io import (get_relpaths_from_dir,
                   get_relpaths_matching_subdirs)
 from .html_processing import (_get_plaintext_from_html,
-                              _remove_code, _remove_latex, _remove_del_text,
+                              _remove_code_via_soup,
+                              _remove_latex_via_soup,
+                              _remove_del_text_via_soup,
                               _remove_main_formatting,
                               _get_all_latex_from_html_content)
 
@@ -296,11 +299,13 @@ def get_source_text_from_html(html: str, *,
                               remove_code: bool = False,
                               remove_math: bool = False) -> str:
     """html (without front matter) -> ASCII plaintext"""
+    soup = BeautifulSoup(html, 'lxml')
     if remove_code:
-        html = _remove_code(html)
+        soup = _remove_code_via_soup(soup)
     if remove_math:
-        html = _remove_latex(html)
-    return _get_plaintext_from_html(html)
+        soup = _remove_latex_via_soup(soup)
+    new_str = str(soup)
+    return _get_plaintext_from_html(new_str)
 
 
 def get_source_text_from_md_file(filepath: Path, *,
@@ -330,20 +335,26 @@ def get_readable_text_from_md_file(filepath: Path, *,
 
 def _get_readable_text_from_html(html: str, *,
                                  tags: list[str] = None) -> str:
+    # -str or regex-
     # wikilinks and md links as text:
     html = _replace_md_links_with_their_text(html)
     html = _replace_wikilinks_with_their_text(html)
     html = _remove_embedded_file_links_from_text(html)
-    # remove code and remove major formatting on text:
-    html = _remove_code(html)
-    html = _remove_latex(html)
-    html = _remove_del_text(html)
-    if tags is not None:
-        html = _remove_main_formatting(html, tags=tags)
-    else:  # defaults
-        html = _remove_main_formatting(html)
 
-    return _get_plaintext_from_html(html)
+    # -bs4-
+    # remove code and remove major formatting on text:
+    soup = BeautifulSoup(html, 'lxml')
+    soup = _remove_code_via_soup(soup)
+    soup = _remove_latex_via_soup(soup)
+    soup = _remove_del_text_via_soup(soup)
+    new_str = str(soup)
+    # -BLEACH-
+    if tags is not None:
+        new_str = _remove_main_formatting(new_str, tags=tags)
+    else:  # defaults
+        new_str = _remove_main_formatting(new_str)
+
+    return _get_plaintext_from_html(new_str)
 
 
 def _get_all_wikilinks_and_embedded_files(src_txt: str) -> list[str]:
