@@ -370,8 +370,8 @@ class Vault:
                 Defaults to False (which would mean only the highest level
                 of any nested tags are included in the output).
         """
-        # md content:
         if not self._is_connected:
+            # md content:
             # index dicts, where k is a note name in the vault:
             self._md_links_index = {}
             self._unique_md_links_index = {}
@@ -389,6 +389,18 @@ class Vault:
                     relpath, note=f,
                     show_nested_tags=show_nested_tags)
 
+            # canvas content:
+            # loop through canvas files:
+            self._canvas_content_index = {}
+            self._canvas_graph_detail_index = {}
+            for f, relpath in self._canvas_file_index.items():
+                content_c = get_canvas_content(
+                    self._dirpath / relpath)
+                self._canvas_content_index[f] = content_c
+                G_c, pos_c, edge_labels_c = get_canvas_graph_detail(
+                    content_c)
+                self._canvas_graph_detail_index[f] = G_c, pos_c, edge_labels_c
+
             # graph:
             G = nx.MultiDiGraph(self._wikilinks_index)
             self._graph = G
@@ -398,18 +410,6 @@ class Vault:
             self._isolated_notes = self._get_isolated_notes(graph=G)
 
             self._is_connected = True
-
-        # canvas content:
-        # loop through canvas files:
-        self._canvas_content_index = {}
-        self._canvas_graph_detail_index = {}
-        for f, relpath in self._canvas_file_index.items():
-            content_c = get_canvas_content(
-                self._dirpath / relpath)
-            self._canvas_content_index[f] = content_c
-            G_c, pos_c, edge_labels_c = get_canvas_graph_detail(
-                content_c)
-            self._canvas_graph_detail_index[f] = G_c, pos_c, edge_labels_c
 
         return self  # fluent
 
