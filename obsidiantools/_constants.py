@@ -13,3 +13,14 @@ INLINE_LINK_VIA_MD_ONLY_REGEX = r'\[([^\]]+)\]\(([^)]+)\)'
 # helpers:
 WIKILINK_AS_STRING_REGEX = r'\[[^\]]+\]\([^)]+\)'
 EMBEDDED_FILE_LINK_AS_STRING_REGEX = r'!?\[{2}([^\]\]]+)\]{2}'
+
+# Sets of extensions via https://help.obsidian.md/How+to/Embed+files :
+# NB: file.ext and file.EXT can exist in same folder
+IMG_EXT_SET = {'.png', '.jpg', '.jpeg', '.gif', '.bmp', '.svg',
+               '.PNG', '.JPG', '.JPEG', '.GIF', '.BMP', '.SVG'}
+AUDIO_EXT_SET = {'.mp3', '.webm', '.wav', '.m4a', '.ogg', '.3gp', '.flac',
+                 '.MP3', '.WEBM', '.WAV', '.M4A', '.OGG', '.3GP', '.FLAC'}
+VIDEO_EXT_SET = {'.mp4', '.webm', '.ogv', '.mov', '.mkv',
+                 '.MP4', '.WEBM', '.OGV', '.MOV', '.MKV'}
+PDF_EXT_SET = {'.pdf',
+               '.PDF'}
