@@ -824,30 +824,30 @@ class Vault:
                                       df: pd.DataFrame) -> pd.DataFrame:
         """pipe func for mutating df"""
         df['rel_filepath'] = [self._file_index.get(f, np.NaN)
-                              for f in df.index]
+                              for f in df.index.tolist()]
         df['abs_filepath'] = np.where(df['rel_filepath'].notna(),
-                                      [self._dirpath / Path(str(f))
-                                       for f in df['rel_filepath']],
+                                      [self._dirpath / str(f)
+                                       for f in df['rel_filepath'].tolist()],
                                       np.NaN)
         df['note_exists'] = np.where(df['rel_filepath'].notna(),
                                      True, False)
         df['n_backlinks'] = [len(self.get_backlinks(f)) for f in df.index]
         df['n_wikilinks'] = np.where(df['note_exists'],
                                      [len(self._wikilinks_index.get(f, []))
-                                     for f in df.index],
+                                      for f in df.index.tolist()],
                                      np.NaN)
         df['n_tags'] = np.where(df['note_exists'],
                                 [len(self._tags_index.get(f, []))
-                                 for f in df.index],
+                                 for f in df.index.tolist()],
                                 np.NaN)
         df['n_embedded_files'] = np.where(df['note_exists'],
                                           [len(self._embedded_files_index.get(
                                               f, []))
-                                           for f in df.index],
+                                           for f in df.index.tolist()],
                                           np.NaN)
         df['modified_time'] = pd.to_datetime(
             [os.path.getmtime(f) if not pd.isna(f) else np.NaN
-             for f in df['abs_filepath']],
+             for f in df['abs_filepath'].tolist()],
             unit='s'
         )
         return df
