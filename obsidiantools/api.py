@@ -1,4 +1,3 @@
-import os
 import networkx as nx
 import numpy as np
 import pandas as pd
@@ -846,7 +845,7 @@ class Vault:
                                            for f in df.index.tolist()],
                                           np.NaN)
         df['modified_time'] = pd.to_datetime(
-            [os.path.getmtime(f) if not pd.isna(f) else np.NaN
+            [f.lstat().st_mtime if not pd.isna(f) else np.NaN
              for f in df['abs_filepath'].tolist()],
             unit='s'
         )

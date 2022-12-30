@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 from obsidiantools.html_processing import (_remove_code,
@@ -7,7 +6,7 @@ from obsidiantools.html_processing import (_remove_code,
 from obsidiantools.md_utils import _get_html_from_md_file
 
 # NOTE: run the tests from the project dir.
-WKD = Path(os.getcwd())
+WKD = Path().cwd()
 
 
 def test_remove_code():

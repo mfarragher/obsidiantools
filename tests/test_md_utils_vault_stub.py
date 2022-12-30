@@ -1,4 +1,3 @@
-import os
 import pytest
 from pathlib import Path
 
@@ -7,7 +6,7 @@ from obsidiantools.md_utils import get_md_relpaths_matching_subdirs
 
 
 # NOTE: run the tests from the project dir.
-WKD = Path(os.getcwd())
+WKD = Path().cwd()
 
 
 @pytest.fixture

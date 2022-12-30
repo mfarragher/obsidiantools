@@ -1,7 +1,6 @@
 import pytest
 import numpy as np
 import pandas as pd
-import os
 from pathlib import Path
 from pandas.testing import assert_series_equal
 
@@ -9,7 +8,7 @@ from pandas.testing import assert_series_equal
 from obsidiantools.api import Vault
 
 # NOTE: run the tests from the project dir.
-WKD = Path(os.getcwd())
+WKD = Path().cwd()
 
 
 @pytest.fixture

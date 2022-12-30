@@ -1,12 +1,11 @@
 import pytest
-import os
 from pathlib import Path
 
 
 from obsidiantools.api import Vault
 
 # NOTE: run the tests from the project dir.
-WKD = Path(os.getcwd())
+WKD = Path().cwd()
 
 
 @pytest.fixture
