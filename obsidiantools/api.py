@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from collections import Counter
 from pathlib import Path
+from itertools import chain
 
 # init
 from .md_utils import (get_md_relpaths_matching_subdirs)
@@ -19,6 +20,8 @@ from .md_utils import (_get_md_front_matter_and_content,
                        get_source_text_from_html,
                        _get_readable_text_from_html,
                        _get_all_latex_from_html_content)
+from .media_utils import (_get_shortest_path_by_filename,
+                          _get_all_valid_media_file_relpaths)
 # gather:
 from .md_utils import (_get_readable_text_from_html)
 # canvas:
@@ -289,6 +292,19 @@ class Vault:
         self._front_matter_index = value
 
     @property
+    def _media_file_dicts(self) -> \
+            tuple[dict[str, Path], dict[str, Path], dict[str, Path]]:
+        """Return (existent files embedded,
+        existent files not embedded,
+        nonexistent files embedded)."""
+        return self._media_file_dicts
+
+    @_media_file_dicts.setter
+    def _media_file_dicts(self, value) -> \
+            tuple[dict[str, Path], dict[str, Path], dict[str, Path]]:
+        self.__media_file_dicts = value
+
+    @property
     def is_connected(self) -> bool:
         """Bool: has the connect function been called to set up graph?"""
         return self._is_connected
@@ -450,6 +466,65 @@ class Vault:
         self._tags_index[note] = get_tags(
             self._dirpath / relpath,
             show_nested=show_nested_tags)
+
+    def __get_media_file_dicts_tuple(self) \
+            -> tuple[dict[str, Path], dict[str, Path], dict[str, Path]]:
+        """Return (existent files embedded,
+        existent files not embedded,
+        nonexistent files embedded).
+
+        The reason this logic is complex is that media files are embedded in
+        md files in the Obsidian app using the shortest possible filepath,
+        but they all need to be cross-checked against actual media filepaths.
+        """
+
+        # detail on all embedded files AND ones that exist:
+        all_files_embedded_in_notes = list(
+            chain.from_iterable(self._embedded_files_index.values()))
+        media_file_relpaths_existent = _get_all_valid_media_file_relpaths(
+            self._dirpath)
+
+        # get shortest path for each embedded file; check whether each exists
+        media_shortest_names_existent = _get_shortest_path_by_filename(
+            media_file_relpaths_existent)
+        media_shortest_names_nonexistent = {
+            fn: Path(fn) for fn in chain(*self._embedded_files_index.values())
+            if fn not in set(media_shortest_names_existent)}
+        media_shortest_names = {**media_shortest_names_existent,
+                                **media_shortest_names_nonexistent}
+
+        # SETS
+        # existent files (either embedded or not):
+        set_files_existent_embedded = (
+            set(media_shortest_names_existent)
+            .intersection(set(all_files_embedded_in_notes)))
+        set_files_existent_not_embedded = (
+            set(media_shortest_names_existent)
+            .difference(set_files_existent_embedded))
+        # nonexistent files:
+        set_files_nonexistent_embedded = (
+            set(all_files_embedded_in_notes)
+            .intersection(set(media_shortest_names_nonexistent)))
+
+        # DICTS
+        # existent files (either embedded or not):
+        embedded_files_by_short_path = {
+            short_path: rel_path
+            for short_path, rel_path in media_shortest_names.items()
+            if short_path in set_files_existent_embedded}
+        non_embedded_files_by_short_path = {
+            short_path: rel_path
+            for short_path, rel_path in media_shortest_names.items()
+            if short_path in set_files_existent_not_embedded}
+        # nonexistent files:
+        nonexistent_files_by_short_path = {
+            short_path: np.NaN
+            for short_path in media_shortest_names.keys()
+            if short_path in set_files_nonexistent_embedded}
+
+        return (embedded_files_by_short_path,
+                non_embedded_files_by_short_path,
+                nonexistent_files_by_short_path)
 
     def gather(self, *, tags: list[str] = None):
         """gather the content of your notes so that all the plaintext is
