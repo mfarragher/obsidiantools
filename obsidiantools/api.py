@@ -91,7 +91,7 @@ class Vault:
             is_connected
             is_gathered
         Attributes - md-related:
-            file_index
+            md_file_index
             graph
             backlinks_index
             wikilinks_index
@@ -111,7 +111,7 @@ class Vault:
             canvas_graph_detail_index
         """
         self._dirpath = dirpath
-        self._file_index = self._get_md_relpaths_by_name(
+        self._md_file_index = self._get_md_relpaths_by_name(
             include_subdirs=include_subdirs,
             include_root=include_root)
         self._canvas_file_index = self._get_canvas_relpaths_by_name(
@@ -147,13 +147,13 @@ class Vault:
         return self._dirpath
 
     @property
-    def file_index(self) -> dict[str, Path]:
+    def md_file_index(self) -> dict[str, Path]:
         """dict: one-to-one mapping of md filename (k) to relative path (v)"""
-        return self._file_index
+        return self._md_file_index
 
-    @file_index.setter
-    def file_index(self, value) -> dict[str, Path]:
-        self._file_index = value
+    @md_file_index.setter
+    def md_file_index(self, value) -> dict[str, Path]:
+        self._md_file_index = value
 
     @property
     def canvas_file_index(self) -> dict[str, Path]:
@@ -383,7 +383,7 @@ class Vault:
             self._unique_wikilinks_index = {}
 
             # loop through md files:
-            for f, relpath in self._file_index.items():
+            for f, relpath in self._md_file_index.items():
                 self._connect_update_based_on_new_relpath(
                     relpath, note=f,
                     show_nested_tags=show_nested_tags)
@@ -473,7 +473,7 @@ class Vault:
                 will remove all header formatting (e.g. '#', '##' chars)
                 and produces a one-line string.
         """
-        for f, relpath in self._file_index.items():
+        for f, relpath in self._md_file_index.items():
             self._gather_update_based_on_new_relpath(
                 relpath,
                 note=f, tags=tags)
@@ -546,12 +546,12 @@ class Vault:
         """Get wikilinks for a note (given its filename).
 
         Wikilinks can only appear in notes that already exist, so if a
-        note is not in the file_index at all then the function will raise
+        note is not in the md_file_index at all then the function will raise
         a ValueError.
 
         Args:
-            file_name (str): the filename string that is in the file_index.
-                This is NOT the filepath!
+            file_name (str): the filename string that is in the
+                md_file_index. This is NOT the filepath!
 
         Returns:
             list
@@ -559,7 +559,7 @@ class Vault:
         if not self._is_connected:
             raise AttributeError('Connect notes before calling the function')
 
-        if file_name not in self._file_index:
+        if file_name not in self._md_file_index:
             raise ValueError('"{}" does not exist so it cannot have wikilinks.'.format(file_name))
         else:
             return self._wikilinks_index[file_name]
@@ -587,11 +587,11 @@ class Vault:
         """Get embedded files for a note (given its filename).
 
         Embedded files can only appear in notes that already exist, so if a
-        note is not in the file_index at all then the function will raise
+        note is not in the md_file_index at all then the function will raise
         a ValueError.
 
         Args:
-            file_name (str): the filename string that is in the file_index.
+            file_name (str): the filename string that is in the md_file_index.
                 This is NOT the filepath!
 
         Returns:
@@ -600,7 +600,7 @@ class Vault:
         if not self._is_connected:
             raise AttributeError('Connect notes before calling the function')
 
-        if file_name not in self._file_index:
+        if file_name not in self._md_file_index:
             raise ValueError('"{}" does not exist so it cannot have embedded files.'.format(file_name))
         else:
             return self._embedded_files_index[file_name]
@@ -609,11 +609,11 @@ class Vault:
         """Get markdown links for a note (given its filename).
 
         Markdown links can only appear in notes that already exist, so if a
-        note is not in the file_index at all then the function will raise
+        note is not in the md_file_index at all then the function will raise
         a ValueError.
 
         Args:
-            file_name (str): the filename string that is in the file_index.
+            file_name (str): the filename string that is in the md_file_index.
                 This is NOT the filepath!
 
         Returns:
@@ -622,7 +622,7 @@ class Vault:
         if not self._is_connected:
             raise AttributeError('Connect notes before calling the function')
 
-        if file_name not in self._file_index:
+        if file_name not in self._md_file_index:
             raise ValueError('"{}" does not exist so it cannot have md links.'.format(file_name))
         else:
             return self._md_links_index[file_name]
@@ -631,11 +631,11 @@ class Vault:
         """Get front matter for a note (given its filename).
 
         Front matter can only appear in notes that already exist, so if a
-        note is not in the file_index at all then the function will raise
+        note is not in the md_file_index at all then the function will raise
         a ValueError.
 
         Args:
-            file_name (str): the filename string that is in the file_index.
+            file_name (str): the filename string that is in the md_file_index.
                 This is NOT the filepath!
 
         Returns:
@@ -643,7 +643,7 @@ class Vault:
         """
         if not self._is_connected:
             raise AttributeError('Connect notes before calling the function')
-        if file_name not in self._file_index:
+        if file_name not in self._md_file_index:
             raise ValueError('"{}" does not exist so it cannot have front matter.'.format(file_name))
         else:
             return self._front_matter_index[file_name]
@@ -655,19 +655,19 @@ class Vault:
         in the output.
 
         Tags can only appear in notes that already exist, so if a
-        note is not in the file_index at all then the function will raise
+        note is not in the md_file_index at all then the function will raise
         a ValueError.
 
         Args:
-            file_name (str): the filename string that is in the file_index.
-                This is NOT the filepath!
+            file_name (str): the filename string that is in the
+                md_file_index. This is NOT the filepath!
 
         Returns:
             list
         """
         if not self._is_connected:
             raise AttributeError('Connect notes before calling the function')
-        if file_name not in self._file_index:
+        if file_name not in self._md_file_index:
             raise ValueError('"{}" does not exist so it cannot have tags.'.format(file_name))
         else:
             return self._tags_index[file_name]
@@ -677,11 +677,11 @@ class Vault:
         function 'gather' to have been called.
 
         Text can only appear in notes that already exist, so if a
-        note is not in the file_index at all then the function will raise
+        note is not in the md_file_index at all then the function will raise
         a ValueError.
 
         Args:
-            file_name (str): the filename string that is in the file_index.
+            file_name (str): the filename string that is in the md_file_index.
                 This is NOT the filepath!
 
         Returns:
@@ -689,7 +689,7 @@ class Vault:
         """
         if not self._is_gathered:
             raise AttributeError('Gather notes before calling the function')
-        if file_name not in self._file_index:
+        if file_name not in self._md_file_index:
             raise ValueError('"{}" does not exist so it cannot have text.'.format(file_name))
         else:
             return self._source_text_index[file_name]
@@ -703,11 +703,11 @@ class Vault:
         before the final output.
 
         Text can only appear in notes that already exist, so if a
-        note is not in the file_index at all then the function will raise
+        note is not in the md_file_index at all then the function will raise
         a ValueError.
 
         Args:
-            file_name (str): the filename string that is in the file_index.
+            file_name (str): the filename string that is in the md_file_index.
                 This is NOT the filepath!
 
         Returns:
@@ -715,7 +715,7 @@ class Vault:
         """
         if not self._is_gathered:
             raise AttributeError('Gather notes before calling the function')
-        if file_name not in self._file_index:
+        if file_name not in self._md_file_index:
             raise ValueError('"{}" does not exist so it cannot have text.'.format(file_name))
         else:
             return self._readable_text_index[file_name]
@@ -822,7 +822,7 @@ class Vault:
     def _create_note_metadata_columns(self,
                                       df: pd.DataFrame) -> pd.DataFrame:
         """pipe func for mutating df"""
-        df['rel_filepath'] = [self._file_index.get(f, np.NaN)
+        df['rel_filepath'] = [self._md_file_index.get(f, np.NaN)
                               for f in df.index.tolist()]
         df['abs_filepath'] = np.where(df['rel_filepath'].notna(),
                                       [self._dirpath / str(f)
@@ -866,8 +866,8 @@ class Vault:
 
         The comparison is done with sets but the result is returned
         as a list."""
-        return list(set(self.backlinks_index.keys())
-                    .difference(set(self.file_index)))
+        return list(set(self._backlinks_index.keys())
+                    .difference(set(self._md_file_index)))
 
     def _get_isolated_notes(self, *,
                             graph: nx.MultiDiGraph) -> list[str]:

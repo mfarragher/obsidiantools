@@ -15,8 +15,8 @@ def actual_connected_vault():
 
 
 def test_attr_setters_main_setup(actual_connected_vault):
-    actual_connected_vault.file_index = {}
-    assert actual_connected_vault.file_index == {}
+    actual_connected_vault.md_file_index = {}
+    assert actual_connected_vault.md_file_index == {}
 
     actual_connected_vault.canvas_file_index = {'New.canvas': ''}
     assert actual_connected_vault.canvas_file_index == {'New.canvas': ''}

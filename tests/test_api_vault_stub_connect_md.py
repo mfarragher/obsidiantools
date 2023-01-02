@@ -428,9 +428,9 @@ def test_wikilink_individual_notes(actual_connected_vault):
         actual_connected_vault.get_wikilinks('Tarpeia')
 
     # check that every existing note (file) has wikilink info
-    assert len(actual_wl_ix) == len(actual_connected_vault.file_index)
+    assert len(actual_wl_ix) == len(actual_connected_vault.md_file_index)
     for k in list(actual_wl_ix.keys()):
-        assert isinstance(actual_connected_vault.file_index.get(k),
+        assert isinstance(actual_connected_vault.md_file_index.get(k),
                           Path)
 
 
@@ -517,7 +517,7 @@ def test_embedded_files_sussudio(actual_connected_vault):
 
 
 def test_nodes_gte_files(actual_connected_vault):
-    act_f_len = len(actual_connected_vault.file_index)
+    act_f_len = len(actual_connected_vault.md_file_index)
     act_n_len = len(actual_connected_vault.wikilinks_index)
 
     assert act_n_len >= act_f_len
