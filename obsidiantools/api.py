@@ -108,6 +108,10 @@ class Vault:
             isolated_notes
             source_text_index
             readable_text_index
+        Attributes - media files:
+            media_file_index
+            nonexistent_media_files
+            isolated_media_files
         Attributes - canvas-related:
             canvas_file_index
             canvas_content_index
@@ -139,6 +143,11 @@ class Vault:
         self._front_matter_index = {}
         self._source_text_index = {}
         self._readable_text_index = {}
+
+        # via media files:
+        self._media_file_index = {}
+        self._nonexistent_media_files = []
+        self._isolated_media_files = []
 
         # via canvas content:
         self._canvas_content_index = {}
@@ -292,17 +301,38 @@ class Vault:
         self._front_matter_index = value
 
     @property
-    def _media_file_dicts(self) -> \
-            tuple[dict[str, Path], dict[str, Path], dict[str, Path]]:
-        """Return (existent files embedded,
-        existent files not embedded,
-        nonexistent files embedded)."""
-        return self._media_file_dicts
+    def media_file_index(self) -> dict[str, Path]:
+        """dict: media file (k) to relative path (v).
 
-    @_media_file_dicts.setter
-    def _media_file_dicts(self, value) -> \
-            tuple[dict[str, Path], dict[str, Path], dict[str, Path]]:
-        self.__media_file_dicts = value
+        These will appear in the index:
+        1. Embedded files that exist.
+        2. Embedded files that don't exist.
+        3. Files that exist in the vault but haven't been embedded.
+        """
+        return self._media_file_index
+
+    @media_file_index.setter
+    def media_file_index(self, value) -> dict[str, Path]:
+        self._media_file_index = value
+
+    @property
+    def nonexistent_media_files(self) -> list[str]:
+        """list: media files that don't exist on the file system yet."""
+        return self._nonexistent_media_files
+
+    @nonexistent_media_files.setter
+    def nonexistent_media_files(self, value) -> list[str]:
+        self._nonexistent_media_files = value
+
+    @property
+    def isolated_media_files(self) -> list[str]:
+        """list: media files that lack backlinks from md files.
+        They are not connected to other notes in the Obsidian graph at all."""
+        return self._isolated_media_files
+
+    @isolated_media_files.setter
+    def isolated_media_files(self, value) -> list[str]:
+        self._isolated_media_files = value
 
     @property
     def is_connected(self) -> bool:
@@ -370,7 +400,8 @@ class Vault:
              ]:
         self._canvas_graph_detail_index = value
 
-    def connect(self, *, show_nested_tags: bool = False):
+    def connect(self, *, show_nested_tags: bool = False,
+                attachments=False):
         """connect your notes together by representing the vault as a
         Networkx graph object, G.
 
@@ -384,6 +415,13 @@ class Vault:
             show_nested_tags (Boolean): show nested tags in the output.
                 Defaults to False (which would mean only the highest level
                 of any nested tags are included in the output).
+            attachments (Boolean): Defaults to False.  'Attachments' refers
+                to the graph toggle option in the Obsidian app.  By default,
+                obsidiantools will only include md files (notes) in the
+                graph (i.e. like Attachments is toggled off in Obsidian app).
+                To include media files in the graph, set this option to True.
+                This will lead to the inclusion of media files' in the
+                backlinks_index.
         """
         if not self._is_connected:
             # md content:
@@ -416,13 +454,15 @@ class Vault:
                     content_c)
                 self._canvas_graph_detail_index[f] = G_c, pos_c, edge_labels_c
 
-            # graph:
-            G = nx.MultiDiGraph(self._wikilinks_index)
+            # media files:
+            self._set_media_file_attrs()
+
+            # graph setup:
+            graph_data_dict = self.__get_graph_data_dict(
+                attachments=attachments)
+            G = nx.MultiDiGraph(graph_data_dict)
             self._graph = G
-            # info obtained from graph:
-            self._backlinks_index = self._get_backlinks_index(graph=G)
-            self._nonexistent_notes = self._get_nonexistent_notes()
-            self._isolated_notes = self._get_isolated_notes(graph=G)
+            self._set_graph_related_attributes()
 
             self._is_connected = True
 
@@ -467,7 +507,25 @@ class Vault:
             self._dirpath / relpath,
             show_nested=show_nested_tags)
 
-    def __get_media_file_dicts_tuple(self) \
+    def _set_media_file_attrs(self):
+        (embedded_files_by_short_path,
+         non_embedded_files_by_short_path,
+         nonexistent_files_by_short_path) = (
+            self._get_media_file_dicts_tuple())
+
+        # combine nonexistent files with existent files for df:
+        files_ix = {**embedded_files_by_short_path,
+                    **non_embedded_files_by_short_path,
+                    **nonexistent_files_by_short_path}
+
+        self._media_file_index = files_ix
+
+        self._nonexistent_media_files = list(
+            nonexistent_files_by_short_path.keys())
+        self._isolated_media_files = list(
+            non_embedded_files_by_short_path.keys())
+
+    def _get_media_file_dicts_tuple(self) \
             -> tuple[dict[str, Path], dict[str, Path], dict[str, Path]]:
         """Return (existent files embedded,
         existent files not embedded,
@@ -525,6 +583,61 @@ class Vault:
         return (embedded_files_by_short_path,
                 non_embedded_files_by_short_path,
                 nonexistent_files_by_short_path)
+
+    def _get_backlink_counts_for_media_files_only(self) -> dict[str, int]:
+        dict_out = dict.fromkeys(self._media_file_index.keys(), 0)
+        dict_counts = dict(
+            Counter(list(chain(*self._embedded_files_index.values()))))
+        # merge counts into dict_out:
+        dict_out = {**dict_out, **dict_counts}
+        return dict_out
+
+    def __get_graph_data_dict(self, *, attachments=False) -> \
+            dict[str, list[str]]:
+        """Get the dict {k: v} of the graph's data:
+        where k is a note name and v is a list of the 'wikilinks' in
+        a note.
+
+        The data are used to build the graph, based on the 'wikilinks'
+        in each note.  Media files cannot have wikilinks, so they are not
+        in the dict keys, but can be inside the dict values as backlinks.
+        The detail in the dictionary is used to build the nodes and
+        edges in the graph.
+
+        Args:
+            attachments (Bool): Defaults to False.  If True, then 'Attachments'
+                files will be included as nodes in the graph.  The shortest
+                possible filepath will be used for those files (as they are
+                would appear in the note editor itself, rather than the full
+                relative paths in the Obsidian app's graph view).
+
+        Returns:
+            dict
+        """
+        if not attachments:
+            # graph only uses wikilinks:
+            return self._wikilinks_index
+        else:
+            # attachments include 'media' files and canvas files:
+            # i) use wikilinks & embedded file info for graph edges:
+            files_gen = ({**self._md_file_index,
+                          **self._canvas_file_index}.keys())
+            dict_w_embedded = {name: list(chain.from_iterable(
+                zip(self._wikilinks_index.get(name),
+                    self._embedded_files_index.get(name))))
+                for name in files_gen}
+            # ii) add isolated media files as nodes:
+            isolated_files_dict = {
+                short_path: [] for short_path
+                in self._isolated_media_files}
+            return {**dict_w_embedded, **isolated_files_dict}
+
+    def _set_graph_related_attributes(self):
+        self._backlinks_index = self._get_backlinks_index(
+            graph=self._graph)
+        self._nonexistent_notes = self._get_nonexistent_notes()
+        self._isolated_notes = self._get_isolated_notes(
+            graph=self._graph)
 
     def gather(self, *, tags: list[str] = None):
         """gather the content of your notes so that all the plaintext is
@@ -853,7 +966,9 @@ class Vault:
             shortest_paths_arr[dupe_names_ix] = np.array(
                 [str(fpath)
                  for fpath in relpaths_list])[dupe_names_ix]
-        return {n: p for n, p in zip(shortest_paths_arr, relpaths_list)}
+
+        dict_out = {n: p for n, p in zip(shortest_paths_arr, relpaths_list)}
+        return dict_out
 
     def _get_md_relpaths_by_name(self, **kwargs) -> dict[str, Path]:
         return self.__get_relpaths_by_name(extension='md',
@@ -942,7 +1057,10 @@ class Vault:
         The comparison is done with sets but the result is returned
         as a list."""
         return list(set(self._backlinks_index.keys())
-                    .difference(set(self._md_file_index)))
+                    # anything remaining that isn't a file is a non-e note:
+                    .difference(set(self._md_file_index))
+                    .difference(set(self._media_file_index))
+                    .difference(set(self._canvas_file_index)))
 
     def _get_isolated_notes(self, *,
                             graph: nx.MultiDiGraph) -> list[str]:
@@ -950,4 +1068,5 @@ class Vault:
         i.e. they have 0 wikilinks and 0 backlinks.
 
         These notes are retrieved from the graph."""
-        return list(nx.isolates(graph))
+        return [fn for fn in nx.isolates(graph)
+                if fn in self._md_file_index]
