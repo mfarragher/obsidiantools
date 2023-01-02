@@ -513,11 +513,8 @@ class Vault:
          nonexistent_files_by_short_path) = (
             self._get_media_file_dicts_tuple())
 
-        # combine nonexistent files with existent files for df:
         files_ix = {**embedded_files_by_short_path,
-                    **non_embedded_files_by_short_path,
-                    **nonexistent_files_by_short_path}
-
+                    **non_embedded_files_by_short_path}
         self._media_file_index = files_ix
 
         self._nonexistent_media_files = list(
@@ -1009,6 +1006,34 @@ class Vault:
               )
         return df
 
+    def get_media_file_metadata(self) -> pd.DataFrame:
+        """Get a structured dataset of metadata on the vault's
+        media files.  This includes filepaths and counts of different
+        link types.
+
+        The df is indexed by media 'file' (i.e. nodes in the graph).
+        These will appear in the index:
+        1. Embedded files that exist.
+        2. Embedded files that don't exist.
+        3. Files that exist in the vault but haven't been embedded.
+
+        This dataset is available for however the vault object has
+        been set up: it will have metadata on the media files whether
+        or not you have configured media files to appear in the
+        obsidiantools graph.
+
+        Files that haven't been created will only have info on the number
+        of backlinks - other columns will have NaN.
+
+        Returns:
+            pd.DataFrame
+        """
+        df = (pd.DataFrame(index=list(self._media_file_index.keys()))
+              .rename_axis('file').
+              pipe(self._create_media_file_metadata_columns))
+
+        return df
+
     def _create_note_metadata_columns(self,
                                       df: pd.DataFrame) -> pd.DataFrame:
         """pipe func for mutating df"""
@@ -1051,6 +1076,25 @@ class Vault:
         df['n_wikilinks'] = df['n_wikilinks'].astype(float)  # for consistency
         return df
 
+    def _create_media_file_metadata_columns(self,
+                                            df: pd.DataFrame) -> pd.DataFrame:
+        """pipe func for mutating df"""
+        df['rel_filepath'] = [self._media_file_index.get(f, np.NaN)
+                              for f in df.index.tolist()]
+        df['abs_filepath'] = np.where(df['rel_filepath'].notna(),
+                                      [self._dirpath / str(f)
+                                       for f in df['rel_filepath'].tolist()],
+                                      np.NaN)
+        df['file_exists'] = np.where(np.isin(np.array(df.index, copy=False),
+                                             self._nonexistent_media_files),
+                                     False, True)
+        df['n_backlinks'] = self._get_backlink_counts_for_media_files_only()
+        df['modified_time'] = pd.to_datetime(
+            [f.lstat().st_mtime if not pd.isna(f) else np.NaN
+             for f in df['abs_filepath'].tolist()],
+            unit='s')
+        return df
+
     def _get_nonexistent_notes(self) -> list[str]:
         """Get notes that have backlinks but don't have md files.
 
@@ -1060,6 +1104,7 @@ class Vault:
                     # anything remaining that isn't a file is a non-e note:
                     .difference(set(self._md_file_index))
                     .difference(set(self._media_file_index))
+                    .difference(set(self._nonexistent_media_files))
                     .difference(set(self._canvas_file_index)))
 
     def _get_isolated_notes(self, *,
