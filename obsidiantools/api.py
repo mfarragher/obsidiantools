@@ -617,17 +617,15 @@ class Vault:
         else:
             # attachments include 'media' files and canvas files:
             # i) use wikilinks & embedded file info for graph edges:
-            files_gen = ({**self._md_file_index,
-                          **self._canvas_file_index}.keys())
-            dict_w_embedded = {name: list(chain.from_iterable(
-                zip(self._wikilinks_index.get(name),
-                    self._embedded_files_index.get(name))))
-                for name in files_gen}
+            d_out = {n: self._wikilinks_index.get(n, []) + self._embedded_files_index.get(n, [])
+                     for n in set(list(self._wikilinks_index.keys()) + list(self._embedded_files_index.keys()))}
             # ii) add isolated media files as nodes:
             isolated_files_dict = {
                 short_path: [] for short_path
                 in self._isolated_media_files}
-            return {**dict_w_embedded, **isolated_files_dict}
+            d_out = {**d_out,
+                     **isolated_files_dict}
+            return d_out
 
     def _set_graph_related_attributes(self):
         self._backlinks_index = self._get_backlinks_index(
@@ -999,7 +997,10 @@ class Vault:
         if not self._is_connected:
             raise AttributeError('Connect notes before calling the function')
 
-        df = (pd.DataFrame(index=list(self._backlinks_index.keys()))
+        ix_list = list(set(self._backlinks_index.keys())
+                       .difference(self.nonexistent_media_files))
+
+        df = (pd.DataFrame(index=ix_list)
               .rename_axis('note')
               .pipe(self._create_note_metadata_columns)
               .pipe(self._clean_up_note_metadata_dtypes)
@@ -1085,9 +1086,9 @@ class Vault:
                                       [self._dirpath / str(f)
                                        for f in df['rel_filepath'].tolist()],
                                       np.NaN)
-        df['file_exists'] = np.where(np.isin(np.array(df.index, copy=False),
-                                             self._nonexistent_media_files),
-                                     False, True)
+        df['file_exists'] = pd.Series(
+            np.logical_not(df.index.isin(self._nonexistent_media_files)),
+            index=df.index)
         df['n_backlinks'] = self._get_backlink_counts_for_media_files_only()
         df['modified_time'] = pd.to_datetime(
             [f.lstat().st_mtime if not pd.isna(f) else np.NaN
