@@ -1001,8 +1001,8 @@ class Vault:
                        .difference(self.nonexistent_media_files))
 
         df = (pd.DataFrame(index=ix_list)
-              .rename_axis('note')
-              .pipe(self._create_note_metadata_columns)
+              .rename_axis('note'))
+        df = (df.pipe(self._create_note_metadata_columns)
               .pipe(self._clean_up_note_metadata_dtypes)
               )
         return df
@@ -1030,8 +1030,10 @@ class Vault:
             pd.DataFrame
         """
         df = (pd.DataFrame(index=list(self._media_file_index.keys()))
-              .rename_axis('file').
-              pipe(self._create_media_file_metadata_columns))
+              .rename_axis('file'))
+        df = df.pipe(self._create_media_file_metadata_columns)
+        # fix situation where all-False column is stored as all-NaN:
+        df['file_exists'] = df['file_exists'].fillna(False)
 
         return df
 
