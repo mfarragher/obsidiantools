@@ -17,13 +17,12 @@ from .md_utils import (_get_md_front_matter_and_content,
                        _get_all_wikilinks_from_source_text,
                        _get_all_embedded_files_from_source_text,
                        get_tags,
-                       get_source_text_from_html,
-                       _get_readable_text_from_html,
                        _get_all_latex_from_html_content)
 from .media_utils import (_get_shortest_path_by_filename,
                           _get_all_valid_media_file_relpaths)
 # gather:
-from .md_utils import (_get_readable_text_from_html)
+from .md_utils import (get_source_text_from_html,
+                       _get_readable_text_from_html)
 # canvas:
 from .canvas_utils import (get_canvas_content,
                            get_canvas_graph_detail)
@@ -1003,7 +1002,10 @@ class Vault:
             raise AttributeError('Connect notes before calling the function')
 
         ix_list = list(set(self._backlinks_index.keys())
-                       .difference(self.nonexistent_media_files))
+                       .difference(set(self._media_file_index))
+                       .difference(set(self._nonexistent_media_files))
+                       .difference(set(self._canvas_file_index))
+                       )
 
         df = (pd.DataFrame(index=ix_list)
               .rename_axis('note'))
@@ -1068,7 +1070,8 @@ class Vault:
                                            for f in df.index.tolist()],
                                           np.NaN)
         df['modified_time'] = pd.to_datetime(
-            [f.lstat().st_mtime if not pd.isna(f) else np.NaN
+            [f.lstat().st_mtime if not pd.isna(f)
+             else pd.NaT
              for f in df['abs_filepath'].tolist()],
             unit='s'
         )
@@ -1098,7 +1101,8 @@ class Vault:
             index=df.index)
         df['n_backlinks'] = self._get_backlink_counts_for_media_files_only()
         df['modified_time'] = pd.to_datetime(
-            [f.lstat().st_mtime if not pd.isna(f) else np.NaN
+            [f.lstat().st_mtime if not pd.isna(f)
+             else pd.NaT
              for f in df['abs_filepath'].tolist()],
             unit='s')
         return df
