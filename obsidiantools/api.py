@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from collections import Counter
 from pathlib import Path
+from itertools import chain
 
 # init
 from .md_utils import (get_md_relpaths_matching_subdirs)
@@ -16,11 +17,12 @@ from .md_utils import (_get_md_front_matter_and_content,
                        _get_all_wikilinks_from_source_text,
                        _get_all_embedded_files_from_source_text,
                        get_tags,
-                       get_source_text_from_html,
-                       _get_readable_text_from_html,
                        _get_all_latex_from_html_content)
+from .media_utils import (_get_shortest_path_by_filename,
+                          _get_all_valid_media_file_relpaths)
 # gather:
-from .md_utils import (_get_readable_text_from_html)
+from .md_utils import (get_source_text_from_html,
+                       _get_readable_text_from_html)
 # canvas:
 from .canvas_utils import (get_canvas_content,
                            get_canvas_graph_detail)
@@ -54,6 +56,7 @@ class Vault:
         The class supports subdirectories and relies heavily on relative
         paths for the API.
 
+        -- ARGS --
         Args:
             dirpath (pathlib Path): the directory to analyse.  This would
                 typically be the vault's directory.  If you have a
@@ -66,6 +69,7 @@ class Vault:
             include_root (bool, optional): include files that are directly in
                 the dir_path (root dir).  Defaults to True.
 
+        -- METHODS --
         Methods for setup:
             connect: connect notes in a graph
             gather: gather text content of notes
@@ -85,13 +89,17 @@ class Vault:
 
         Methods for analysis across multiple notes:
             get_note_metadata
+        Methods for analysis across multiple media files:
+            get_media_file_metadata
 
+        -- ATTRIBUTES --
+        - The main file lookups have (*) next to them -
         Attributes - general:
             dirpath (arg)
             is_connected
             is_gathered
         Attributes - md-related:
-            file_index
+            md_file_index (*)
             graph
             backlinks_index
             wikilinks_index
@@ -105,13 +113,17 @@ class Vault:
             isolated_notes
             source_text_index
             readable_text_index
+        Attributes - media files:
+            media_file_index (*)
+            nonexistent_media_files
+            isolated_media_files
         Attributes - canvas-related:
-            canvas_file_index
+            canvas_file_index (*)
             canvas_content_index
             canvas_graph_detail_index
         """
         self._dirpath = dirpath
-        self._file_index = self._get_md_relpaths_by_name(
+        self._md_file_index = self._get_md_relpaths_by_name(
             include_subdirs=include_subdirs,
             include_root=include_root)
         self._canvas_file_index = self._get_canvas_relpaths_by_name(
@@ -137,6 +149,11 @@ class Vault:
         self._source_text_index = {}
         self._readable_text_index = {}
 
+        # via media files:
+        self._media_file_index = {}
+        self._nonexistent_media_files = []
+        self._isolated_media_files = []
+
         # via canvas content:
         self._canvas_content_index = {}
         self._canvas_graph_detail_index = {}
@@ -147,13 +164,13 @@ class Vault:
         return self._dirpath
 
     @property
-    def file_index(self) -> dict[str, Path]:
+    def md_file_index(self) -> dict[str, Path]:
         """dict: one-to-one mapping of md filename (k) to relative path (v)"""
-        return self._file_index
+        return self._md_file_index
 
-    @file_index.setter
-    def file_index(self, value) -> dict[str, Path]:
-        self._file_index = value
+    @md_file_index.setter
+    def md_file_index(self, value) -> dict[str, Path]:
+        self._md_file_index = value
 
     @property
     def canvas_file_index(self) -> dict[str, Path]:
@@ -289,6 +306,40 @@ class Vault:
         self._front_matter_index = value
 
     @property
+    def media_file_index(self) -> dict[str, Path]:
+        """dict: media file (k) to relative path (v).
+
+        These will appear in the index:
+        1. Embedded files that exist.
+        2. Embedded files that don't exist.
+        3. Files that exist in the vault but haven't been embedded.
+        """
+        return self._media_file_index
+
+    @media_file_index.setter
+    def media_file_index(self, value) -> dict[str, Path]:
+        self._media_file_index = value
+
+    @property
+    def nonexistent_media_files(self) -> list[str]:
+        """list: media files that don't exist on the file system yet."""
+        return self._nonexistent_media_files
+
+    @nonexistent_media_files.setter
+    def nonexistent_media_files(self, value) -> list[str]:
+        self._nonexistent_media_files = value
+
+    @property
+    def isolated_media_files(self) -> list[str]:
+        """list: media files that lack backlinks from md files.
+        They are not connected to other notes in the Obsidian graph at all."""
+        return self._isolated_media_files
+
+    @isolated_media_files.setter
+    def isolated_media_files(self, value) -> list[str]:
+        self._isolated_media_files = value
+
+    @property
     def is_connected(self) -> bool:
         """Bool: has the connect function been called to set up graph?"""
         return self._is_connected
@@ -354,7 +405,8 @@ class Vault:
              ]:
         self._canvas_graph_detail_index = value
 
-    def connect(self, *, show_nested_tags: bool = False):
+    def connect(self, *, show_nested_tags: bool = False,
+                attachments=False):
         """connect your notes together by representing the vault as a
         Networkx graph object, G.
 
@@ -368,6 +420,13 @@ class Vault:
             show_nested_tags (Boolean): show nested tags in the output.
                 Defaults to False (which would mean only the highest level
                 of any nested tags are included in the output).
+            attachments (Boolean): Defaults to False.  'Attachments' refers
+                to the graph toggle option in the Obsidian app.  By default,
+                obsidiantools will only include md files (notes) in the
+                graph (i.e. like Attachments is toggled off in Obsidian app).
+                To include media files in the graph, set this option to True.
+                This will lead to the inclusion of media files' in the
+                backlinks_index.
         """
         if not self._is_connected:
             # md content:
@@ -383,7 +442,7 @@ class Vault:
             self._unique_wikilinks_index = {}
 
             # loop through md files:
-            for f, relpath in self._file_index.items():
+            for f, relpath in self._md_file_index.items():
                 self._connect_update_based_on_new_relpath(
                     relpath, note=f,
                     show_nested_tags=show_nested_tags)
@@ -400,13 +459,15 @@ class Vault:
                     content_c)
                 self._canvas_graph_detail_index[f] = G_c, pos_c, edge_labels_c
 
-            # graph:
-            G = nx.MultiDiGraph(self._wikilinks_index)
+            # media files:
+            self._set_media_file_attrs()
+
+            # graph setup:
+            graph_data_dict = self.__get_graph_data_dict(
+                attachments=attachments)
+            G = nx.MultiDiGraph(graph_data_dict)
             self._graph = G
-            # info obtained from graph:
-            self._backlinks_index = self._get_backlinks_index(graph=G)
-            self._nonexistent_notes = self._get_nonexistent_notes()
-            self._isolated_notes = self._get_isolated_notes(graph=G)
+            self._set_graph_related_attributes()
 
             self._is_connected = True
 
@@ -451,6 +512,133 @@ class Vault:
             self._dirpath / relpath,
             show_nested=show_nested_tags)
 
+    def _set_media_file_attrs(self):
+        (embedded_files_by_short_path,
+         non_embedded_files_by_short_path,
+         nonexistent_files_by_short_path) = (
+            self._get_media_file_dicts_tuple())
+
+        files_ix = {**embedded_files_by_short_path,
+                    **non_embedded_files_by_short_path}
+        self._media_file_index = files_ix
+
+        self._nonexistent_media_files = list(
+            nonexistent_files_by_short_path.keys())
+        self._isolated_media_files = list(
+            non_embedded_files_by_short_path.keys())
+
+    def _get_media_file_dicts_tuple(self) \
+            -> tuple[dict[str, Path], dict[str, Path], dict[str, Path]]:
+        """Return (existent files embedded,
+        existent files not embedded,
+        nonexistent files embedded).
+
+        The reason this logic is complex is that media files are embedded in
+        md files in the Obsidian app using the shortest possible filepath,
+        but they all need to be cross-checked against actual media filepaths.
+        """
+
+        # detail on all embedded files AND ones that exist:
+        all_files_embedded_in_notes = list(
+            chain.from_iterable(self._embedded_files_index.values()))
+        media_file_relpaths_existent = _get_all_valid_media_file_relpaths(
+            self._dirpath)
+
+        # get shortest path for each embedded file; check whether each exists
+        media_shortest_names_existent = _get_shortest_path_by_filename(
+            media_file_relpaths_existent)
+        media_shortest_names_nonexistent = {
+            fn: Path(fn) for fn in chain(*self._embedded_files_index.values())
+            if fn not in set(media_shortest_names_existent)}
+        media_shortest_names = {**media_shortest_names_existent,
+                                **media_shortest_names_nonexistent}
+
+        # SETS
+        # existent files (either embedded or not):
+        set_files_existent_embedded = (
+            set(media_shortest_names_existent)
+            .intersection(set(all_files_embedded_in_notes)))
+        set_files_existent_not_embedded = (
+            set(media_shortest_names_existent)
+            .difference(set_files_existent_embedded))
+        # nonexistent files:
+        set_files_nonexistent_embedded = (
+            set(all_files_embedded_in_notes)
+            .intersection(set(media_shortest_names_nonexistent)))
+
+        # DICTS
+        # existent files (either embedded or not):
+        embedded_files_by_short_path = {
+            short_path: rel_path
+            for short_path, rel_path in media_shortest_names.items()
+            if short_path in set_files_existent_embedded}
+        non_embedded_files_by_short_path = {
+            short_path: rel_path
+            for short_path, rel_path in media_shortest_names.items()
+            if short_path in set_files_existent_not_embedded}
+        # nonexistent files:
+        nonexistent_files_by_short_path = {
+            short_path: np.NaN
+            for short_path in media_shortest_names.keys()
+            if short_path in set_files_nonexistent_embedded}
+
+        return (embedded_files_by_short_path,
+                non_embedded_files_by_short_path,
+                nonexistent_files_by_short_path)
+
+    def _get_backlink_counts_for_media_files_only(self) -> dict[str, int]:
+        dict_out = dict.fromkeys(self._media_file_index.keys(), 0)
+        dict_counts = dict(
+            Counter(list(chain(*self._embedded_files_index.values()))))
+        # merge counts into dict_out:
+        dict_out = {**dict_out, **dict_counts}
+        return dict_out
+
+    def __get_graph_data_dict(self, *, attachments=False) -> \
+            dict[str, list[str]]:
+        """Get the dict {k: v} of the graph's data:
+        where k is a note name and v is a list of the 'wikilinks' in
+        a note.
+
+        The data are used to build the graph, based on the 'wikilinks'
+        in each note.  Media files cannot have wikilinks, so they are not
+        in the dict keys, but can be inside the dict values as backlinks.
+        The detail in the dictionary is used to build the nodes and
+        edges in the graph.
+
+        Args:
+            attachments (Bool): Defaults to False.  If True, then 'Attachments'
+                files will be included as nodes in the graph.  The shortest
+                possible filepath will be used for those files (as they are
+                would appear in the note editor itself, rather than the full
+                relative paths in the Obsidian app's graph view).
+
+        Returns:
+            dict
+        """
+        if not attachments:
+            # graph only uses wikilinks:
+            return self._wikilinks_index
+        else:
+            # attachments include 'media' files and canvas files:
+            # i) use wikilinks & embedded file info for graph edges:
+            d_out = {n: self._wikilinks_index.get(n, []) + self._embedded_files_index.get(n, [])
+                     for n in set(list(self._wikilinks_index.keys()) + list(self._embedded_files_index.keys()))}
+            # ii) add isolated media files as nodes:
+            isolated_files_dict = {
+                short_path: [] for short_path
+                in self._isolated_media_files}
+            d_out = {**d_out,
+                     **isolated_files_dict}
+            return d_out
+
+    def _set_graph_related_attributes(self):
+        self._backlinks_index = self._get_backlinks_index(
+            graph=self._graph)
+        self._nonexistent_notes = self._get_nonexistent_notes()
+        self._isolated_notes = self._get_isolated_notes(
+            graph=self._graph)
+
     def gather(self, *, tags: list[str] = None):
         """gather the content of your notes so that all the plaintext is
         stored in one place for easy access.
@@ -473,7 +661,7 @@ class Vault:
                 will remove all header formatting (e.g. '#', '##' chars)
                 and produces a one-line string.
         """
-        for f, relpath in self._file_index.items():
+        for f, relpath in self._md_file_index.items():
             self._gather_update_based_on_new_relpath(
                 relpath,
                 note=f, tags=tags)
@@ -546,12 +734,12 @@ class Vault:
         """Get wikilinks for a note (given its filename).
 
         Wikilinks can only appear in notes that already exist, so if a
-        note is not in the file_index at all then the function will raise
+        note is not in the md_file_index at all then the function will raise
         a ValueError.
 
         Args:
-            file_name (str): the filename string that is in the file_index.
-                This is NOT the filepath!
+            file_name (str): the filename string that is in the
+                md_file_index. This is NOT the filepath!
 
         Returns:
             list
@@ -559,7 +747,7 @@ class Vault:
         if not self._is_connected:
             raise AttributeError('Connect notes before calling the function')
 
-        if file_name not in self._file_index:
+        if file_name not in self._md_file_index:
             raise ValueError('"{}" does not exist so it cannot have wikilinks.'.format(file_name))
         else:
             return self._wikilinks_index[file_name]
@@ -587,11 +775,11 @@ class Vault:
         """Get embedded files for a note (given its filename).
 
         Embedded files can only appear in notes that already exist, so if a
-        note is not in the file_index at all then the function will raise
+        note is not in the md_file_index at all then the function will raise
         a ValueError.
 
         Args:
-            file_name (str): the filename string that is in the file_index.
+            file_name (str): the filename string that is in the md_file_index.
                 This is NOT the filepath!
 
         Returns:
@@ -600,7 +788,7 @@ class Vault:
         if not self._is_connected:
             raise AttributeError('Connect notes before calling the function')
 
-        if file_name not in self._file_index:
+        if file_name not in self._md_file_index:
             raise ValueError('"{}" does not exist so it cannot have embedded files.'.format(file_name))
         else:
             return self._embedded_files_index[file_name]
@@ -609,11 +797,11 @@ class Vault:
         """Get markdown links for a note (given its filename).
 
         Markdown links can only appear in notes that already exist, so if a
-        note is not in the file_index at all then the function will raise
+        note is not in the md_file_index at all then the function will raise
         a ValueError.
 
         Args:
-            file_name (str): the filename string that is in the file_index.
+            file_name (str): the filename string that is in the md_file_index.
                 This is NOT the filepath!
 
         Returns:
@@ -622,7 +810,7 @@ class Vault:
         if not self._is_connected:
             raise AttributeError('Connect notes before calling the function')
 
-        if file_name not in self._file_index:
+        if file_name not in self._md_file_index:
             raise ValueError('"{}" does not exist so it cannot have md links.'.format(file_name))
         else:
             return self._md_links_index[file_name]
@@ -631,11 +819,11 @@ class Vault:
         """Get front matter for a note (given its filename).
 
         Front matter can only appear in notes that already exist, so if a
-        note is not in the file_index at all then the function will raise
+        note is not in the md_file_index at all then the function will raise
         a ValueError.
 
         Args:
-            file_name (str): the filename string that is in the file_index.
+            file_name (str): the filename string that is in the md_file_index.
                 This is NOT the filepath!
 
         Returns:
@@ -643,31 +831,30 @@ class Vault:
         """
         if not self._is_connected:
             raise AttributeError('Connect notes before calling the function')
-        if file_name not in self._file_index:
+        if file_name not in self._md_file_index:
             raise ValueError('"{}" does not exist so it cannot have front matter.'.format(file_name))
         else:
             return self._front_matter_index[file_name]
 
-    def get_tags(self, file_name: str, *,
-                 show_nested: bool = False) -> list[str]:
+    def get_tags(self, file_name: str) -> list[str]:
         """Get tags for a note (given its filename).
         By default, only the highest level of any nested tags is shown
         in the output.
 
         Tags can only appear in notes that already exist, so if a
-        note is not in the file_index at all then the function will raise
+        note is not in the md_file_index at all then the function will raise
         a ValueError.
 
         Args:
-            file_name (str): the filename string that is in the file_index.
-                This is NOT the filepath!
+            file_name (str): the filename string that is in the
+                md_file_index. This is NOT the filepath!
 
         Returns:
             list
         """
         if not self._is_connected:
             raise AttributeError('Connect notes before calling the function')
-        if file_name not in self._file_index:
+        if file_name not in self._md_file_index:
             raise ValueError('"{}" does not exist so it cannot have tags.'.format(file_name))
         else:
             return self._tags_index[file_name]
@@ -677,11 +864,11 @@ class Vault:
         function 'gather' to have been called.
 
         Text can only appear in notes that already exist, so if a
-        note is not in the file_index at all then the function will raise
+        note is not in the md_file_index at all then the function will raise
         a ValueError.
 
         Args:
-            file_name (str): the filename string that is in the file_index.
+            file_name (str): the filename string that is in the md_file_index.
                 This is NOT the filepath!
 
         Returns:
@@ -689,7 +876,7 @@ class Vault:
         """
         if not self._is_gathered:
             raise AttributeError('Gather notes before calling the function')
-        if file_name not in self._file_index:
+        if file_name not in self._md_file_index:
             raise ValueError('"{}" does not exist so it cannot have text.'.format(file_name))
         else:
             return self._source_text_index[file_name]
@@ -703,11 +890,11 @@ class Vault:
         before the final output.
 
         Text can only appear in notes that already exist, so if a
-        note is not in the file_index at all then the function will raise
+        note is not in the md_file_index at all then the function will raise
         a ValueError.
 
         Args:
-            file_name (str): the filename string that is in the file_index.
+            file_name (str): the filename string that is in the md_file_index.
                 This is NOT the filepath!
 
         Returns:
@@ -715,7 +902,7 @@ class Vault:
         """
         if not self._is_gathered:
             raise AttributeError('Gather notes before calling the function')
-        if file_name not in self._file_index:
+        if file_name not in self._md_file_index:
             raise ValueError('"{}" does not exist so it cannot have text.'.format(file_name))
         else:
             return self._readable_text_index[file_name]
@@ -778,7 +965,9 @@ class Vault:
             shortest_paths_arr[dupe_names_ix] = np.array(
                 [str(fpath)
                  for fpath in relpaths_list])[dupe_names_ix]
-        return {n: p for n, p in zip(shortest_paths_arr, relpaths_list)}
+
+        dict_out = {n: p for n, p in zip(shortest_paths_arr, relpaths_list)}
+        return dict_out
 
     def _get_md_relpaths_by_name(self, **kwargs) -> dict[str, Path]:
         return self.__get_relpaths_by_name(extension='md',
@@ -788,13 +977,14 @@ class Vault:
         return self.__get_relpaths_by_name(extension='canvas',
                                            **kwargs)
 
-    def _get_backlinks_index(self, *,
+    @staticmethod
+    def _get_backlinks_index(*,
                              graph: nx.MultiDiGraph) -> dict[str, list[str]]:
         """Return k,v pairs
         where k is the md note name
         and v is list of ALL backlinks found in k"""
         return {n: [n[0] for n in list(graph.in_edges(n))]
-                for n in self._graph.nodes}
+                for n in graph.nodes}
 
     def get_note_metadata(self) -> pd.DataFrame:
         """Structured dataset of metadata on the vault's notes.  This
@@ -808,21 +998,56 @@ class Vault:
         Returns:
             pd.DataFrame
         """
-
         if not self._is_connected:
             raise AttributeError('Connect notes before calling the function')
 
-        df = (pd.DataFrame(index=list(self._backlinks_index.keys()))
-              .rename_axis('note')
-              .pipe(self._create_note_metadata_columns)
+        ix_list = list(set(self._backlinks_index.keys())
+                       .difference(set(self._media_file_index))
+                       .difference(set(self._nonexistent_media_files))
+                       .difference(set(self._canvas_file_index))
+                       )
+
+        df = (pd.DataFrame(index=ix_list)
+              .rename_axis('note'))
+        df = (df.pipe(self._create_note_metadata_columns)
               .pipe(self._clean_up_note_metadata_dtypes)
               )
+        return df
+
+    def get_media_file_metadata(self) -> pd.DataFrame:
+        """Get a structured dataset of metadata on the vault's
+        media files.  This includes filepaths and counts of different
+        link types.
+
+        The df is indexed by media 'file' (i.e. nodes in the graph).
+        These will appear in the index:
+        1. Embedded files that exist.
+        2. Embedded files that don't exist.
+        3. Files that exist in the vault but haven't been embedded.
+
+        This dataset is available for however the vault object has
+        been set up: it will have metadata on the media files whether
+        or not you have configured media files to appear in the
+        obsidiantools graph.
+
+        Files that haven't been created will only have info on the number
+        of backlinks - other columns will have NaN.
+
+        Returns:
+            pd.DataFrame
+        """
+        df = (pd.DataFrame(index=list(self._media_file_index.keys()))
+              .rename_axis('file'))
+        df = df.pipe(self._create_media_file_metadata_columns)
+        # fix situation where all-False column is stored as all-NaN:
+        df['file_exists'] = df['file_exists'].fillna(False)
+
         return df
 
     def _create_note_metadata_columns(self,
                                       df: pd.DataFrame) -> pd.DataFrame:
         """pipe func for mutating df"""
-        df['rel_filepath'] = [self._file_index.get(f, np.NaN)
+        df['rel_filepath'] = [self._md_file_index.get(f, np.NaN)
                               for f in df.index.tolist()]
         df['abs_filepath'] = np.where(df['rel_filepath'].notna(),
                                       [self._dirpath / str(f)
@@ -845,7 +1070,8 @@ class Vault:
                                            for f in df.index.tolist()],
                                           np.NaN)
         df['modified_time'] = pd.to_datetime(
-            [f.lstat().st_mtime if not pd.isna(f) else np.NaN
+            [f.lstat().st_mtime if not pd.isna(f)
+             else pd.NaT
              for f in df['abs_filepath'].tolist()],
             unit='s'
         )
@@ -861,13 +1087,37 @@ class Vault:
         df['n_wikilinks'] = df['n_wikilinks'].astype(float)  # for consistency
         return df
 
+    def _create_media_file_metadata_columns(self,
+                                            df: pd.DataFrame) -> pd.DataFrame:
+        """pipe func for mutating df"""
+        df['rel_filepath'] = [self._media_file_index.get(f, np.NaN)
+                              for f in df.index.tolist()]
+        df['abs_filepath'] = np.where(df['rel_filepath'].notna(),
+                                      [self._dirpath / str(f)
+                                       for f in df['rel_filepath'].tolist()],
+                                      np.NaN)
+        df['file_exists'] = pd.Series(
+            np.logical_not(df.index.isin(self._nonexistent_media_files)),
+            index=df.index)
+        df['n_backlinks'] = self._get_backlink_counts_for_media_files_only()
+        df['modified_time'] = pd.to_datetime(
+            [f.lstat().st_mtime if not pd.isna(f)
+             else pd.NaT
+             for f in df['abs_filepath'].tolist()],
+            unit='s')
+        return df
+
     def _get_nonexistent_notes(self) -> list[str]:
         """Get notes that have backlinks but don't have md files.
 
         The comparison is done with sets but the result is returned
         as a list."""
-        return list(set(self.backlinks_index.keys())
-                    .difference(set(self.file_index)))
+        return list(set(self._backlinks_index.keys())
+                    # anything remaining that isn't a file is a non-e note:
+                    .difference(set(self._md_file_index))
+                    .difference(set(self._media_file_index))
+                    .difference(set(self._nonexistent_media_files))
+                    .difference(set(self._canvas_file_index)))
 
     def _get_isolated_notes(self, *,
                             graph: nx.MultiDiGraph) -> list[str]:
@@ -875,4 +1125,5 @@ class Vault:
         i.e. they have 0 wikilinks and 0 backlinks.
 
         These notes are retrieved from the graph."""
-        return list(nx.isolates(graph))
+        return [fn for fn in nx.isolates(graph)
+                if fn in self._md_file_index]

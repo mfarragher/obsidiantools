@@ -75,13 +75,13 @@ This is an isolated note ~~an orphan~~.
 
 
 def test_all_files_are_in_source_text_index(actual_gathered_vault_defaults):
-    file_keys = set(actual_gathered_vault_defaults.file_index.keys())
+    file_keys = set(actual_gathered_vault_defaults.md_file_index.keys())
     text_keys = set(actual_gathered_vault_defaults.source_text_index.keys())
     assert file_keys == text_keys
 
 
 def test_all_files_are_in_readable_text_index(actual_gathered_vault_defaults):
-    file_keys = set(actual_gathered_vault_defaults.file_index.keys())
+    file_keys = set(actual_gathered_vault_defaults.md_file_index.keys())
     text_keys = set(actual_gathered_vault_defaults.readable_text_index.keys())
     assert file_keys == text_keys
 

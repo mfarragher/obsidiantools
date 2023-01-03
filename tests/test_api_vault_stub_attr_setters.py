@@ -15,8 +15,8 @@ def actual_connected_vault():
 
 
 def test_attr_setters_main_setup(actual_connected_vault):
-    actual_connected_vault.file_index = {}
-    assert actual_connected_vault.file_index == {}
+    actual_connected_vault.md_file_index = {}
+    assert actual_connected_vault.md_file_index == {}
 
     actual_connected_vault.canvas_file_index = {'New.canvas': ''}
     assert actual_connected_vault.canvas_file_index == {'New.canvas': ''}
@@ -55,6 +55,15 @@ def test_attr_setters_md_connect_related(actual_connected_vault):
 
     actual_connected_vault.isolated_notes = []
     assert actual_connected_vault.isolated_notes == []
+
+    actual_connected_vault.media_file_index = {}
+    assert actual_connected_vault.media_file_index == {}
+
+    actual_connected_vault.nonexistent_media_files = []
+    assert actual_connected_vault.nonexistent_media_files == []
+
+    actual_connected_vault.isolated_media_files = []
+    assert actual_connected_vault.isolated_media_files == []
 
     # check that graph is set AND recognised as empty:
     actual_connected_vault.graph = nx.MultiDiGraph()
