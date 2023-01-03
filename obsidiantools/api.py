@@ -57,6 +57,7 @@ class Vault:
         The class supports subdirectories and relies heavily on relative
         paths for the API.
 
+        -- ARGS --
         Args:
             dirpath (pathlib Path): the directory to analyse.  This would
                 typically be the vault's directory.  If you have a
@@ -69,6 +70,7 @@ class Vault:
             include_root (bool, optional): include files that are directly in
                 the dir_path (root dir).  Defaults to True.
 
+        -- METHODS --
         Methods for setup:
             connect: connect notes in a graph
             gather: gather text content of notes
@@ -88,13 +90,17 @@ class Vault:
 
         Methods for analysis across multiple notes:
             get_note_metadata
+        Methods for analysis across multiple media files:
+            get_media_file_metadata
 
+        -- ATTRIBUTES --
+        - The main file lookups have (*) next to them -
         Attributes - general:
             dirpath (arg)
             is_connected
             is_gathered
         Attributes - md-related:
-            md_file_index
+            md_file_index (*)
             graph
             backlinks_index
             wikilinks_index
@@ -109,11 +115,11 @@ class Vault:
             source_text_index
             readable_text_index
         Attributes - media files:
-            media_file_index
+            media_file_index (*)
             nonexistent_media_files
             isolated_media_files
         Attributes - canvas-related:
-            canvas_file_index
+            canvas_file_index (*)
             canvas_content_index
             canvas_graph_detail_index
         """
@@ -831,8 +837,7 @@ class Vault:
         else:
             return self._front_matter_index[file_name]
 
-    def get_tags(self, file_name: str, *,
-                 show_nested: bool = False) -> list[str]:
+    def get_tags(self, file_name: str) -> list[str]:
         """Get tags for a note (given its filename).
         By default, only the highest level of any nested tags is shown
         in the output.
@@ -973,13 +978,14 @@ class Vault:
         return self.__get_relpaths_by_name(extension='canvas',
                                            **kwargs)
 
-    def _get_backlinks_index(self, *,
+    @staticmethod
+    def _get_backlinks_index(*,
                              graph: nx.MultiDiGraph) -> dict[str, list[str]]:
         """Return k,v pairs
         where k is the md note name
         and v is list of ALL backlinks found in k"""
         return {n: [n[0] for n in list(graph.in_edges(n))]
-                for n in self._graph.nodes}
+                for n in graph.nodes}
 
     def get_note_metadata(self) -> pd.DataFrame:
         """Structured dataset of metadata on the vault's notes.  This
@@ -993,7 +999,6 @@ class Vault:
         Returns:
             pd.DataFrame
         """
-
         if not self._is_connected:
             raise AttributeError('Connect notes before calling the function')
 
