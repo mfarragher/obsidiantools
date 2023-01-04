@@ -312,6 +312,8 @@ def test_get_metadata_tags(actual_metadata_df,
 
 def test_backlink_and_wikilink_totals_equal(actual_metadata_df):
     # every wikilink is another note's backlink
+    # equality is expected when canvas files are excluded from wikilinks list
+    # for ANY VAULT under the defaults
     assert (actual_metadata_df['n_backlinks'].sum()
             == actual_metadata_df['n_wikilinks'].sum())
 

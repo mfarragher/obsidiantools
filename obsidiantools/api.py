@@ -96,6 +96,7 @@ class Vault:
         - The main file lookups have (*) next to them -
         Attributes - general:
             dirpath (arg)
+            attachments (kwarg)
             is_connected
             is_gathered
         Attributes - md-related:
@@ -122,7 +123,10 @@ class Vault:
             canvas_content_index
             canvas_graph_detail_index
         """
+        # args:
         self._dirpath = dirpath
+        self._attachments = None  # connect()
+
         self._md_file_index = self._get_md_relpaths_by_name(
             include_subdirs=include_subdirs,
             include_root=include_root)
@@ -162,6 +166,17 @@ class Vault:
     def dirpath(self) -> Path:
         """pathlib Path"""
         return self._dirpath
+
+    @property
+    def attachments(self) -> bool:
+        """bool: argument for connect method.  True to include 'attachment'
+        files.
+        """
+        return self._attachments
+
+    @attachments.setter
+    def attachments(self, value) -> bool:
+        self._attachments = value
 
     @property
     def md_file_index(self) -> dict[str, Path]:
@@ -429,6 +444,8 @@ class Vault:
                 backlinks_index.
         """
         if not self._is_connected:
+            self._attachments = attachments
+
             # md content:
             # index dicts, where k is a note name in the vault:
             self._md_links_index = {}
@@ -478,6 +495,8 @@ class Vault:
                                              show_nested_tags: bool):
         """Individual file read & associated attrs update for the
         connect method."""
+        exclude_canvas = not self._attachments
+
         # MAIN file read:
         front_matter, content = _get_md_front_matter_and_content(
             self._dirpath / relpath)
@@ -497,10 +516,12 @@ class Vault:
             )
         self._wikilinks_index[note] = (
             _get_all_wikilinks_from_source_text(
-                src_txt, remove_aliases=True))
+                src_txt, remove_aliases=True,
+                exclude_canvas=exclude_canvas))
         self._unique_wikilinks_index[note] = (
             _get_unique_wikilinks_from_source_text(
-                src_txt, remove_aliases=True))
+                src_txt, remove_aliases=True,
+                exclude_canvas=exclude_canvas))
         # info from html:
         self._math_index[note] = (_get_all_latex_from_html_content(
             html))
@@ -617,13 +638,19 @@ class Vault:
             dict
         """
         if not attachments:
-            # graph only uses wikilinks:
+            # i) graph uses wikilinks (no embedded files).
+            # ii) the wikilinks index will have been set before based on the
+            # attachments kwarg to exclude canvas files
             return self._wikilinks_index
         else:
             # attachments include 'media' files and canvas files:
             # i) use wikilinks & embedded file info for graph edges:
-            d_out = {n: self._wikilinks_index.get(n, []) + self._embedded_files_index.get(n, [])
-                     for n in set(list(self._wikilinks_index.keys()) + list(self._embedded_files_index.keys()))}
+            d_out = {
+                n: (self._wikilinks_index.get(n, [])
+                    + self._embedded_files_index.get(n, []))
+                for n in (set(list(self._wikilinks_index.keys())
+                              + list(self._embedded_files_index.keys())))
+            }
             # ii) add isolated media files as nodes:
             isolated_files_dict = {
                 short_path: [] for short_path

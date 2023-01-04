@@ -213,10 +213,12 @@ def test_get_metadata_backlinks(actual_note_metadata_df,
                         check_like=True)
 
 
-def test_backlink_and_wikilink_totals_equal(actual_note_metadata_df):
+def test_backlink_and_wikilink_totals_not_equal_for_test_vault(actual_note_metadata_df):
     # every wikilink is another note's backlink
+    # INEQUALITY is expected when canvas files are INCLUDED in wikilinks list
+    # for this vault
     assert (actual_note_metadata_df['n_backlinks'].sum()
-            == actual_note_metadata_df['n_wikilinks'].sum())
+            != actual_note_metadata_df['n_wikilinks'].sum())
 
 
 def test_backlink_counts(actual_connected_vault):
