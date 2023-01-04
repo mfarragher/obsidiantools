@@ -24,3 +24,6 @@ VIDEO_EXT_SET = {'.mp4', '.webm', '.ogv', '.mov', '.mkv',
                  '.MP4', '.WEBM', '.OGV', '.MOV', '.MKV'}
 PDF_EXT_SET = {'.pdf',
                '.PDF'}
+# canvas files:
+CANVAS_EXT_SET = {'.canvas',
+                  '.CANVAS'}

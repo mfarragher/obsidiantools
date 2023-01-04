@@ -1,8 +1,10 @@
 import json
 import networkx as nx
 from pathlib import Path
+from ._constants import CANVAS_EXT_SET
 from ._io import (get_relpaths_from_dir,
-                  get_relpaths_matching_subdirs)
+                  get_relpaths_matching_subdirs,
+                  _get_valid_filepaths_by_ext_set)
 
 
 def get_canvas_relpaths_from_dir(dir_path: Path) -> list[Path]:
@@ -57,6 +59,12 @@ def get_canvas_relpaths_matching_subdirs(dir_path: Path, *,
         extension='canvas',
         include_subdirs=include_subdirs,
         include_root=include_root)
+
+
+def _get_all_valid_canvas_file_relpaths(dirpath):
+    return (_get_valid_filepaths_by_ext_set(
+        dirpath,
+        exts=CANVAS_EXT_SET))
 
 
 def get_canvas_content(filepath: Path) -> dict:

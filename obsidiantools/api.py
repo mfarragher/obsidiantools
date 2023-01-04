@@ -7,7 +7,8 @@ from itertools import chain
 
 # init
 from .md_utils import (get_md_relpaths_matching_subdirs)
-from .canvas_utils import (get_canvas_relpaths_matching_subdirs)
+from .canvas_utils import (get_canvas_relpaths_matching_subdirs,
+                           _get_all_valid_canvas_file_relpaths)
 # connect
 from .md_utils import (_get_md_front_matter_and_content,
                        _get_html_from_md_content,
@@ -161,6 +162,8 @@ class Vault:
         # via canvas content:
         self._canvas_content_index = {}
         self._canvas_graph_detail_index = {}
+        self._nonexistent_canvas_files = []
+        self._isolated_canvas_files = []
 
     @property
     def dirpath(self) -> Path:
@@ -355,6 +358,25 @@ class Vault:
         self._isolated_media_files = value
 
     @property
+    def nonexistent_canvas_files(self) -> list[str]:
+        """list: canvas files that don't exist on the file system yet."""
+        return self._nonexistent_canvas_files
+
+    @nonexistent_canvas_files.setter
+    def nonexistent_canvas_files(self, value) -> list[str]:
+        self._nonexistent_canvas_files = value
+
+    @property
+    def isolated_canvas_files(self) -> list[str]:
+        """list: canvas files that lack backlinks from md files.
+        They are not connected to other notes in the Obsidian graph at all."""
+        return self._isolated_canvas_files
+
+    @isolated_canvas_files.setter
+    def isolated_canvas_files(self, value) -> list[str]:
+        self._isolated_canvas_files = value
+
+    @property
     def is_connected(self) -> bool:
         """Bool: has the connect function been called to set up graph?"""
         return self._is_connected
@@ -475,6 +497,7 @@ class Vault:
                 G_c, pos_c, edge_labels_c = get_canvas_graph_detail(
                     content_c)
                 self._canvas_graph_detail_index[f] = G_c, pos_c, edge_labels_c
+            self._set_canvas_file_attrs()
 
             # media files:
             self._set_media_file_attrs()
@@ -548,6 +571,17 @@ class Vault:
         self._isolated_media_files = list(
             non_embedded_files_by_short_path.keys())
 
+    def _set_canvas_file_attrs(self):
+        (linked_files_by_short_path,
+         non_linked_files_by_short_path,
+         nonexistent_files_by_short_path) = (
+            self._get_canvas_file_dicts_tuple())
+
+        self._nonexistent_canvas_files = list(
+            nonexistent_files_by_short_path.keys())
+        self._isolated_canvas_files = list(
+            non_linked_files_by_short_path.keys())
+
     def _get_media_file_dicts_tuple(self) \
             -> tuple[dict[str, Path], dict[str, Path], dict[str, Path]]:
         """Return (existent files embedded,
@@ -564,47 +598,75 @@ class Vault:
             chain.from_iterable(self._embedded_files_index.values()))
         media_file_relpaths_existent = _get_all_valid_media_file_relpaths(
             self._dirpath)
+        return self.__get_file_dicts_tuple(
+            all_files_embedded_in_notes,
+            links_index=self._embedded_files_index,
+            existing_file_relpaths=media_file_relpaths_existent)
 
-        # get shortest path for each embedded file; check whether each exists
-        media_shortest_names_existent = _get_shortest_path_by_filename(
-            media_file_relpaths_existent)
-        media_shortest_names_nonexistent = {
-            fn: Path(fn) for fn in chain(*self._embedded_files_index.values())
-            if fn not in set(media_shortest_names_existent)}
-        media_shortest_names = {**media_shortest_names_existent,
-                                **media_shortest_names_nonexistent}
+    def _get_canvas_file_dicts_tuple(self) \
+            -> tuple[dict[str, Path], dict[str, Path], dict[str, Path]]:
+        """Return (existent files linked,
+        existent files not linked,
+        nonexistent files linked).
+
+        The reason this logic is complex is that media files are embedded in
+        md files in the Obsidian app using the shortest possible filepath,
+        but they all need to be cross-checked against actual media filepaths.
+        """
+
+        # detail on all linked files AND ones that exist:
+        all_files_linked_in_notes = list(
+            chain.from_iterable(self._wikilinks_index.values()))
+        canvas_file_relpaths_existent = _get_all_valid_canvas_file_relpaths(
+            self._dirpath)
+        return self.__get_file_dicts_tuple(
+            all_files_linked_in_notes,
+            links_index=self._wikilinks_index,
+            existing_file_relpaths=canvas_file_relpaths_existent)
+
+    @staticmethod
+    def __get_file_dicts_tuple(linked_files_list, *,
+                               links_index, existing_file_relpaths):
+        # get shortest path for each 'linked' file; check whether each exists
+        shortest_names_existent = _get_shortest_path_by_filename(
+            existing_file_relpaths)
+        shortest_names_nonexistent = {
+            fn: Path(fn) for fn in chain(*links_index.values())
+            if fn not in set(shortest_names_existent)}
+        shortest_names = {**shortest_names_existent,
+                          **shortest_names_nonexistent}
 
         # SETS
-        # existent files (either embedded or not):
-        set_files_existent_embedded = (
-            set(media_shortest_names_existent)
-            .intersection(set(all_files_embedded_in_notes)))
-        set_files_existent_not_embedded = (
-            set(media_shortest_names_existent)
-            .difference(set_files_existent_embedded))
+        # existent files (either linked or not):
+        set_files_existent_linked = (
+            set(shortest_names_existent)
+            .intersection(set(linked_files_list)))
+        set_files_existent_not_linked = (
+            set(shortest_names_existent)
+            .difference(set_files_existent_linked))
         # nonexistent files:
-        set_files_nonexistent_embedded = (
-            set(all_files_embedded_in_notes)
-            .intersection(set(media_shortest_names_nonexistent)))
+        set_files_nonexistent_linked = (
+            set(linked_files_list)
+            .intersection(set(shortest_names_nonexistent)))
 
         # DICTS
-        # existent files (either embedded or not):
-        embedded_files_by_short_path = {
+        # existent files (either linked or not):
+        linked_files_by_short_path = {
             short_path: rel_path
-            for short_path, rel_path in media_shortest_names.items()
-            if short_path in set_files_existent_embedded}
-        non_embedded_files_by_short_path = {
+            for short_path, rel_path in shortest_names.items()
+            if short_path in set_files_existent_linked}
+        non_linked_files_by_short_path = {
             short_path: rel_path
-            for short_path, rel_path in media_shortest_names.items()
-            if short_path in set_files_existent_not_embedded}
+            for short_path, rel_path in shortest_names.items()
+            if short_path in set_files_existent_not_linked}
         # nonexistent files:
         nonexistent_files_by_short_path = {
             short_path: np.NaN
-            for short_path in media_shortest_names.keys()
-            if short_path in set_files_nonexistent_embedded}
+            for short_path in shortest_names.keys()
+            if short_path in set_files_nonexistent_linked}
 
-        return (embedded_files_by_short_path,
-                non_embedded_files_by_short_path,
+        return (linked_files_by_short_path,
+                non_linked_files_by_short_path,
                 nonexistent_files_by_short_path)
 
     def _get_backlink_counts_for_media_files_only(self) -> dict[str, int]:
@@ -647,14 +709,16 @@ class Vault:
             # i) use wikilinks & embedded file info for graph edges:
             d_out = {
                 n: (self._wikilinks_index.get(n, [])
-                    + self._embedded_files_index.get(n, []))
+                    + self._embedded_files_index.get(n, [])
+                    )
                 for n in (set(list(self._wikilinks_index.keys())
                               + list(self._embedded_files_index.keys())))
             }
-            # ii) add isolated media files as nodes:
+            # ii) add isolated media files & canvas files as nodes:
             isolated_files_dict = {
                 short_path: [] for short_path
-                in self._isolated_media_files}
+                in [*self._isolated_media_files,
+                    *self._isolated_canvas_files]}
             d_out = {**d_out,
                      **isolated_files_dict}
             return d_out

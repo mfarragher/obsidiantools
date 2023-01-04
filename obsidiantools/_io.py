@@ -81,3 +81,11 @@ def get_relpaths_matching_subdirs(dir_path: Path, *,
                                                      extension=extension)
                     if str(i.parent.as_posix())
                     in include_subdirs_final]
+
+
+def _get_valid_filepaths_by_ext_set(dirpath: Path, *,
+                                    exts: set[str]):
+    all_files = [p.relative_to(dirpath)
+                 for p in Path(dirpath).glob("**/*")
+                 if p.suffix in exts]
+    return all_files

@@ -2,14 +2,14 @@ from pathlib import Path
 import numpy as np
 from ._constants import (IMG_EXT_SET, AUDIO_EXT_SET,
                          VIDEO_EXT_SET, PDF_EXT_SET)
+from ._io import _get_valid_filepaths_by_ext_set
 
 
 def _get_all_valid_media_file_relpaths(dirpath):
-    all_files = [p.relative_to(dirpath)
-                 for p in Path(dirpath).glob("**/*")
-                 if p.suffix in (IMG_EXT_SET | AUDIO_EXT_SET
-                                 | VIDEO_EXT_SET | PDF_EXT_SET)]
-    return all_files
+    return (_get_valid_filepaths_by_ext_set(
+        dirpath,
+        exts=(IMG_EXT_SET | AUDIO_EXT_SET
+              | VIDEO_EXT_SET | PDF_EXT_SET)))
 
 
 def _get_shortest_path_by_filename(relpaths_list: list[Path]) -> dict[str, Path]:
