@@ -270,3 +270,12 @@ def test_isolated_notes(actual_connected_vault):
     # isolated notes can't have wikilinks
     for n in actual_connected_vault.isolated_notes:
         assert actual_connected_vault.get_wikilinks(n) == []
+
+
+def test_isolated_canvas_files(actual_connected_vault):
+    expected_isol_files = ['Crazy wall.canvas']
+
+    assert isinstance(actual_connected_vault.isolated_canvas_files, list)
+
+    assert (set(actual_connected_vault.isolated_canvas_files)
+            == set(expected_isol_files))
