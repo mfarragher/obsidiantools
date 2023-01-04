@@ -121,6 +121,8 @@ class Vault:
             isolated_media_files
         Attributes - canvas-related:
             canvas_file_index (*)
+            nonexistent_canvas_files
+            isolated_canvas_files
             canvas_content_index
             canvas_graph_detail_index
         """
