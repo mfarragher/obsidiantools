@@ -90,8 +90,9 @@ class Vault:
 
         Methods for analysis across multiple notes:
             get_note_metadata
-        Methods for analysis across multiple media files:
+        Methods for analysis across multiple media & canvas files:
             get_media_file_metadata
+            get_canvas_file_metadata
 
         -- ATTRIBUTES --
         - The main file lookups have (*) next to them -
