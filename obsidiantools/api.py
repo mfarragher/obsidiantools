@@ -679,6 +679,16 @@ class Vault:
         dict_out = {**dict_out, **dict_counts}
         return dict_out
 
+    def _get_backlink_counts_for_canvas_files_only(self) -> dict[str, int]:
+        if not self._attachments:
+            raise AttributeError('Set attachments=True in connect() to get backlink counts for canvas files.')
+        dict_out = dict.fromkeys(self._canvas_file_index.keys(), 0)
+        dict_counts = dict(
+            Counter(list(chain(*self._wikilinks_index.values()))))
+        # merge counts into dict_out:
+        dict_out = {**dict_out, **dict_counts}
+        return dict_out
+
     def __get_graph_data_dict(self, *, attachments=False) -> \
             dict[str, list[str]]:
         """Get the dict {k: v} of the graph's data:
@@ -1107,36 +1117,6 @@ class Vault:
               )
         return df
 
-    def get_media_file_metadata(self) -> pd.DataFrame:
-        """Get a structured dataset of metadata on the vault's
-        media files.  This includes filepaths and counts of different
-        link types.
-
-        The df is indexed by media 'file' (i.e. nodes in the graph).
-        These will appear in the index:
-        1. Embedded files that exist.
-        2. Embedded files that don't exist.
-        3. Files that exist in the vault but haven't been embedded.
-
-        This dataset is available for however the vault object has
-        been set up: it will have metadata on the media files whether
-        or not you have configured media files to appear in the
-        obsidiantools graph.
-
-        Files that haven't been created will only have info on the number
-        of backlinks - other columns will have NaN.
-
-        Returns:
-            pd.DataFrame
-        """
-        df = (pd.DataFrame(index=list(self._media_file_index.keys()))
-              .rename_axis('file'))
-        df = df.pipe(self._create_media_file_metadata_columns)
-        # fix situation where all-False column is stored as all-NaN:
-        df['file_exists'] = df['file_exists'].fillna(False)
-
-        return df
-
     def _create_note_metadata_columns(self,
                                       df: pd.DataFrame) -> pd.DataFrame:
         """pipe func for mutating df"""
@@ -1180,6 +1160,36 @@ class Vault:
         df['n_wikilinks'] = df['n_wikilinks'].astype(float)  # for consistency
         return df
 
+    def get_media_file_metadata(self) -> pd.DataFrame:
+        """Get a structured dataset of metadata on the vault's
+        media files.  This includes filepaths and counts of different
+        link types.
+
+        The df is indexed by media 'file' (i.e. nodes in the graph).
+        These will appear in the index:
+        1. Embedded files that exist.
+        2. Embedded files that don't exist.
+        3. Files that exist in the vault but haven't been embedded.
+
+        This dataset is available for however the vault object has
+        been set up: it will have metadata on the media files whether
+        or not you have configured media files to appear in the
+        obsidiantools graph.
+
+        Files that haven't been created will only have info on the number
+        of backlinks - other columns will have NaN.
+
+        Returns:
+            pd.DataFrame
+        """
+        df = (pd.DataFrame(index=list(self._media_file_index.keys()))
+              .rename_axis('file'))
+        df = df.pipe(self._create_media_file_metadata_columns)
+        # fix situation where all-False column is stored as all-NaN:
+        df['file_exists'] = df['file_exists'].fillna(False)
+
+        return df
+
     def _create_media_file_metadata_columns(self,
                                             df: pd.DataFrame) -> pd.DataFrame:
         """pipe func for mutating df"""
@@ -1193,6 +1203,60 @@ class Vault:
             np.logical_not(df.index.isin(self._nonexistent_media_files)),
             index=df.index)
         df['n_backlinks'] = self._get_backlink_counts_for_media_files_only()
+        df['modified_time'] = pd.to_datetime(
+            [f.lstat().st_mtime if not pd.isna(f)
+             else pd.NaT
+             for f in df['abs_filepath'].tolist()],
+            unit='s')
+        return df
+
+    def get_canvas_file_metadata(self) -> pd.DataFrame:
+        """Get a structured dataset of metadata on the vault's
+        canvas files.  This includes filepaths and counts of different
+        link types.
+
+        The df is indexed by canvas 'file' (i.e. nodes in the graph).
+        These will appear in the index:
+        1. Linked files that exist.
+        2. inked files that don't exist.
+        3. Files that exist in the vault but haven't been linked.
+
+        This dataset is available for however the vault object has
+        been set up: it will have metadata on the media files whether
+        or not you have configured media files to appear in the
+        obsidiantools graph.  However, n_~backlinks column will only be
+        calculated if attachments=True in the connect() method.
+
+        Files that haven't been created will only have info on the number
+        of backlinks - other columns will have NaN.
+
+        Returns:
+            pd.DataFrame
+        """
+        df = (pd.DataFrame(index=list(self._canvas_file_index.keys()))
+              .rename_axis('file'))
+        df = df.pipe(self._create_canvas_file_metadata_columns)
+        # fix situation where all-False column is stored as all-NaN:
+        df['file_exists'] = df['file_exists'].fillna(False)
+
+        return df
+
+    def _create_canvas_file_metadata_columns(self,
+                                             df: pd.DataFrame) -> pd.DataFrame:
+        """pipe func for mutating df"""
+        df['rel_filepath'] = [self._canvas_file_index.get(f, np.NaN)
+                              for f in df.index.tolist()]
+        df['abs_filepath'] = np.where(df['rel_filepath'].notna(),
+                                      [self._dirpath / str(f)
+                                       for f in df['rel_filepath'].tolist()],
+                                      np.NaN)
+        df['file_exists'] = pd.Series(
+            np.logical_not(df.index.isin(self._nonexistent_canvas_files)),
+            index=df.index)
+        if self._attachments:
+            df['n_backlinks'] = self._get_backlink_counts_for_canvas_files_only()
+        else:
+            df['n_backlinks'] = np.NaN
         df['modified_time'] = pd.to_datetime(
             [f.lstat().st_mtime if not pd.isna(f)
              else pd.NaT
