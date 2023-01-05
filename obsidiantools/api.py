@@ -385,10 +385,18 @@ class Vault:
         """Bool: has the connect function been called to set up graph?"""
         return self._is_connected
 
+    @is_connected.setter
+    def is_connected(self, value) -> bool:
+        self._is_connected = value
+
     @property
     def is_gathered(self) -> bool:
         """Bool: has the gather function been called to gather text?"""
         return self._is_gathered
+
+    @is_gathered.setter
+    def is_gathered(self, value) -> bool:
+        self._is_gathered = value
 
     @property
     def source_text_index(self) -> dict[str, str]:
