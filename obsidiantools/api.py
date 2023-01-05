@@ -1,3 +1,4 @@
+import warnings
 import networkx as nx
 import numpy as np
 import pandas as pd
@@ -1219,13 +1220,13 @@ class Vault:
         The df is indexed by canvas 'file' (i.e. nodes in the graph).
         These will appear in the index:
         1. Linked files that exist.
-        2. inked files that don't exist.
+        2. Linked files that don't exist.
         3. Files that exist in the vault but haven't been linked.
 
         This dataset is available for however the vault object has
-        been set up: it will have metadata on the media files whether
-        or not you have configured media files to appear in the
-        obsidiantools graph.  However, n_~backlinks column will only be
+        been set up: it will have metadata on the canvas files whether
+        or not you have configured canvas files to appear in the
+        obsidiantools graph.  However, n_backlinks column will only be
         calculated if attachments=True in the connect() method.
 
         Files that haven't been created will only have info on the number
@@ -1255,7 +1256,8 @@ class Vault:
             np.logical_not(df.index.isin(self._nonexistent_canvas_files)),
             index=df.index)
         if self._attachments:
-            df['n_backlinks'] = self._get_backlink_counts_for_canvas_files_only()
+            df['n_backlinks'] = (
+                self._get_backlink_counts_for_canvas_files_only())
         else:
             df['n_backlinks'] = np.NaN
         df['modified_time'] = pd.to_datetime(
@@ -1263,6 +1265,51 @@ class Vault:
              else pd.NaT
              for f in df['abs_filepath'].tolist()],
             unit='s')
+        return df
+
+    def get_all_file_metadata(self) -> pd.DataFrame:
+        """Get a structured dataset of metadata on the vault's files, where
+        they are supported by the Obsidian app.  This includes detail on
+        notes (md files), canvas files and media files.
+
+        The df is indexed by 'file' (i.e. nodes in the graph).
+        These will appear in the index:
+        1. Linked/embedded files that exist.
+        2. Linked/embedded files that don't exist.
+        3. Files that exist in the vault but haven't been linked/embedded.
+
+        If attachments=False was set in the connect method, then only notes
+        (md files) will appear in the dataset.
+        Otherwise, notes, media files and canvas files will appear in the
+        dataset.
+        In both situations, n_backlinks = n_wikilinks + n_embedded_files.
+
+        Files that haven't been created will only have info on the number
+        of backlinks; other columns in the dataset will have NaN values.
+
+        Returns:
+            pd.DataFrame
+        """
+        if not self._attachments:
+            warnings.warn('Only notes (md files) were used to build the graph.  Set attachments=True in the connect method to show all file metadata.')
+            df = self.get_note_metadata()
+            df['graph_category'] = np.where(
+                df['file_exists'], 'note', 'nonexistent')
+        else:
+            df_notes = (self.get_note_metadata()
+                        .rename(columns={'note_exists': 'file_exists'}))
+            df_notes['graph_category'] = np.where(
+                df_notes['file_exists'], 'note', 'nonexistent')
+            df_media = self.get_media_file_metadata()
+            df_media['graph_category'] = np.where(
+                df_media['file_exists'], 'attachment', 'nonexistent')
+            df_canvas = self.get_canvas_file_metadata()
+            df_canvas['graph_category'] = np.where(
+                df_canvas['file_exists'], 'attachment', 'nonexistent')
+
+            df = (pd.concat(
+                [df_notes, df_media, df_canvas])
+                .rename_axis('file'))
         return df
 
     def _get_nonexistent_notes(self) -> list[str]:
