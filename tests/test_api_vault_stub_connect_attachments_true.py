@@ -329,3 +329,22 @@ def test_isolated_canvas_files(actual_connected_vault):
 def test_n_backlinks_not_null_in_canvas_file_metadata(actual_connected_vault):
     df_canvas = actual_connected_vault.get_canvas_file_metadata()
     assert df_canvas['n_backlinks'].isna().mean() == 0
+
+
+def test_all_file_metadata_df(actual_connected_vault):
+    actual_all_df = actual_connected_vault.get_all_file_metadata()
+
+    actual_notes_df = actual_connected_vault.get_note_metadata()
+    actual_media_df = actual_connected_vault.get_media_file_metadata()
+    actual_canvas_df = actual_connected_vault.get_canvas_file_metadata()
+
+    # check all dataframes concatenated successfully:
+    assert len(actual_all_df) == (len(actual_notes_df)
+                                  + len(actual_media_df)
+                                  + len(actual_canvas_df))
+
+    # check that media files are included in graph under attachments=True,
+    # with equality involving graph edges:
+    assert (actual_all_df['n_backlinks'].sum()
+            == (actual_all_df['n_wikilinks'].sum()
+            + actual_all_df['n_embedded_files'].sum()))

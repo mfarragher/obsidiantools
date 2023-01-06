@@ -1335,16 +1335,13 @@ class Vault:
         Returns:
             pd.DataFrame
         """
+        df = (self.get_note_metadata()
+              .rename(columns={'note_exists': 'file_exists'}))
+        df['graph_category'] = np.where(
+            df['file_exists'], 'note', 'nonexistent')
         if not self._attachments:
             warnings.warn('Only notes (md files) were used to build the graph.  Set attachments=True in the connect method to show all file metadata.')
-            df = self.get_note_metadata()
-            df['graph_category'] = np.where(
-                df['file_exists'], 'note', 'nonexistent')
         else:
-            df_notes = (self.get_note_metadata()
-                        .rename(columns={'note_exists': 'file_exists'}))
-            df_notes['graph_category'] = np.where(
-                df_notes['file_exists'], 'note', 'nonexistent')
             df_media = self.get_media_file_metadata()
             df_media['graph_category'] = np.where(
                 df_media['file_exists'], 'attachment', 'nonexistent')
@@ -1353,7 +1350,7 @@ class Vault:
                 df_canvas['file_exists'], 'attachment', 'nonexistent')
 
             df = (pd.concat(
-                [df_notes, df_media, df_canvas])
+                [df, df_media, df_canvas])
                 .rename_axis('file'))
         return df
 

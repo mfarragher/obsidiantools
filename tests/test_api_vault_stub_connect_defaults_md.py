@@ -2,7 +2,8 @@ import pytest
 import numpy as np
 import pandas as pd
 from pathlib import Path
-from pandas.testing import assert_series_equal
+from pandas.testing import (assert_series_equal,
+                            assert_frame_equal)
 
 
 from obsidiantools.api import Vault
@@ -620,3 +621,19 @@ def test_canvas_file_metadata_df_empty(actual_connected_vault_md_files_only):
     expected_cols = METADATA_DF_COLS_GENERIC_TYPE
     actual_cols = df_media.columns.tolist()
     assert actual_cols == expected_cols
+
+
+def test_all_file_metadata_df(actual_connected_vault):
+    with pytest.warns(UserWarning):
+        actual_all_df = actual_connected_vault.get_all_file_metadata()
+
+    actual_note_df = actual_connected_vault.get_note_metadata()
+
+    # check that notes metadata was only used:
+    assert_frame_equal(
+        actual_all_df.drop(columns=['graph_category']),
+        actual_note_df.rename(columns={'note_exists': 'file_exists'}))
+
+    # check that only notes are used for backlinks:
+    assert (actual_all_df['n_backlinks'].sum()
+            == (actual_all_df['n_wikilinks'].sum()))
