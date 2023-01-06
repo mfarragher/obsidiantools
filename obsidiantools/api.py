@@ -20,6 +20,7 @@ from .md_utils import (_get_md_front_matter_and_content,
                        _get_all_embedded_files_from_source_text,
                        get_tags,
                        _get_all_latex_from_html_content)
+from ._constants import METADATA_DF_COLS_GENERIC_TYPE
 from ._io import _get_shortest_path_by_filename
 from .media_utils import _get_all_valid_media_file_relpaths
 # gather:
@@ -1146,7 +1147,9 @@ class Vault:
                        .difference(set(self._canvas_file_index))
                        )
 
-        df = (pd.DataFrame(index=ix_list)
+        df = (pd.DataFrame(index=ix_list,
+                           columns=METADATA_DF_COLS_GENERIC_TYPE)
+              .rename(columns={'file_exists': 'note_exists'})
               .rename_axis('note'))
         df = (df.pipe(self._create_note_metadata_columns)
               .pipe(self._clean_up_note_metadata_dtypes)
@@ -1218,13 +1221,16 @@ class Vault:
         Returns:
             pd.DataFrame
         """
-        df = (pd.DataFrame(index=list(self._media_file_index.keys()))
+        ix_list = [*list(self._media_file_index.keys()),
+                   *self._nonexistent_media_files]
+        df = (pd.DataFrame(index=ix_list,
+                           columns=METADATA_DF_COLS_GENERIC_TYPE)
               .rename_axis('file'))
-        df = df.pipe(self._create_media_file_metadata_columns)
-        # fix situation where all-False column is stored as all-NaN:
-        df['file_exists'] = df['file_exists'].fillna(False)
-
-        return df
+        if not ix_list:
+            return df
+        else:
+            df = df.pipe(self._create_media_file_metadata_columns)
+            return df
 
     def _create_media_file_metadata_columns(self,
                                             df: pd.DataFrame) -> pd.DataFrame:
@@ -1269,13 +1275,16 @@ class Vault:
         Returns:
             pd.DataFrame
         """
-        df = (pd.DataFrame(index=list(self._canvas_file_index.keys()))
+        ix_list = [*list(self._canvas_file_index.keys()),
+                   *self._nonexistent_canvas_files]
+        df = (pd.DataFrame(index=ix_list,
+                           columns=METADATA_DF_COLS_GENERIC_TYPE)
               .rename_axis('file'))
-        df = df.pipe(self._create_canvas_file_metadata_columns)
-        # fix situation where all-False column is stored as all-NaN:
-        df['file_exists'] = df['file_exists'].fillna(False)
-
-        return df
+        if not ix_list:
+            return df
+        else:
+            df = df.pipe(self._create_canvas_file_metadata_columns)
+            return df
 
     def _create_canvas_file_metadata_columns(self,
                                              df: pd.DataFrame) -> pd.DataFrame:

@@ -27,3 +27,10 @@ PDF_EXT_SET = {'.pdf',
 # canvas files:
 CANVAS_EXT_SET = {'.canvas',
                   '.CANVAS'}
+
+# metadata df cols order:
+METADATA_DF_COLS_GENERIC_TYPE = [
+    'rel_filepath', 'abs_filepath',
+    'file_exists',
+    'n_backlinks', 'n_wikilinks', 'n_tags', 'n_embedded_files',
+    'modified_time']
