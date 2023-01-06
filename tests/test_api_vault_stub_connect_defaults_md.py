@@ -637,3 +637,10 @@ def test_all_file_metadata_df(actual_connected_vault):
     # check that only notes are used for backlinks:
     assert (actual_all_df['n_backlinks'].sum()
             == (actual_all_df['n_wikilinks'].sum()))
+
+
+def test_internal_canvas_backlink_counts_func_errors(
+        actual_connected_vault):
+    with pytest.raises(AttributeError):
+        (actual_connected_vault.
+         _get_backlink_counts_for_canvas_files_only())

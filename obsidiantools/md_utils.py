@@ -1,7 +1,6 @@
 import re
 import yaml
 from pathlib import Path
-from glob import glob
 from bs4 import BeautifulSoup
 import markdown
 import frontmatter
