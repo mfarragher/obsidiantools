@@ -20,8 +20,8 @@ from .md_utils import (_get_md_front_matter_and_content,
                        _get_all_embedded_files_from_source_text,
                        get_tags,
                        _get_all_latex_from_html_content)
-from .media_utils import (_get_shortest_path_by_filename,
-                          _get_all_valid_media_file_relpaths)
+from ._io import _get_shortest_path_by_filename
+from .media_utils import _get_all_valid_media_file_relpaths
 # gather:
 from .md_utils import (get_source_text_from_html,
                        _get_readable_text_from_html)
@@ -509,9 +509,9 @@ class Vault:
                 G_c, pos_c, edge_labels_c = get_canvas_graph_detail(
                     content_c)
                 self._canvas_graph_detail_index[f] = G_c, pos_c, edge_labels_c
-            self._set_canvas_file_attrs()
 
-            # media files:
+            # set these up before graph is created:
+            self._set_canvas_file_attrs()
             self._set_media_file_attrs()
 
             # graph setup:
@@ -520,6 +520,12 @@ class Vault:
             G = nx.MultiDiGraph(graph_data_dict)
             self._graph = G
             self._set_graph_related_attributes()
+
+            # set these again so that they are finally correct
+            # (to remove notes / md files from the 'nonexistent_*' attrs,
+            # the nonexistent_notes are required from the graph)
+            self._set_canvas_file_attrs()
+            self._set_media_file_attrs()
 
             self._is_connected = True
 
@@ -574,10 +580,12 @@ class Vault:
          nonexistent_files_by_short_path) = (
             self._get_media_file_dicts_tuple())
 
-        files_ix = {**embedded_files_by_short_path,
-                    **non_embedded_files_by_short_path}
-        self._media_file_index = files_ix
-
+        # only set media file index once:
+        if not self._media_file_index:
+            files_ix = {**embedded_files_by_short_path,
+                        **non_embedded_files_by_short_path}
+            self._media_file_index = files_ix
+        # these attrs can be set again, once graph is created:
         self._nonexistent_media_files = list(
             nonexistent_files_by_short_path.keys())
         self._isolated_media_files = list(
@@ -613,7 +621,8 @@ class Vault:
         return self.__get_file_dicts_tuple(
             all_files_embedded_in_notes,
             links_index=self._embedded_files_index,
-            existing_file_relpaths=media_file_relpaths_existent)
+            existing_file_relpaths=media_file_relpaths_existent,
+            file_type='media')
 
     def _get_canvas_file_dicts_tuple(self) \
             -> tuple[dict[str, Path], dict[str, Path], dict[str, Path]]:
@@ -634,17 +643,34 @@ class Vault:
         return self.__get_file_dicts_tuple(
             all_files_linked_in_notes,
             links_index=self._wikilinks_index,
-            existing_file_relpaths=canvas_file_relpaths_existent)
+            existing_file_relpaths=canvas_file_relpaths_existent,
+            file_type='canvas')
 
-    @staticmethod
-    def __get_file_dicts_tuple(linked_files_list, *,
-                               links_index, existing_file_relpaths):
-        # get shortest path for each 'linked' file; check whether each exists
+    def __get_file_dicts_tuple(self, linked_files_list: list[str], *,
+                               links_index: dict[list[str]],
+                               existing_file_relpaths: list[Path],
+                               file_type: str):
+        # get shortest path for each 'linked' file of chosen type;
+        # check whether each exists
         shortest_names_existent = _get_shortest_path_by_filename(
             existing_file_relpaths)
+        # for nonexistent files, don't want to catch other types:
+        short_names_not_wanted_set = (
+            set(shortest_names_existent)
+            .union(set(self._nonexistent_notes))
+            .union(set(self._md_file_index)))
+        if file_type == 'canvas':
+            other_fpaths_not_wanted_set = _get_all_valid_media_file_relpaths(
+                self._dirpath)
+        elif file_type == 'media':
+            other_fpaths_not_wanted_set = _get_all_valid_canvas_file_relpaths(
+                self._dirpath)
+        else:
+            raise ValueError('Value for type is either "canvas" or "media".')
         shortest_names_nonexistent = {
             fn: Path(fn) for fn in chain(*links_index.values())
-            if fn not in set(shortest_names_existent)}
+            if fn not in short_names_not_wanted_set
+            and Path(fn) not in other_fpaths_not_wanted_set}
         shortest_names = {**shortest_names_existent,
                           **shortest_names_nonexistent}
 
@@ -674,7 +700,7 @@ class Vault:
         # nonexistent files:
         nonexistent_files_by_short_path = {
             short_path: np.NaN
-            for short_path in shortest_names.keys()
+            for short_path in shortest_names_nonexistent.keys()
             if short_path in set_files_nonexistent_linked}
 
         return (linked_files_by_short_path,

@@ -168,6 +168,7 @@ def expected_embedded_files_index():
             'Vulnera ubera': [],
             'Causam mihi': []}
 
+
 @pytest.fixture
 def actual_note_metadata_df(actual_connected_vault):
     return actual_connected_vault.get_note_metadata()
@@ -176,6 +177,11 @@ def actual_note_metadata_df(actual_connected_vault):
 @pytest.fixture
 def actual_media_file_metadata_df(actual_connected_vault):
     return actual_connected_vault.get_media_file_metadata()
+
+
+@pytest.fixture
+def actual_canvas_file_metadata_df(actual_connected_vault):
+    return actual_connected_vault.get_canvas_file_metadata()
 
 
 def test_get_metadata_cols(actual_note_metadata_df):
@@ -244,18 +250,6 @@ def test_backlink_counts(actual_connected_vault):
         actual_connected_vault.get_backlink_counts("Note that isn't in vault at all")
 
 
-def test_nonexistent_media_files(actual_connected_vault, actual_media_file_metadata_df):
-    expected_non_e_files = ['1999.flac', 'Sussudio.mp3']
-
-    assert isinstance(actual_connected_vault.nonexistent_media_files, list)
-
-    assert (set(actual_connected_vault.nonexistent_media_files)
-            == set(expected_non_e_files))
-    assert (set(actual_media_file_metadata_df.loc[~actual_media_file_metadata_df['file_exists'], :]
-                .index.tolist())
-            == set(expected_non_e_files))
-
-
 def test_isolated_notes(actual_connected_vault):
     expected_isol_notes = ['Isolated note', 'lipsum/Isolated note']
 
@@ -270,6 +264,57 @@ def test_isolated_notes(actual_connected_vault):
     # isolated notes can't have wikilinks
     for n in actual_connected_vault.isolated_notes:
         assert actual_connected_vault.get_wikilinks(n) == []
+
+
+def test_get_canvas_file_dicts_tuple(actual_connected_vault):
+    # (linked_files_by_short_path,
+    #  non_linked_files_by_short_path,
+    #  nonexistent_files_by_short_path)
+    actual_tuple = (actual_connected_vault.
+                    _get_canvas_file_dicts_tuple())
+    expected_tuple = (
+        {'Crazy wall 2.canvas': Path('Crazy wall 2.canvas')},
+        {'Crazy wall.canvas': Path('Crazy wall.canvas')},
+        {})
+    assert actual_tuple == expected_tuple
+
+
+def test_get_media_file_dicts_tuple(actual_connected_vault):
+    # (embedded_files_by_short_path,
+    #  non_embedded_files_by_short_path,
+    #  nonexistent_files_by_short_path)
+    actual_tuple = (actual_connected_vault.
+                    _get_media_file_dicts_tuple())
+    expected_tuple = (
+        {},
+        {},
+        {'Sussudio.mp3': np.NaN, '1999.flac': np.NaN})
+    assert actual_tuple == expected_tuple
+
+
+def test_nonexistent_canvas_files(actual_connected_vault,
+                                  actual_canvas_file_metadata_df):
+    expected_non_e_files = []
+
+    assert isinstance(actual_connected_vault.nonexistent_canvas_files, list)
+
+    assert (set(actual_connected_vault.nonexistent_canvas_files)
+            == set(expected_non_e_files))
+    assert (set(actual_canvas_file_metadata_df.loc[~actual_canvas_file_metadata_df['file_exists'], :]
+                .index.tolist())
+            == set(expected_non_e_files))
+
+
+def test_nonexistent_media_files(actual_connected_vault, actual_media_file_metadata_df):
+    expected_non_e_files = ['1999.flac', 'Sussudio.mp3']
+
+    assert isinstance(actual_connected_vault.nonexistent_media_files, list)
+
+    assert (set(actual_connected_vault.nonexistent_media_files)
+            == set(expected_non_e_files))
+    assert (set(actual_media_file_metadata_df.loc[~actual_media_file_metadata_df['file_exists'], :]
+                .index.tolist())
+            == set(expected_non_e_files))
 
 
 def test_isolated_canvas_files(actual_connected_vault):
