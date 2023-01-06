@@ -2,10 +2,12 @@ import pytest
 import numpy as np
 import pandas as pd
 from pathlib import Path
-from pandas.testing import assert_series_equal
+from pandas.testing import (assert_series_equal,
+                            assert_frame_equal)
 
 
 from obsidiantools.api import Vault
+from obsidiantools._constants import METADATA_DF_COLS_GENERIC_TYPE
 
 # NOTE: run the tests from the project dir.
 WKD = Path().cwd()
@@ -223,6 +225,11 @@ def actual_connected_vault():
 
 
 @pytest.fixture
+def actual_connected_vault_md_files_only():
+    return Vault(WKD / 'tests/vault-stub/lipsum').connect()
+
+
+@pytest.fixture
 def actual_metadata_df(actual_connected_vault):
     return actual_connected_vault.get_note_metadata()
 
@@ -312,6 +319,8 @@ def test_get_metadata_tags(actual_metadata_df,
 
 def test_backlink_and_wikilink_totals_equal(actual_metadata_df):
     # every wikilink is another note's backlink
+    # equality is expected when canvas files are excluded from wikilinks list
+    # for ANY VAULT under the defaults
     assert (actual_metadata_df['n_backlinks'].sum()
             == actual_metadata_df['n_wikilinks'].sum())
 
@@ -588,3 +597,50 @@ def test_front_matter_not_existing(actual_connected_vault):
 def test_embedded_notes_not_existing(actual_connected_vault):
     with pytest.raises(ValueError):
         actual_connected_vault.get_embedded_files('Tarpeia')
+
+
+def test_media_file_metadata_df_empty(actual_connected_vault_md_files_only):
+    # use the lipsum dir as the 'vault' dir (md only)
+    df_media = (actual_connected_vault_md_files_only
+                .get_media_file_metadata())
+
+    assert len(df_media) == 0
+
+    expected_cols = METADATA_DF_COLS_GENERIC_TYPE
+    actual_cols = df_media.columns.tolist()
+    assert actual_cols == expected_cols
+
+
+def test_canvas_file_metadata_df_empty(actual_connected_vault_md_files_only):
+    # use the lipsum dir as the 'vault' dir (md only)
+    df_media = (actual_connected_vault_md_files_only
+                .get_canvas_file_metadata())
+
+    assert len(df_media) == 0
+
+    expected_cols = METADATA_DF_COLS_GENERIC_TYPE
+    actual_cols = df_media.columns.tolist()
+    assert actual_cols == expected_cols
+
+
+def test_all_file_metadata_df(actual_connected_vault):
+    with pytest.warns(UserWarning):
+        actual_all_df = actual_connected_vault.get_all_file_metadata()
+
+    actual_note_df = actual_connected_vault.get_note_metadata()
+
+    # check that notes metadata was only used:
+    assert_frame_equal(
+        actual_all_df.drop(columns=['graph_category']),
+        actual_note_df.rename(columns={'note_exists': 'file_exists'}))
+
+    # check that only notes are used for backlinks:
+    assert (actual_all_df['n_backlinks'].sum()
+            == (actual_all_df['n_wikilinks'].sum()))
+
+
+def test_internal_canvas_backlink_counts_func_errors(
+        actual_connected_vault):
+    with pytest.raises(AttributeError):
+        (actual_connected_vault.
+         _get_backlink_counts_for_canvas_files_only())

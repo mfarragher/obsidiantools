@@ -24,3 +24,13 @@ VIDEO_EXT_SET = {'.mp4', '.webm', '.ogv', '.mov', '.mkv',
                  '.MP4', '.WEBM', '.OGV', '.MOV', '.MKV'}
 PDF_EXT_SET = {'.pdf',
                '.PDF'}
+# canvas files:
+CANVAS_EXT_SET = {'.canvas',
+                  '.CANVAS'}
+
+# metadata df cols order:
+METADATA_DF_COLS_GENERIC_TYPE = [
+    'rel_filepath', 'abs_filepath',
+    'file_exists',
+    'n_backlinks', 'n_wikilinks', 'n_tags', 'n_embedded_files',
+    'modified_time']

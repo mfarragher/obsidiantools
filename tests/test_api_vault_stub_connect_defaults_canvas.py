@@ -92,5 +92,11 @@ def test_canvas_graph_detail_index_graph_other_attributes(actual_connected_vault
     actual_non_blank_edge_labels = {
         pair: label for pair, label in edge_labels.items()
         if label != ''}
-    expected_non_blank_edge_labels = {('d3f112f83760095a', 'c168506f5b075d91'): 'inspires?'}
+    expected_non_blank_edge_labels = {
+        ('d3f112f83760095a', 'c168506f5b075d91'): 'inspires?'}
     assert actual_non_blank_edge_labels == expected_non_blank_edge_labels
+
+
+def test_n_backlinks_null_in_canvas_file_metadata(actual_connected_vault):
+    df_canvas = actual_connected_vault.get_canvas_file_metadata()
+    assert df_canvas['n_backlinks'].isna().mean() == 1
