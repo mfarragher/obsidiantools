@@ -6,6 +6,7 @@ from pandas.testing import assert_series_equal
 
 
 from obsidiantools.api import Vault
+from obsidiantools._constants import METADATA_DF_COLS_GENERIC_TYPE
 
 # NOTE: run the tests from the project dir.
 WKD = Path().cwd()
@@ -220,6 +221,11 @@ def expected_math_index():
 @pytest.fixture
 def actual_connected_vault():
     return Vault(WKD / 'tests/vault-stub').connect()
+
+
+@pytest.fixture
+def actual_connected_vault_md_files_only():
+    return Vault(WKD / 'tests/vault-stub/lipsum').connect()
 
 
 @pytest.fixture
@@ -590,3 +596,27 @@ def test_front_matter_not_existing(actual_connected_vault):
 def test_embedded_notes_not_existing(actual_connected_vault):
     with pytest.raises(ValueError):
         actual_connected_vault.get_embedded_files('Tarpeia')
+
+
+def test_media_file_metadata_df_empty(actual_connected_vault_md_files_only):
+    # use the lipsum dir as the 'vault' dir (md only)
+    df_media = (actual_connected_vault_md_files_only
+                .get_media_file_metadata())
+
+    assert len(df_media) == 0
+
+    expected_cols = METADATA_DF_COLS_GENERIC_TYPE
+    actual_cols = df_media.columns.tolist()
+    assert actual_cols == expected_cols
+
+
+def test_canvas_file_metadata_df_empty(actual_connected_vault_md_files_only):
+    # use the lipsum dir as the 'vault' dir (md only)
+    df_media = (actual_connected_vault_md_files_only
+                .get_canvas_file_metadata())
+
+    assert len(df_media) == 0
+
+    expected_cols = METADATA_DF_COLS_GENERIC_TYPE
+    actual_cols = df_media.columns.tolist()
+    assert actual_cols == expected_cols
