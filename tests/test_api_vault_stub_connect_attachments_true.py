@@ -324,3 +324,8 @@ def test_isolated_canvas_files(actual_connected_vault):
 
     assert (set(actual_connected_vault.isolated_canvas_files)
             == set(expected_isol_files))
+
+
+def test_n_backlinks_not_null_in_canvas_file_metadata(actual_connected_vault):
+    df_canvas = actual_connected_vault.get_canvas_file_metadata()
+    assert df_canvas['n_backlinks'].isna().mean() == 0
