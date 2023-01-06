@@ -18,7 +18,7 @@ These are the basics of the function calls:
 
 See some of the **key features** below - all accessible from the `vault` object either through a method or an attribute.
 
-As this package relies upon note (file)names, it is only recommended for use on vaults where wikilinks are not formatted as paths and where note names are unique.  This should cover the vast majority of vaults that people create.
+The package is built to support the 'shortest path when possible' option for links.  This should cover the vast majority of vaults that people create.  See the wiki for more info on what sort of wikilink syntax is not well-supported.
 
 ## 💡 Key features
 This is how **`obsidiantools`** can complement your workflows for note-taking:
@@ -26,28 +26,30 @@ This is how **`obsidiantools`** can complement your workflows for note-taking:
     - NetworkX is the main Python library for network analysis, enabling sophisticated analyses of your vault.
     - NetworkX also supports the ability to export your graph to other data formats.
     - When instantiating a `vault`, the analysis can also be filtered on specific subdirectories.
-- **Get summary stats about your notes, e.g. number of backlinks and wikilinks, in a Pandas dataframe**
-    - Get the dataframe via `vault.get_note_metadata()`
+- **Get summary stats about your notes & files, e.g. number of backlinks and wikilinks, in a Pandas dataframe**
+    - Get the dataframe via `vault.get_note_metadata()` (notes / md files), `vault.get_media_file_metadata()` (media files that can be embedded in notes) and `vault.get_canvas_file_metadata()` (canvas files).
 - **Retrieve detail about your notes' links and metadata as built-in Python types**
+    - The main indices of files are `md_file_index`, `media_file_index` and `canvas_file_index` (canvas files).
+    - Check whether files included as links in the vault actually exist, via `vault` attributes like `nonexistent_notes`, `nonexistent_media_files` and `nonexistent_canvas_files`.
+    - Check whether actual files are isolated in the graph ('orphans'), via `vault` attributes like `isolated_notes`, `isolated_media_files` and `isolated_canvas_files`.
+    - You can access all the note & file links in one place, or you can load them for an individual note:
+        - e.g. `vault.backlinks_index` for all backlinks in the vault
+        - e.g. `vault.get_backlinks(<NOTE>)` for the backlinks of an individual note
     - **md note info:**
         - The various types of links:
             - Wikilinks (incl. header links, links with alt text)
             - Embedded files
             - Backlinks
             - Markdown links
-        - You can access all the links in one place, or you can load them for an individual note:
-            - e.g. `vault.backlinks_index` for all backlinks in the vault
-            - e.g. `vault.get_backlinks(<NOTE>)` for the backlinks of an individual note
         - Front matter via `vault.get_front_matter(<NOTE>)` or `vault.front_matter_index`
         - Tags via `vault.get_tags(<NOTE>)` or `vault.tags_index`.  Nested tags are supported.
         - LaTeX math via `vault.get_math(<NOTE>)` or `vault.math_index`
-        - Check which notes are isolated (`vault.isolated_notes`)
-        - Check which notes do not exist as files yet (`vault.nonexistent_notes`)
         - As long as `gather()` is called:
             - Get source text of note (via `vault.get_source_text(<NOTE>)`).  This tries to represent how a note's text appears in Obsidian's 'source mode'.
             - Get readable text of note (via `vault.get_readable_text(<NOTE>)`).  This tries to reduce note text to minimal markdown formatting, e.g. preserving paragraphs, headers and punctuation.  Only slight processing is needed for various forms of NLP analysis.
     - **canvas file info:**
         - The JSON content of each canvas file is stored as a Python dict in `vault.canvas_content_index`
+        - Data to recreate the layout of content in a canvas file via the `vault.canvas_graph_detail_index` dict
 
 Check out the functionality in the demo repo.  Launch the '15 minutes' demo in a virtual machine via Binder:
 
@@ -58,7 +60,7 @@ There are other API features that try to mirror the Obsidian.md app, for your co
 The text from vault notes goes through this process: markdown → split out front matter from text → HTML → ASCII plaintext.
 
 ## ⏲️ Installation
-``pip install obsidiantools``
+`pip install obsidiantools`
 
 Requires Python 3.9 or higher.
 
