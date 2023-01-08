@@ -19,8 +19,8 @@ def test_vault_instantiation(tmp_path):
     # dirpath
     assert actual_vault.dirpath == tmp_path
 
-    # file_index
-    assert isinstance(actual_vault.file_index, dict)
+    # md_file_index
+    assert isinstance(actual_vault.md_file_index, dict)
 
     # graph and connections
     assert not actual_vault.graph

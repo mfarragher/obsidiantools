@@ -1,7 +1,7 @@
 import re
 import yaml
 from pathlib import Path
-from glob import glob
+from bs4 import BeautifulSoup
 import markdown
 import frontmatter
 from ._constants import (WIKILINK_REGEX,
@@ -13,7 +13,9 @@ from ._constants import (WIKILINK_REGEX,
 from ._io import (get_relpaths_from_dir,
                   get_relpaths_matching_subdirs)
 from .html_processing import (_get_plaintext_from_html,
-                              _remove_code, _remove_latex, _remove_del_text,
+                              _remove_code_via_soup,
+                              _remove_latex_via_soup,
+                              _remove_del_text_via_soup,
                               _remove_main_formatting,
                               _get_all_latex_from_html_content)
 
@@ -72,7 +74,8 @@ def get_md_relpaths_matching_subdirs(dir_path: Path, *,
         include_root=include_root)
 
 
-def get_wikilinks(filepath: Path) -> list[str]:
+def get_wikilinks(filepath: Path, *,
+                  exclude_canvas: bool = True) -> list[str]:
     """Get ALL wikilinks from a md file.
     The links' order of appearance in the file IS preserved in the output.
 
@@ -87,6 +90,8 @@ def get_wikilinks(filepath: Path) -> list[str]:
     Args:
         filepath (pathlib Path): Path object representing the file from
             which info will be extracted.
+        exclude_canvas (bool): Defaults to True. Exclude canvas files from
+            the list of wikilinks.
 
     Returns:
         list of strings
@@ -94,7 +99,8 @@ def get_wikilinks(filepath: Path) -> list[str]:
     src_txt = get_source_text_from_md_file(filepath, remove_code=True)
 
     wikilinks = _get_all_wikilinks_from_source_text(
-        src_txt, remove_aliases=True)
+        src_txt, remove_aliases=True,
+        exclude_canvas=exclude_canvas)
     return wikilinks
 
 
@@ -122,7 +128,8 @@ def get_embedded_files(filepath: Path) -> list[str]:
     return files
 
 
-def get_unique_wikilinks(filepath: Path) -> list[str]:
+def get_unique_wikilinks(filepath: Path, *,
+                         exclude_canvas: bool = True) -> list[str]:
     """Get UNIQUE wikilinks from a md file.
     The links' order of appearance in the file IS preserved in the output.
 
@@ -135,13 +142,17 @@ def get_unique_wikilinks(filepath: Path) -> list[str]:
     Args:
         filepath (pathlib Path): Path object representing the file from
             which info will be extracted.
+        exclude_canvas (bool): Defaults to True. Exclude canvas files from
+            the list of wikilinks.
 
     Returns:
         list of strings
     """
     src_txt = get_source_text_from_md_file(filepath, remove_code=True)
 
-    wikilinks = _get_unique_wikilinks_from_source_text(src_txt, remove_aliases=True)
+    wikilinks = _get_unique_wikilinks_from_source_text(
+        src_txt, remove_aliases=True,
+        exclude_canvas=exclude_canvas)
     return wikilinks
 
 
@@ -296,11 +307,13 @@ def get_source_text_from_html(html: str, *,
                               remove_code: bool = False,
                               remove_math: bool = False) -> str:
     """html (without front matter) -> ASCII plaintext"""
+    soup = BeautifulSoup(html, 'lxml')
     if remove_code:
-        html = _remove_code(html)
+        soup = _remove_code_via_soup(soup)
     if remove_math:
-        html = _remove_latex(html)
-    return _get_plaintext_from_html(html)
+        soup = _remove_latex_via_soup(soup)
+    new_str = str(soup)
+    return _get_plaintext_from_html(new_str)
 
 
 def get_source_text_from_md_file(filepath: Path, *,
@@ -323,20 +336,33 @@ def get_readable_text_from_md_file(filepath: Path, *,
     # strip out front matter (if any):
     html = _get_html_from_md_file(
         filepath)
+    html = _get_readable_text_from_html(
+        html, tags=tags)
+    return html
+
+
+def _get_readable_text_from_html(html: str, *,
+                                 tags: list[str] = None) -> str:
+    # -str or regex-
     # wikilinks and md links as text:
     html = _replace_md_links_with_their_text(html)
     html = _replace_wikilinks_with_their_text(html)
     html = _remove_embedded_file_links_from_text(html)
-    # remove code and remove major formatting on text:
-    html = _remove_code(html)
-    html = _remove_latex(html)
-    html = _remove_del_text(html)
-    if tags is not None:
-        html = _remove_main_formatting(html, tags=tags)
-    else:  # defaults
-        html = _remove_main_formatting(html)
 
-    return _get_plaintext_from_html(html)
+    # -bs4-
+    # remove code and remove major formatting on text:
+    soup = BeautifulSoup(html, 'lxml')
+    soup = _remove_code_via_soup(soup)
+    soup = _remove_latex_via_soup(soup)
+    soup = _remove_del_text_via_soup(soup)
+    new_str = str(soup)
+    # -BLEACH-
+    if tags is not None:
+        new_str = _remove_main_formatting(new_str, tags=tags)
+    else:  # defaults
+        new_str = _remove_main_formatting(new_str)
+
+    return _get_plaintext_from_html(new_str)
 
 
 def _get_all_wikilinks_and_embedded_files(src_txt: str) -> list[str]:
@@ -355,7 +381,8 @@ def _remove_aliases_from_wikilink_regex_matches(link_matches_list: list[str]) ->
 
 
 def _get_all_wikilinks_from_source_text(src_txt: str, *,
-                                        remove_aliases: bool = True) -> list[str]:
+                                        remove_aliases: bool = True,
+                                        exclude_canvas: bool = True) -> list[str]:
     matches_list = _get_all_wikilinks_and_embedded_files(src_txt)
     link_matches_list = [g[1] for g in matches_list
                          if g[0] == '']
@@ -367,6 +394,9 @@ def _get_all_wikilinks_from_source_text(src_txt: str, *,
     # remove .md:
     link_matches_list = [name.removesuffix('.md')
                          for name in link_matches_list]
+    if exclude_canvas:
+        link_matches_list = [n for n in link_matches_list
+                             if not n.endswith('.canvas')]
     return link_matches_list
 
 
@@ -388,9 +418,11 @@ def _get_all_latex_from_md_file(filepath: Path) -> list[str]:
 
 
 def _get_unique_wikilinks_from_source_text(src_txt: str, *,
-                                           remove_aliases: bool = True) -> list[str]:
+                                           remove_aliases: bool = True,
+                                           exclude_canvas: bool = True) -> list[str]:
     wikilinks = _get_all_wikilinks_from_source_text(
-        src_txt, remove_aliases=remove_aliases)
+        src_txt, remove_aliases=remove_aliases,
+        exclude_canvas=exclude_canvas)
     return list(dict.fromkeys(wikilinks))
 
 

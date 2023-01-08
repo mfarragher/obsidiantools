@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 import pytest
 
 
@@ -18,5 +18,5 @@ def test_get_canvas_relpaths_from_dir(tmp_path):
 
     assert isinstance(actual_relpaths, list)
     for p in actual_relpaths:
-        assert isinstance(p, os.PathLike)
+        assert isinstance(p, Path)
         assert p.suffix == 'canvas'

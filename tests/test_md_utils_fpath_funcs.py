@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 import pytest
 
 from obsidiantools.md_utils import (_get_html_from_md_file,
@@ -22,7 +22,7 @@ def test_get_md_relpaths_from_dir(tmp_path):
 
     assert isinstance(actual_relpaths, list)
     for p in actual_relpaths:
-        assert isinstance(p, os.PathLike)
+        assert isinstance(p, Path)
         assert p.suffix == 'md'
 
 

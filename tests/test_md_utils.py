@@ -237,10 +237,10 @@ def test_front_matter_parse_double_curly():
 
 def test_hash_char_parsing_func():
     # '\#' in md file keeps # but stops text from being a tag
-    in_str = "\#hash #tag"
+    in_str = r"\#hash #tag"
     out_str = _transform_md_file_string_for_tag_parsing(in_str)
 
-    expected_str = "hash #tag"
+    expected_str = r"hash #tag"
     assert out_str == expected_str
 
 
