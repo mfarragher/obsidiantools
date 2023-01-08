@@ -4,7 +4,7 @@
 # obsidiantools 🪨⚒️
 **obsidiantools** is a Python package for getting structured metadata about your [Obsidian.md notes](https://obsidian.md/) and analysing your vault.  Complement your Obsidian workflows by getting metrics and detail about all your notes in one place through the widely-used Python data stack.
 
-It's incredibly easy to explore structured data on your vault through this fluent interface.  This is all the code you need to generate a `vault` object that stores the key data:
+It's incredibly easy to explore structured data on your vault through this fluent interface.  This is all the code you need to generate a `vault` object that stores all the data:
 
 ```python
 import obsidiantools.api as otools
@@ -12,13 +12,13 @@ import obsidiantools.api as otools
 vault = otools.Vault(<VAULT_DIRECTORY>).connect().gather()
 ```
 
-These are the basics of the function calls:
-- `connect()`: connect your notes together in a graph structure and get metadata on links (e.g. wikilinks, backlinks, etc.)
+These are the basics of the method calls:
+- `connect()`: connect your notes together in a graph structure and get metadata on links (e.g. wikilinks, backlinks, etc.)  There ais the option to support the inclusion of 'attachment' files in the graph.
 - `gather()`: gather the plaintext content from your notes in one place.  This includes the 'source text' that represent how your notes are written.  There are arguments to support what text you want to remove, e.g. remove code.
 
 See some of the **key features** below - all accessible from the `vault` object either through a method or an attribute.
 
-The package is built to support the 'shortest path when possible' option for links.  This should cover the vast majority of vaults that people create.  See the wiki for more info on what sort of wikilink syntax is not well-supported.
+The package is built to support the 'shortest path when possible' option for links.  This should cover the vast majority of vaults that people create.  See the [wiki](https://github.com/mfarragher/obsidiantools/wiki) for more info on what sort of wikilink syntax is not well-supported and how the graph may be slightly different to what you see in the Obsidian app.
 
 ## 💡 Key features
 This is how **`obsidiantools`** can complement your workflows for note-taking:
