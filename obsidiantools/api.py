@@ -7,43 +7,33 @@ from pathlib import Path
 from itertools import chain
 
 # init
-from .md_utils import get_md_relpaths_matching_subdirs
-from .canvas_utils import (
-    get_canvas_relpaths_matching_subdirs,
-    _get_all_valid_canvas_file_relpaths,
-)
-
+from .md_utils import (get_md_relpaths_matching_subdirs)
+from .canvas_utils import (get_canvas_relpaths_matching_subdirs,
+                           _get_all_valid_canvas_file_relpaths)
 # connect
-from .md_utils import (
-    _get_md_front_matter_and_content,
-    _get_html_from_md_content,
-    _get_md_links_from_source_text,
-    _get_unique_md_links_from_source_text,
-    _get_unique_wikilinks_from_source_text,
-    _get_all_wikilinks_from_source_text,
-    _get_all_embedded_files_from_source_text,
-    get_tags,
-    _get_all_latex_from_html_content,
-)
+from .md_utils import (_get_md_front_matter_and_content,
+                       _get_html_from_md_content,
+                       _get_md_links_from_source_text,
+                       _get_unique_md_links_from_source_text,
+                       _get_unique_wikilinks_from_source_text,
+                       _get_all_wikilinks_from_source_text,
+                       _get_all_embedded_files_from_source_text,
+                       get_tags,
+                       _get_all_latex_from_html_content)
 from ._constants import METADATA_DF_COLS_GENERIC_TYPE
 from ._io import _get_shortest_path_by_filename
 from .media_utils import _get_all_valid_media_file_relpaths
-
 # gather:
-from .md_utils import get_source_text_from_html, _get_readable_text_from_html
-
+from .md_utils import (get_source_text_from_html,
+                       _get_readable_text_from_html)
 # canvas:
-from .canvas_utils import get_canvas_content, get_canvas_graph_detail
+from .canvas_utils import (get_canvas_content,
+                           get_canvas_graph_detail)
 
 
 class Vault:
-    def __init__(
-        self,
-        dirpath: Path,
-        *,
-        include_subdirs: list[str] = None,
-        include_root: bool = True
-    ):
+    def __init__(self, dirpath: Path, *,
+                 include_subdirs: list[str] = None, include_root: bool = True):
         """A Vault object lets you dig into your Obsidian vault, by giving
         you a toolkit for analysing its contents.  Specify a dirpath to
         instantiate the class.  This class is intended to support multiple
@@ -143,15 +133,16 @@ class Vault:
         """
         # args:
         assert isinstance(dirpath, Path), "dirpath must be a pathlib Path"
+
         self._dirpath = dirpath
         self._attachments = None  # connect()
 
         self._md_file_index = self._get_md_relpaths_by_name(
-            include_subdirs=include_subdirs, include_root=include_root
-        )
+            include_subdirs=include_subdirs,
+            include_root=include_root)
         self._canvas_file_index = self._get_canvas_relpaths_by_name(
-            include_subdirs=include_subdirs, include_root=include_root
-        )
+            include_subdirs=include_subdirs,
+            include_root=include_root)
 
         self._is_connected = False
         self._is_gathered = False
@@ -451,26 +442,25 @@ class Vault:
         self._canvas_content_index = value
 
     @property
-    def canvas_graph_detail_index(
-        self,
-    ) -> dict[
-        str,
-        tuple[nx.MultiDiGraph, dict[str, tuple[int, int]], dict[tuple[str, str], str]],
-    ]:
+    def canvas_graph_detail_index(self) -> \
+        dict[str, tuple[nx.MultiDiGraph,
+                        dict[str, tuple[int, int]],
+                        dict[tuple[str, str], str]]
+             ]:
         """dict of tuple: 'shortest path when possible' filepath with canvas
         ext (k), to canvas graph detail tuple (v)."""
         return self._canvas_graph_detail_index
 
     @canvas_graph_detail_index.setter
-    def canvas_graph_detail_index(
-        self, value
-    ) -> dict[
-        str,
-        tuple[nx.MultiDiGraph, dict[str, tuple[int, int]], dict[tuple[str, str], str]],
-    ]:
+    def canvas_graph_detail_index(self, value) -> \
+        dict[str, tuple[nx.MultiDiGraph,
+                        dict[str, tuple[int, int]],
+                        dict[tuple[str, str], str]]
+             ]:
         self._canvas_graph_detail_index = value
 
-    def connect(self, *, show_nested_tags: bool = False, attachments=False):
+    def connect(self, *, show_nested_tags: bool = False,
+                attachments=False):
         """connect your notes together by representing the vault as a
         Networkx graph object, G.
 
@@ -510,17 +500,19 @@ class Vault:
             # loop through md files:
             for f, relpath in self._md_file_index.items():
                 self._connect_update_based_on_new_relpath(
-                    relpath, note=f, show_nested_tags=show_nested_tags
-                )
+                    relpath, note=f,
+                    show_nested_tags=show_nested_tags)
 
             # canvas content:
             # loop through canvas files:
             self._canvas_content_index = {}
             self._canvas_graph_detail_index = {}
             for f, relpath in self._canvas_file_index.items():
-                content_c = get_canvas_content(self._dirpath / relpath)
+                content_c = get_canvas_content(
+                    self._dirpath / relpath)
                 self._canvas_content_index[f] = content_c
-                G_c, pos_c, edge_labels_c = get_canvas_graph_detail(content_c)
+                G_c, pos_c, edge_labels_c = get_canvas_graph_detail(
+                    content_c)
                 self._canvas_graph_detail_index[f] = G_c, pos_c, edge_labels_c
 
             # set these up before graph is created:
@@ -528,7 +520,8 @@ class Vault:
             self._set_media_file_attrs()
 
             # graph setup:
-            graph_data_dict = self.__get_graph_data_dict(attachments=attachments)
+            graph_data_dict = self.__get_graph_data_dict(
+                attachments=attachments)
             G = nx.MultiDiGraph(graph_data_dict)
             self._graph = G
             self._set_graph_related_attributes()
@@ -543,76 +536,79 @@ class Vault:
 
         return self  # fluent
 
-    def _connect_update_based_on_new_relpath(
-        self, relpath: Path, *, note: str, show_nested_tags: bool
-    ):
+    def _connect_update_based_on_new_relpath(self, relpath: Path, *,
+                                             note: str,
+                                             show_nested_tags: bool):
         """Individual file read & associated attrs update for the
         connect method."""
         exclude_canvas = not self._attachments
 
         # MAIN file read:
         front_matter, content = _get_md_front_matter_and_content(
-            self._dirpath / relpath
-        )
+            self._dirpath / relpath)
         html = _get_html_from_md_content(content)
-        src_txt = get_source_text_from_html(html, remove_code=True)
+        src_txt = get_source_text_from_html(
+            html, remove_code=True)
 
         # info from core text:
-        self._md_links_index[note] = _get_md_links_from_source_text(src_txt)
-        self._unique_md_links_index[note] = _get_unique_md_links_from_source_text(
-            src_txt
-        )
+        self._md_links_index[note] = (
+            _get_md_links_from_source_text(src_txt))
+        self._unique_md_links_index[note] = (
+            _get_unique_md_links_from_source_text(src_txt))
         self._embedded_files_index[note] = (
-            _get_all_embedded_files_from_source_text(src_txt, remove_aliases=True)
+            _get_all_embedded_files_from_source_text(
+                src_txt, remove_aliases=True)
             # (aliases are redundant for connect method)
-        )
-        self._wikilinks_index[note] = _get_all_wikilinks_from_source_text(
-            src_txt, remove_aliases=True, exclude_canvas=exclude_canvas
-        )
-        self._unique_wikilinks_index[note] = _get_unique_wikilinks_from_source_text(
-            src_txt, remove_aliases=True, exclude_canvas=exclude_canvas
-        )
+            )
+        self._wikilinks_index[note] = (
+            _get_all_wikilinks_from_source_text(
+                src_txt, remove_aliases=True,
+                exclude_canvas=exclude_canvas))
+        self._unique_wikilinks_index[note] = (
+            _get_unique_wikilinks_from_source_text(
+                src_txt, remove_aliases=True,
+                exclude_canvas=exclude_canvas))
         # info from html:
-        self._math_index[note] = _get_all_latex_from_html_content(html)
+        self._math_index[note] = (_get_all_latex_from_html_content(
+            html))
         # split out front matter:
         self._front_matter_index[note] = front_matter
 
         # MORE file reads needed for extra info:
         self._tags_index[note] = get_tags(
-            self._dirpath / relpath, show_nested=show_nested_tags
-        )
+            self._dirpath / relpath,
+            show_nested=show_nested_tags)
 
     def _set_media_file_attrs(self):
-        (
-            embedded_files_by_short_path,
-            non_embedded_files_by_short_path,
-            nonexistent_files_by_short_path,
-        ) = self._get_media_file_dicts_tuple()
+        (embedded_files_by_short_path,
+         non_embedded_files_by_short_path,
+         nonexistent_files_by_short_path) = (
+            self._get_media_file_dicts_tuple())
 
         # only set media file index once:
         if not self._media_file_index:
-            files_ix = {
-                **embedded_files_by_short_path,
-                **non_embedded_files_by_short_path,
-            }
+            files_ix = {**embedded_files_by_short_path,
+                        **non_embedded_files_by_short_path}
             self._media_file_index = files_ix
         # these attrs can be set again, once graph is created:
-        self._nonexistent_media_files = list(nonexistent_files_by_short_path.keys())
-        self._isolated_media_files = list(non_embedded_files_by_short_path.keys())
+        self._nonexistent_media_files = list(
+            nonexistent_files_by_short_path.keys())
+        self._isolated_media_files = list(
+            non_embedded_files_by_short_path.keys())
 
     def _set_canvas_file_attrs(self):
-        (
-            linked_files_by_short_path,
-            non_linked_files_by_short_path,
-            nonexistent_files_by_short_path,
-        ) = self._get_canvas_file_dicts_tuple()
+        (linked_files_by_short_path,
+         non_linked_files_by_short_path,
+         nonexistent_files_by_short_path) = (
+            self._get_canvas_file_dicts_tuple())
 
-        self._nonexistent_canvas_files = list(nonexistent_files_by_short_path.keys())
-        self._isolated_canvas_files = list(non_linked_files_by_short_path.keys())
+        self._nonexistent_canvas_files = list(
+            nonexistent_files_by_short_path.keys())
+        self._isolated_canvas_files = list(
+            non_linked_files_by_short_path.keys())
 
-    def _get_media_file_dicts_tuple(
-        self,
-    ) -> tuple[dict[str, Path], dict[str, Path], dict[str, Path]]:
+    def _get_media_file_dicts_tuple(self) \
+            -> tuple[dict[str, Path], dict[str, Path], dict[str, Path]]:
         """Return (existent files embedded,
         existent files not embedded,
         nonexistent files embedded).
@@ -624,19 +620,17 @@ class Vault:
 
         # detail on all embedded files AND ones that exist:
         all_files_embedded_in_notes = list(
-            chain.from_iterable(self._embedded_files_index.values())
-        )
-        media_file_relpaths_existent = _get_all_valid_media_file_relpaths(self._dirpath)
+            chain.from_iterable(self._embedded_files_index.values()))
+        media_file_relpaths_existent = _get_all_valid_media_file_relpaths(
+            self._dirpath)
         return self.__get_file_dicts_tuple(
             all_files_embedded_in_notes,
             links_index=self._embedded_files_index,
             existing_file_relpaths=media_file_relpaths_existent,
-            file_type="media",
-        )
+            file_type='media')
 
-    def _get_canvas_file_dicts_tuple(
-        self,
-    ) -> tuple[dict[str, Path], dict[str, Path], dict[str, Path]]:
+    def _get_canvas_file_dicts_tuple(self) \
+            -> tuple[dict[str, Path], dict[str, Path], dict[str, Path]]:
         """Return (existent files linked,
         existent files not linked,
         nonexistent files linked).
@@ -648,110 +642,96 @@ class Vault:
 
         # detail on all linked files AND ones that exist:
         all_files_linked_in_notes = list(
-            chain.from_iterable(self._wikilinks_index.values())
-        )
+            chain.from_iterable(self._wikilinks_index.values()))
         canvas_file_relpaths_existent = _get_all_valid_canvas_file_relpaths(
-            self._dirpath
-        )
+            self._dirpath)
         return self.__get_file_dicts_tuple(
             all_files_linked_in_notes,
             links_index=self._wikilinks_index,
             existing_file_relpaths=canvas_file_relpaths_existent,
-            file_type="canvas",
-        )
+            file_type='canvas')
 
-    def __get_file_dicts_tuple(
-        self,
-        linked_files_list: list[str],
-        *,
-        links_index: dict[list[str]],
-        existing_file_relpaths: list[Path],
-        file_type: str
-    ):
+    def __get_file_dicts_tuple(self, linked_files_list: list[str], *,
+                               links_index: dict[list[str]],
+                               existing_file_relpaths: list[Path],
+                               file_type: str):
         # get shortest path for each 'linked' file of chosen type;
         # check whether each exists
-        shortest_names_existent = _get_shortest_path_by_filename(existing_file_relpaths)
+        shortest_names_existent = _get_shortest_path_by_filename(
+            existing_file_relpaths)
         # for nonexistent files, don't want to catch other types:
         short_names_not_wanted_set = (
             set(shortest_names_existent)
             .union(set(self._nonexistent_notes))
-            .union(set(self._md_file_index))
-        )
-        if file_type == "canvas":
+            .union(set(self._md_file_index)))
+        if file_type == 'canvas':
             other_fpaths_not_wanted_set = _get_all_valid_media_file_relpaths(
-                self._dirpath
-            )
-        elif file_type == "media":
+                self._dirpath)
+        elif file_type == 'media':
             other_fpaths_not_wanted_set = _get_all_valid_canvas_file_relpaths(
-                self._dirpath
-            )
+                self._dirpath)
         else:
             raise ValueError('Value for type is either "canvas" or "media".')
         shortest_names_nonexistent = {
-            fn: Path(fn)
-            for fn in chain(*links_index.values())
+            fn: Path(fn) for fn in chain(*links_index.values())
             if fn not in short_names_not_wanted_set
-            and Path(fn) not in other_fpaths_not_wanted_set
-        }
-        shortest_names = {**shortest_names_existent, **shortest_names_nonexistent}
+            and Path(fn) not in other_fpaths_not_wanted_set}
+        shortest_names = {**shortest_names_existent,
+                          **shortest_names_nonexistent}
 
         # SETS
         # existent files (either linked or not):
-        set_files_existent_linked = set(shortest_names_existent).intersection(
-            set(linked_files_list)
-        )
-        set_files_existent_not_linked = set(shortest_names_existent).difference(
-            set_files_existent_linked
-        )
+        set_files_existent_linked = (
+            set(shortest_names_existent)
+            .intersection(set(linked_files_list)))
+        set_files_existent_not_linked = (
+            set(shortest_names_existent)
+            .difference(set_files_existent_linked))
         # nonexistent files:
-        set_files_nonexistent_linked = set(linked_files_list).intersection(
-            set(shortest_names_nonexistent)
-        )
+        set_files_nonexistent_linked = (
+            set(linked_files_list)
+            .intersection(set(shortest_names_nonexistent)))
 
         # DICTS
         # existent files (either linked or not):
         linked_files_by_short_path = {
             short_path: rel_path
             for short_path, rel_path in shortest_names.items()
-            if short_path in set_files_existent_linked
-        }
+            if short_path in set_files_existent_linked}
         non_linked_files_by_short_path = {
             short_path: rel_path
             for short_path, rel_path in shortest_names.items()
-            if short_path in set_files_existent_not_linked
-        }
+            if short_path in set_files_existent_not_linked}
         # nonexistent files:
         nonexistent_files_by_short_path = {
             short_path: np.NaN
             for short_path in shortest_names_nonexistent.keys()
-            if short_path in set_files_nonexistent_linked
-        }
+            if short_path in set_files_nonexistent_linked}
 
-        return (
-            linked_files_by_short_path,
-            non_linked_files_by_short_path,
-            nonexistent_files_by_short_path,
-        )
+        return (linked_files_by_short_path,
+                non_linked_files_by_short_path,
+                nonexistent_files_by_short_path)
 
     def _get_backlink_counts_for_media_files_only(self) -> dict[str, int]:
         dict_out = dict.fromkeys(self._media_file_index.keys(), 0)
-        dict_counts = dict(Counter(list(chain(*self._embedded_files_index.values()))))
+        dict_counts = dict(
+            Counter(list(chain(*self._embedded_files_index.values()))))
         # merge counts into dict_out:
         dict_out = {**dict_out, **dict_counts}
         return dict_out
 
     def _get_backlink_counts_for_canvas_files_only(self) -> dict[str, int]:
         if not self._attachments:
-            raise AttributeError(
-                "Set attachments=True in connect() to get backlink counts for canvas files."
-            )
+            raise AttributeError('Set attachments=True in connect() to get backlink counts for canvas files.')
         dict_out = dict.fromkeys(self._canvas_file_index.keys(), 0)
-        dict_counts = dict(Counter(list(chain(*self._wikilinks_index.values()))))
+        dict_counts = dict(
+            Counter(list(chain(*self._wikilinks_index.values()))))
         # merge counts into dict_out:
         dict_out = {**dict_out, **dict_counts}
         return dict_out
 
-    def __get_graph_data_dict(self, *, attachments=False) -> dict[str, list[str]]:
+    def __get_graph_data_dict(self, *, attachments=False) -> \
+            dict[str, list[str]]:
         """Get the dict {k: v} of the graph's data:
         where k is a note name and v is a list of the 'wikilinks' in
         a note.
@@ -781,32 +761,27 @@ class Vault:
             # attachments include 'media' files and canvas files:
             # i) use wikilinks & embedded file info for graph edges:
             d_out = {
-                n: (
-                    self._wikilinks_index.get(n, [])
+                n: (self._wikilinks_index.get(n, [])
                     + self._embedded_files_index.get(n, [])
-                )
-                for n in (
-                    set(
-                        list(self._wikilinks_index.keys())
-                        + list(self._embedded_files_index.keys())
                     )
-                )
+                for n in (set(list(self._wikilinks_index.keys())
+                              + list(self._embedded_files_index.keys())))
             }
             # ii) add isolated media files & canvas files as nodes:
             isolated_files_dict = {
-                short_path: []
-                for short_path in [
-                    *self._isolated_media_files,
-                    *self._isolated_canvas_files,
-                ]
-            }
-            d_out = {**d_out, **isolated_files_dict}
+                short_path: [] for short_path
+                in [*self._isolated_media_files,
+                    *self._isolated_canvas_files]}
+            d_out = {**d_out,
+                     **isolated_files_dict}
             return d_out
 
     def _set_graph_related_attributes(self):
-        self._backlinks_index = self._get_backlinks_index(graph=self._graph)
+        self._backlinks_index = self._get_backlinks_index(
+            graph=self._graph)
         self._nonexistent_notes = self._get_nonexistent_notes()
-        self._isolated_notes = self._get_isolated_notes(graph=self._graph)
+        self._isolated_notes = self._get_isolated_notes(
+            graph=self._graph)
 
     def gather(self, *, tags: list[str] = None):
         """gather the content of your notes so that all the plaintext is
@@ -831,25 +806,30 @@ class Vault:
                 and produces a one-line string.
         """
         for f, relpath in self._md_file_index.items():
-            self._gather_update_based_on_new_relpath(relpath, note=f, tags=tags)
+            self._gather_update_based_on_new_relpath(
+                relpath,
+                note=f, tags=tags)
         self._is_gathered = True
 
         return self  # fluent
 
-    def _gather_update_based_on_new_relpath(
-        self, relpath: Path, *, note: str, tags: list[str]
-    ):
+    def _gather_update_based_on_new_relpath(self, relpath: Path, *,
+                                            note: str, tags: list[str]):
         """Individual file read & associated attrs update for the
         gather method."""
         # MAIN file read:
-        _, content = _get_md_front_matter_and_content(self._dirpath / relpath)
+        _, content = _get_md_front_matter_and_content(
+            self._dirpath / relpath)
         html = _get_html_from_md_content(content)
         # (also remove LaTeX for source text:)
-        src_txt = get_source_text_from_html(html, remove_code=True, remove_math=True)
+        src_txt = get_source_text_from_html(
+            html, remove_code=True, remove_math=True)
 
         # 'source' text will not remove any content, but 'readable' will:
         self._source_text_index[note] = src_txt
-        self._readable_text_index[note] = _get_readable_text_from_html(html, tags=tags)
+        self._readable_text_index[note] = (
+            _get_readable_text_from_html(
+                html, tags=tags))
 
     def get_backlinks(self, note_name: str) -> list[str]:
         """Get backlinks for a note (given its name).
@@ -868,7 +848,7 @@ class Vault:
             list
         """
         if not self._is_connected:
-            raise AttributeError("Connect notes before calling the function")
+            raise AttributeError('Connect notes before calling the function')
 
         if note_name not in self._graph.nodes:
             raise ValueError('"{}" not found in graph.'.format(note_name))
@@ -886,7 +866,7 @@ class Vault:
             dict of integers >= 1
         """
         if not self._is_connected:
-            raise AttributeError("Connect notes before calling the function")
+            raise AttributeError('Connect notes before calling the function')
 
         if note_name not in self._graph.nodes:
             raise ValueError('"{}" not found in graph.'.format(note_name))
@@ -909,12 +889,10 @@ class Vault:
             list
         """
         if not self._is_connected:
-            raise AttributeError("Connect notes before calling the function")
+            raise AttributeError('Connect notes before calling the function')
 
         if file_name not in self._md_file_index:
-            raise ValueError(
-                '"{}" does not exist so it cannot have wikilinks.'.format(file_name)
-            )
+            raise ValueError('"{}" does not exist so it cannot have wikilinks.'.format(file_name))
         else:
             return self._wikilinks_index[file_name]
 
@@ -929,7 +907,7 @@ class Vault:
             dict of integers >= 1
         """
         if not self._is_connected:
-            raise AttributeError("Connect notes before calling the function")
+            raise AttributeError('Connect notes before calling the function')
 
         if note_name not in self._graph.nodes:
             raise ValueError('"{}" not found in graph.'.format(note_name))
@@ -952,14 +930,10 @@ class Vault:
             list
         """
         if not self._is_connected:
-            raise AttributeError("Connect notes before calling the function")
+            raise AttributeError('Connect notes before calling the function')
 
         if file_name not in self._md_file_index:
-            raise ValueError(
-                '"{}" does not exist so it cannot have embedded files.'.format(
-                    file_name
-                )
-            )
+            raise ValueError('"{}" does not exist so it cannot have embedded files.'.format(file_name))
         else:
             return self._embedded_files_index[file_name]
 
@@ -978,12 +952,10 @@ class Vault:
             list
         """
         if not self._is_connected:
-            raise AttributeError("Connect notes before calling the function")
+            raise AttributeError('Connect notes before calling the function')
 
         if file_name not in self._md_file_index:
-            raise ValueError(
-                '"{}" does not exist so it cannot have md links.'.format(file_name)
-            )
+            raise ValueError('"{}" does not exist so it cannot have md links.'.format(file_name))
         else:
             return self._md_links_index[file_name]
 
@@ -1002,11 +974,9 @@ class Vault:
             list
         """
         if not self._is_connected:
-            raise AttributeError("Connect notes before calling the function")
+            raise AttributeError('Connect notes before calling the function')
         if file_name not in self._md_file_index:
-            raise ValueError(
-                '"{}" does not exist so it cannot have front matter.'.format(file_name)
-            )
+            raise ValueError('"{}" does not exist so it cannot have front matter.'.format(file_name))
         else:
             return self._front_matter_index[file_name]
 
@@ -1027,11 +997,9 @@ class Vault:
             list
         """
         if not self._is_connected:
-            raise AttributeError("Connect notes before calling the function")
+            raise AttributeError('Connect notes before calling the function')
         if file_name not in self._md_file_index:
-            raise ValueError(
-                '"{}" does not exist so it cannot have tags.'.format(file_name)
-            )
+            raise ValueError('"{}" does not exist so it cannot have tags.'.format(file_name))
         else:
             return self._tags_index[file_name]
 
@@ -1051,11 +1019,9 @@ class Vault:
             str
         """
         if not self._is_gathered:
-            raise AttributeError("Gather notes before calling the function")
+            raise AttributeError('Gather notes before calling the function')
         if file_name not in self._md_file_index:
-            raise ValueError(
-                '"{}" does not exist so it cannot have text.'.format(file_name)
-            )
+            raise ValueError('"{}" does not exist so it cannot have text.'.format(file_name))
         else:
             return self._source_text_index[file_name]
 
@@ -1079,11 +1045,9 @@ class Vault:
             str
         """
         if not self._is_gathered:
-            raise AttributeError("Gather notes before calling the function")
+            raise AttributeError('Gather notes before calling the function')
         if file_name not in self._md_file_index:
-            raise ValueError(
-                '"{}" does not exist so it cannot have text.'.format(file_name)
-            )
+            raise ValueError('"{}" does not exist so it cannot have text.'.format(file_name))
         else:
             return self._readable_text_index[file_name]
 
@@ -1103,7 +1067,8 @@ class Vault:
         Returns:
             list
         """
-        return get_canvas_relpaths_matching_subdirs(self._dirpath, **kwargs)
+        return get_canvas_relpaths_matching_subdirs(self._dirpath,
+                                                    **kwargs)
 
     def __get_relpaths_by_name(self, *, extension, **kwargs) -> dict[str, Path]:
         """Return k,v pairs
@@ -1115,12 +1080,14 @@ class Vault:
         """
         # get note names (for k) and relpaths (for v):
         # keep or remove ext, based on how the file refs appear in wikilinks:
-        if extension == "md":
-            relpaths_list = self._get_md_relpaths(**kwargs)
+        if extension == 'md':
+            relpaths_list = self._get_md_relpaths(
+                **kwargs)
             # remove .md ext:
             all_file_names_list = [f.stem for f in relpaths_list]
-        if extension == "canvas":
-            relpaths_list = self._get_canvas_relpaths(**kwargs)
+        if extension == 'canvas':
+            relpaths_list = self._get_canvas_relpaths(
+                **kwargs)
             # keep .canvas ext:
             all_file_names_list = [f.name for f in relpaths_list]
 
@@ -1129,36 +1096,39 @@ class Vault:
             np.array(all_file_names_list),
             return_inverse=True,
             return_counts=True,
-            axis=0,
-        )
+            axis=0)
         dupe_names_ix = np.where(counts[inverse_ix] > 1)[0]
 
         # get shortest paths via mask:
         shortest_paths_arr = np.array(all_file_names_list, dtype=object)
-        if extension == "md":
+        if extension == 'md':
             shortest_paths_arr[dupe_names_ix] = np.array(
-                [str(fpath.with_suffix("")) for fpath in relpaths_list]
-            )[dupe_names_ix]
-        if extension == "canvas":
+                [str(fpath.with_suffix(''))
+                 for fpath in relpaths_list])[dupe_names_ix]
+        if extension == 'canvas':
             shortest_paths_arr[dupe_names_ix] = np.array(
-                [str(fpath) for fpath in relpaths_list]
-            )[dupe_names_ix]
+                [str(fpath)
+                 for fpath in relpaths_list])[dupe_names_ix]
 
         dict_out = {n: p for n, p in zip(shortest_paths_arr, relpaths_list)}
         return dict_out
 
     def _get_md_relpaths_by_name(self, **kwargs) -> dict[str, Path]:
-        return self.__get_relpaths_by_name(extension="md", **kwargs)
+        return self.__get_relpaths_by_name(extension='md',
+                                           **kwargs)
 
     def _get_canvas_relpaths_by_name(self, **kwargs) -> dict[str, Path]:
-        return self.__get_relpaths_by_name(extension="canvas", **kwargs)
+        return self.__get_relpaths_by_name(extension='canvas',
+                                           **kwargs)
 
     @staticmethod
-    def _get_backlinks_index(*, graph: nx.MultiDiGraph) -> dict[str, list[str]]:
+    def _get_backlinks_index(*,
+                             graph: nx.MultiDiGraph) -> dict[str, list[str]]:
         """Return k,v pairs
         where k is the md note name
         and v is list of ALL backlinks found in k"""
-        return {n: [n[0] for n in list(graph.in_edges(n))] for n in graph.nodes}
+        return {n: [n[0] for n in list(graph.in_edges(n))]
+                for n in graph.nodes}
 
     def get_note_metadata(self) -> pd.DataFrame:
         """Structured dataset of metadata on the vault's notes.  This
@@ -1173,69 +1143,64 @@ class Vault:
             pd.DataFrame
         """
         if not self._is_connected:
-            raise AttributeError("Connect notes before calling the function")
+            raise AttributeError('Connect notes before calling the function')
 
-        ix_list = list(
-            set(self._backlinks_index.keys())
-            .difference(set(self._media_file_index))
-            .difference(set(self._nonexistent_media_files))
-            .difference(set(self._canvas_file_index))
-        )
+        ix_list = list(set(self._backlinks_index.keys())
+                       .difference(set(self._media_file_index))
+                       .difference(set(self._nonexistent_media_files))
+                       .difference(set(self._canvas_file_index))
+                       )
 
-        df = (
-            pd.DataFrame(index=ix_list, columns=METADATA_DF_COLS_GENERIC_TYPE)
-            .rename(columns={"file_exists": "note_exists"})
-            .rename_axis("note")
-        )
-        df = df.pipe(self._create_note_metadata_columns).pipe(
-            self._clean_up_note_metadata_dtypes
+        df = (pd.DataFrame(index=ix_list,
+                           columns=METADATA_DF_COLS_GENERIC_TYPE)
+              .rename(columns={'file_exists': 'note_exists'})
+              .rename_axis('note'))
+        df = (df.pipe(self._create_note_metadata_columns)
+              .pipe(self._clean_up_note_metadata_dtypes)
+              )
+        return df
+
+    def _create_note_metadata_columns(self,
+                                      df: pd.DataFrame) -> pd.DataFrame:
+        """pipe func for mutating df"""
+        df['rel_filepath'] = [self._md_file_index.get(f, np.NaN)
+                              for f in df.index.tolist()]
+        df['abs_filepath'] = np.where(df['rel_filepath'].notna(),
+                                      [self._dirpath / str(f)
+                                       for f in df['rel_filepath'].tolist()],
+                                      np.NaN)
+        df['note_exists'] = np.where(df['rel_filepath'].notna(),
+                                     True, False)
+        df['n_backlinks'] = [len(self.get_backlinks(f)) for f in df.index]
+        df['n_wikilinks'] = np.where(df['note_exists'],
+                                     [len(self._wikilinks_index.get(f, []))
+                                      for f in df.index.tolist()],
+                                     np.NaN)
+        df['n_tags'] = np.where(df['note_exists'],
+                                [len(self._tags_index.get(f, []))
+                                 for f in df.index.tolist()],
+                                np.NaN)
+        df['n_embedded_files'] = np.where(df['note_exists'],
+                                          [len(self._embedded_files_index.get(
+                                              f, []))
+                                           for f in df.index.tolist()],
+                                          np.NaN)
+        df['modified_time'] = pd.to_datetime(
+            [f.lstat().st_mtime if not pd.isna(f)
+             else pd.NaT
+             for f in df['abs_filepath'].tolist()],
+            unit='s'
         )
         return df
 
-    def _create_note_metadata_columns(self, df: pd.DataFrame) -> pd.DataFrame:
+    def _clean_up_note_metadata_dtypes(self,
+                                       df: pd.DataFrame) -> pd.DataFrame:
         """pipe func for mutating df"""
-        df["rel_filepath"] = [
-            self._md_file_index.get(f, np.NaN) for f in df.index.tolist()
-        ]
-        df["abs_filepath"] = np.where(
-            df["rel_filepath"].notna(),
-            [self._dirpath / str(f) for f in df["rel_filepath"].tolist()],
-            np.NaN,
-        )
-        df["note_exists"] = np.where(df["rel_filepath"].notna(), True, False)
-        df["n_backlinks"] = [len(self.get_backlinks(f)) for f in df.index]
-        df["n_wikilinks"] = np.where(
-            df["note_exists"],
-            [len(self._wikilinks_index.get(f, [])) for f in df.index.tolist()],
-            np.NaN,
-        )
-        df["n_tags"] = np.where(
-            df["note_exists"],
-            [len(self._tags_index.get(f, [])) for f in df.index.tolist()],
-            np.NaN,
-        )
-        df["n_embedded_files"] = np.where(
-            df["note_exists"],
-            [len(self._embedded_files_index.get(f, [])) for f in df.index.tolist()],
-            np.NaN,
-        )
-        df["modified_time"] = pd.to_datetime(
-            [
-                f.lstat().st_mtime if not pd.isna(f) else pd.NaT
-                for f in df["abs_filepath"].tolist()
-            ],
-            unit="s",
-        )
-        return df
-
-    def _clean_up_note_metadata_dtypes(self, df: pd.DataFrame) -> pd.DataFrame:
-        """pipe func for mutating df"""
-        df["rel_filepath"] = np.where(
-            df["rel_filepath"].notna(),
-            [Path(str(f)) for f in df["rel_filepath"]],
-            np.NaN,
-        )
-        df["n_wikilinks"] = df["n_wikilinks"].astype(float)  # for consistency
+        df['rel_filepath'] = np.where(df['rel_filepath'].notna(),
+                                      [Path(str(f))
+                                       for f in df['rel_filepath']],
+                                      np.NaN)
+        df['n_wikilinks'] = df['n_wikilinks'].astype(float)  # for consistency
         return df
 
     def get_media_file_metadata(self) -> pd.DataFrame:
@@ -1260,37 +1225,35 @@ class Vault:
         Returns:
             pd.DataFrame
         """
-        ix_list = [*list(self._media_file_index.keys()), *self._nonexistent_media_files]
-        df = pd.DataFrame(
-            index=ix_list, columns=METADATA_DF_COLS_GENERIC_TYPE
-        ).rename_axis("file")
+        ix_list = [*list(self._media_file_index.keys()),
+                   *self._nonexistent_media_files]
+        df = (pd.DataFrame(index=ix_list,
+                           columns=METADATA_DF_COLS_GENERIC_TYPE)
+              .rename_axis('file'))
         if not ix_list:
             return df
         else:
             df = df.pipe(self._create_media_file_metadata_columns)
             return df
 
-    def _create_media_file_metadata_columns(self, df: pd.DataFrame) -> pd.DataFrame:
+    def _create_media_file_metadata_columns(self,
+                                            df: pd.DataFrame) -> pd.DataFrame:
         """pipe func for mutating df"""
-        df["rel_filepath"] = [
-            self._media_file_index.get(f, np.NaN) for f in df.index.tolist()
-        ]
-        df["abs_filepath"] = np.where(
-            df["rel_filepath"].notna(),
-            [self._dirpath / str(f) for f in df["rel_filepath"].tolist()],
-            np.NaN,
-        )
-        df["file_exists"] = pd.Series(
-            np.logical_not(df.index.isin(self._nonexistent_media_files)), index=df.index
-        )
-        df["n_backlinks"] = self._get_backlink_counts_for_media_files_only()
-        df["modified_time"] = pd.to_datetime(
-            [
-                f.lstat().st_mtime if not pd.isna(f) else pd.NaT
-                for f in df["abs_filepath"].tolist()
-            ],
-            unit="s",
-        )
+        df['rel_filepath'] = [self._media_file_index.get(f, np.NaN)
+                              for f in df.index.tolist()]
+        df['abs_filepath'] = np.where(df['rel_filepath'].notna(),
+                                      [self._dirpath / str(f)
+                                       for f in df['rel_filepath'].tolist()],
+                                      np.NaN)
+        df['file_exists'] = pd.Series(
+            np.logical_not(df.index.isin(self._nonexistent_media_files)),
+            index=df.index)
+        df['n_backlinks'] = self._get_backlink_counts_for_media_files_only()
+        df['modified_time'] = pd.to_datetime(
+            [f.lstat().st_mtime if not pd.isna(f)
+             else pd.NaT
+             for f in df['abs_filepath'].tolist()],
+            unit='s')
         return df
 
     def get_canvas_file_metadata(self) -> pd.DataFrame:
@@ -1316,44 +1279,39 @@ class Vault:
         Returns:
             pd.DataFrame
         """
-        ix_list = [
-            *list(self._canvas_file_index.keys()),
-            *self._nonexistent_canvas_files,
-        ]
-        df = pd.DataFrame(
-            index=ix_list, columns=METADATA_DF_COLS_GENERIC_TYPE
-        ).rename_axis("file")
+        ix_list = [*list(self._canvas_file_index.keys()),
+                   *self._nonexistent_canvas_files]
+        df = (pd.DataFrame(index=ix_list,
+                           columns=METADATA_DF_COLS_GENERIC_TYPE)
+              .rename_axis('file'))
         if not ix_list:
             return df
         else:
             df = df.pipe(self._create_canvas_file_metadata_columns)
             return df
 
-    def _create_canvas_file_metadata_columns(self, df: pd.DataFrame) -> pd.DataFrame:
+    def _create_canvas_file_metadata_columns(self,
+                                             df: pd.DataFrame) -> pd.DataFrame:
         """pipe func for mutating df"""
-        df["rel_filepath"] = [
-            self._canvas_file_index.get(f, np.NaN) for f in df.index.tolist()
-        ]
-        df["abs_filepath"] = np.where(
-            df["rel_filepath"].notna(),
-            [self._dirpath / str(f) for f in df["rel_filepath"].tolist()],
-            np.NaN,
-        )
-        df["file_exists"] = pd.Series(
+        df['rel_filepath'] = [self._canvas_file_index.get(f, np.NaN)
+                              for f in df.index.tolist()]
+        df['abs_filepath'] = np.where(df['rel_filepath'].notna(),
+                                      [self._dirpath / str(f)
+                                       for f in df['rel_filepath'].tolist()],
+                                      np.NaN)
+        df['file_exists'] = pd.Series(
             np.logical_not(df.index.isin(self._nonexistent_canvas_files)),
-            index=df.index,
-        )
+            index=df.index)
         if self._attachments:
-            df["n_backlinks"] = self._get_backlink_counts_for_canvas_files_only()
+            df['n_backlinks'] = (
+                self._get_backlink_counts_for_canvas_files_only())
         else:
-            df["n_backlinks"] = np.NaN
-        df["modified_time"] = pd.to_datetime(
-            [
-                f.lstat().st_mtime if not pd.isna(f) else pd.NaT
-                for f in df["abs_filepath"].tolist()
-            ],
-            unit="s",
-        )
+            df['n_backlinks'] = np.NaN
+        df['modified_time'] = pd.to_datetime(
+            [f.lstat().st_mtime if not pd.isna(f)
+             else pd.NaT
+             for f in df['abs_filepath'].tolist()],
+            unit='s')
         return df
 
     def get_all_file_metadata(self) -> pd.DataFrame:
@@ -1379,23 +1337,23 @@ class Vault:
         Returns:
             pd.DataFrame
         """
-        df = self.get_note_metadata().rename(columns={"note_exists": "file_exists"})
-        df["graph_category"] = np.where(df["file_exists"], "note", "nonexistent")
+        df = (self.get_note_metadata()
+              .rename(columns={'note_exists': 'file_exists'}))
+        df['graph_category'] = np.where(
+            df['file_exists'], 'note', 'nonexistent')
         if not self._attachments:
-            warnings.warn(
-                "Only notes (md files) were used to build the graph.  Set attachments=True in the connect method to show all file metadata."
-            )
+            warnings.warn('Only notes (md files) were used to build the graph.  Set attachments=True in the connect method to show all file metadata.')
         else:
             df_media = self.get_media_file_metadata()
-            df_media["graph_category"] = np.where(
-                df_media["file_exists"], "attachment", "nonexistent"
-            )
+            df_media['graph_category'] = np.where(
+                df_media['file_exists'], 'attachment', 'nonexistent')
             df_canvas = self.get_canvas_file_metadata()
-            df_canvas["graph_category"] = np.where(
-                df_canvas["file_exists"], "attachment", "nonexistent"
-            )
+            df_canvas['graph_category'] = np.where(
+                df_canvas['file_exists'], 'attachment', 'nonexistent')
 
-            df = pd.concat([df, df_media, df_canvas]).rename_axis("file")
+            df = (pd.concat(
+                [df, df_media, df_canvas])
+                .rename_axis('file'))
         return df
 
     def _get_nonexistent_notes(self) -> list[str]:
@@ -1403,18 +1361,18 @@ class Vault:
 
         The comparison is done with sets but the result is returned
         as a list."""
-        return list(
-            set(self._backlinks_index.keys())
-            # anything remaining that isn't a file is a non-e note:
-            .difference(set(self._md_file_index))
-            .difference(set(self._media_file_index))
-            .difference(set(self._nonexistent_media_files))
-            .difference(set(self._canvas_file_index))
-        )
+        return list(set(self._backlinks_index.keys())
+                    # anything remaining that isn't a file is a non-e note:
+                    .difference(set(self._md_file_index))
+                    .difference(set(self._media_file_index))
+                    .difference(set(self._nonexistent_media_files))
+                    .difference(set(self._canvas_file_index)))
 
-    def _get_isolated_notes(self, *, graph: nx.MultiDiGraph) -> list[str]:
+    def _get_isolated_notes(self, *,
+                            graph: nx.MultiDiGraph) -> list[str]:
         """Get notes that are not connected to any other notes in the vault,
         i.e. they have 0 wikilinks and 0 backlinks.
 
         These notes are retrieved from the graph."""
-        return [fn for fn in nx.isolates(graph) if fn in self._md_file_index]
+        return [fn for fn in nx.isolates(graph)
+                if fn in self._md_file_index]
