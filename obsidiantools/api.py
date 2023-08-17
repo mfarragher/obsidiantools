@@ -132,6 +132,8 @@ class Vault:
             canvas_graph_detail_index
         """
         # args:
+        assert isinstance(dirpath, Path), "dirpath must be a pathlib Path"
+
         self._dirpath = dirpath
         self._attachments = None  # connect()
 
