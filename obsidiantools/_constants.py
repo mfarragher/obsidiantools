@@ -1,6 +1,7 @@
 # WIKILINKS AND EMBEDDED FILES: regex that includes any aliases
 # group 0 captures embedded link; group 1 is everything inside [[]]
 WIKILINK_REGEX = r'(!)?\[{2}([^\]\]]+)\]{2}'
+URL_REGEX = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
 
 # TAGS
 TAG_INCLUDE_NESTED_REGEX = r'(?<!\()(?<!\\)#{1}([A-z]+[0-9_\-]*[A-Z0-9]?[^\s]+(?![^\[\[]*\]\]))\/?'
