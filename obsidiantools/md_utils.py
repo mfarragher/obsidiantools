@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 import markdown
 import frontmatter
 from ._constants import (WIKILINK_REGEX,
+                         URL_REGEX,
                          TAG_MAIN_ONLY_REGEX, TAG_INCLUDE_NESTED_REGEX,
                          WIKILINK_AS_STRING_REGEX,
                          EMBEDDED_FILE_LINK_AS_STRING_REGEX,
@@ -241,6 +242,8 @@ def get_tags(filepath: Path, *, show_nested: bool = False) -> list[str]:
         str_transform_func=_transform_md_file_string_for_tag_parsing)
     # remove wikilinks so that '#' headers are not caught:
     src_txt = _remove_wikilinks_from_source_text(src_txt)
+    # remove URLs so that '#' in URLs are not caught
+    src_text = _remove_URLs_from_source_text(src_text)
     tags = _get_tags_from_source_text(src_txt, show_nested=show_nested)
     return tags
 
@@ -442,6 +445,10 @@ def _get_unique_md_links_from_source_text(src_txt: str) -> list[str]:
 
 def _remove_wikilinks_from_source_text(src_txt: str) -> str:
     return re.sub(WIKILINK_REGEX, '', src_txt)
+
+
+def _remove_URLs_from_source_text(src_txt: str) -> str:
+    return re.sub(URL_REGEX, '', src_txt)
 
 
 def _transform_md_file_string_for_tag_parsing(txt: str) -> str:
