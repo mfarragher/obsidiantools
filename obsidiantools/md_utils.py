@@ -243,7 +243,7 @@ def get_tags(filepath: Path, *, show_nested: bool = False) -> list[str]:
     # remove wikilinks so that '#' headers are not caught:
     src_txt = _remove_wikilinks_from_source_text(src_txt)
     # remove URLs so that '#' in URLs are not caught
-    src_text = _remove_URLs_from_source_text(src_text)
+    src_txt = _remove_URLs_from_source_text(src_txt)
     tags = _get_tags_from_source_text(src_txt, show_nested=show_nested)
     return tags
 
