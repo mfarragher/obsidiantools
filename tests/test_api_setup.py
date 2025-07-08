@@ -43,6 +43,12 @@ def test_vault_instantiation_needs_directory():
         Vault()
 
 
+def test_type_error_is_raised_for_string_dirpath():
+    actual_vault_dirpath = 'home/digital-garden'
+    with pytest.raises(TypeError):
+        Vault(actual_vault_dirpath)
+
+
 def test_connect(mock_initial_vault):
     mock_output = mock_initial_vault.connect()
 

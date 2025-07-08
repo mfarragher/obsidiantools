@@ -131,6 +131,9 @@ class Vault:
             canvas_content_index
             canvas_graph_detail_index
         """
+        if not isinstance(dirpath, Path):
+            raise TypeError("Specify a pathlib.Path for the dirpath argument (not other types like strings)")
+
         # args:
         self._dirpath = dirpath
         self._attachments = None  # connect()
@@ -702,7 +705,7 @@ class Vault:
             if short_path in set_files_existent_not_linked}
         # nonexistent files:
         nonexistent_files_by_short_path = {
-            short_path: np.NaN
+            short_path: np.nan
             for short_path in shortest_names_nonexistent.keys()
             if short_path in set_files_nonexistent_linked}
 
@@ -1161,28 +1164,28 @@ class Vault:
     def _create_note_metadata_columns(self,
                                       df: pd.DataFrame) -> pd.DataFrame:
         """pipe func for mutating df"""
-        df['rel_filepath'] = [self._md_file_index.get(f, np.NaN)
+        df['rel_filepath'] = [self._md_file_index.get(f, np.nan)
                               for f in df.index.tolist()]
         df['abs_filepath'] = np.where(df['rel_filepath'].notna(),
                                       [self._dirpath / str(f)
                                        for f in df['rel_filepath'].tolist()],
-                                      np.NaN)
+                                      np.nan)
         df['note_exists'] = np.where(df['rel_filepath'].notna(),
                                      True, False)
         df['n_backlinks'] = [len(self.get_backlinks(f)) for f in df.index]
         df['n_wikilinks'] = np.where(df['note_exists'],
                                      [len(self._wikilinks_index.get(f, []))
                                       for f in df.index.tolist()],
-                                     np.NaN)
+                                     np.nan)
         df['n_tags'] = np.where(df['note_exists'],
                                 [len(self._tags_index.get(f, []))
                                  for f in df.index.tolist()],
-                                np.NaN)
+                                np.nan)
         df['n_embedded_files'] = np.where(df['note_exists'],
                                           [len(self._embedded_files_index.get(
                                               f, []))
                                            for f in df.index.tolist()],
-                                          np.NaN)
+                                          np.nan)
         df['modified_time'] = pd.to_datetime(
             [f.lstat().st_mtime if not pd.isna(f)
              else pd.NaT
@@ -1197,7 +1200,7 @@ class Vault:
         df['rel_filepath'] = np.where(df['rel_filepath'].notna(),
                                       [Path(str(f))
                                        for f in df['rel_filepath']],
-                                      np.NaN)
+                                      np.nan)
         df['n_wikilinks'] = df['n_wikilinks'].astype(float)  # for consistency
         return df
 
@@ -1237,12 +1240,12 @@ class Vault:
     def _create_media_file_metadata_columns(self,
                                             df: pd.DataFrame) -> pd.DataFrame:
         """pipe func for mutating df"""
-        df['rel_filepath'] = [self._media_file_index.get(f, np.NaN)
+        df['rel_filepath'] = [self._media_file_index.get(f, np.nan)
                               for f in df.index.tolist()]
         df['abs_filepath'] = np.where(df['rel_filepath'].notna(),
                                       [self._dirpath / str(f)
                                        for f in df['rel_filepath'].tolist()],
-                                      np.NaN)
+                                      np.nan)
         df['file_exists'] = pd.Series(
             np.logical_not(df.index.isin(self._nonexistent_media_files)),
             index=df.index)
@@ -1291,12 +1294,12 @@ class Vault:
     def _create_canvas_file_metadata_columns(self,
                                              df: pd.DataFrame) -> pd.DataFrame:
         """pipe func for mutating df"""
-        df['rel_filepath'] = [self._canvas_file_index.get(f, np.NaN)
+        df['rel_filepath'] = [self._canvas_file_index.get(f, np.nan)
                               for f in df.index.tolist()]
         df['abs_filepath'] = np.where(df['rel_filepath'].notna(),
                                       [self._dirpath / str(f)
                                        for f in df['rel_filepath'].tolist()],
-                                      np.NaN)
+                                      np.nan)
         df['file_exists'] = pd.Series(
             np.logical_not(df.index.isin(self._nonexistent_canvas_files)),
             index=df.index)
@@ -1304,7 +1307,7 @@ class Vault:
             df['n_backlinks'] = (
                 self._get_backlink_counts_for_canvas_files_only())
         else:
-            df['n_backlinks'] = np.NaN
+            df['n_backlinks'] = np.nan
         df['modified_time'] = pd.to_datetime(
             [f.lstat().st_mtime if not pd.isna(f)
              else pd.NaT
