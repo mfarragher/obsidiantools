@@ -15,6 +15,7 @@ from obsidiantools.md_utils import (_get_all_wikilinks_from_source_text,
                                     get_front_matter,
                                     get_tags,
                                     _remove_wikilinks_from_source_text,
+                                    _remove_URLs_from_source_text,
                                     _replace_wikilinks_with_their_text,
                                     _replace_md_links_with_their_text,
                                     get_readable_text_from_md_file)
@@ -288,8 +289,16 @@ def test_latex():
     assert actual_latex_list == expected_latex_list
 
 
-def test_remove_wikilinks(txt_wikilink_extraction_stub):
+def test_remove_wikilinks(txt_md_link_extraction_stub):
     out_str = _remove_wikilinks_from_source_text(
+        txt_md_link_extraction_stub)
+
+    expected_str = '[Obsidian.md homepage]()\n[Github homepage]()\n\n[Github homepage]()\n'
+    assert out_str == expected_str
+
+
+def test_remove_URLs(txt_wikilink_extraction_stub):
+    out_str = _remove_URLs_from_source_text(
         txt_wikilink_extraction_stub)
 
     expected_str = "\n" * 6

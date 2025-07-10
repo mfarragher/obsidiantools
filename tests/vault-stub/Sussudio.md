@@ -32,6 +32,7 @@ However these shouldn't be recognised as tags:
 - #1985
 - [[American Psycho (film)#Patrick Bateman]]
 - \#hash_char_not_tag
+- docs.google.com/document/d/12345/edit#heading
 
 ```python
 # #code_comment_not_tag
