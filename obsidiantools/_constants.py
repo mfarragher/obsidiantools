@@ -2,6 +2,10 @@
 # group 0 captures embedded link; group 1 is everything inside [[]]
 WIKILINK_REGEX = r'(!)?\[{2}([^\]\]]+)\]{2}'
 
+# PROPERTIES
+INLINE_PROPERTY_REGEX = r'^[\s]*(?:"|\')?([^:"\']+?(?::[^:"\']+?)*?)(?:"|\')?[\s]*::\s*(["\']?.*?["\']?)$'
+INLINE_PROPERTY_VALUE_ARRAY_REGEX = r'\[([^\]]+)\]'
+
 # TAGS
 TAG_INCLUDE_NESTED_REGEX = r'(?<!\()(?<!\\)#{1}([A-z]+[0-9_\-]*[A-Z0-9]?[^\s]+(?![^\[\[]*\]\]))\/?'
 TAG_MAIN_ONLY_REGEX = r'(?<!\()#{1}([A-z]+[0-9_\-]*[A-Z0-9]?)\/?'

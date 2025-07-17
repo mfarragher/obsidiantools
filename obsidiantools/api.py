@@ -7,7 +7,9 @@ from pathlib import Path
 from itertools import chain
 
 # init
-from .md_utils import (get_md_relpaths_matching_subdirs)
+from .md_utils import (get_md_relpaths_matching_subdirs,
+                       get_properties,
+                       get_front_matter)
 from .canvas_utils import (get_canvas_relpaths_matching_subdirs,
                            _get_all_valid_canvas_file_relpaths)
 # connect
@@ -174,6 +176,9 @@ class Vault:
         self._canvas_graph_detail_index = {}
         self._nonexistent_canvas_files = []
         self._isolated_canvas_files = []
+
+        # properties index
+        self._properties_index = {}
 
     @property
     def dirpath(self) -> Path:
@@ -460,6 +465,15 @@ class Vault:
              ]:
         self._canvas_graph_detail_index = value
 
+    @property
+    def properties_index(self) -> dict[str, dict]:
+        """dict: k is a note name, v is a dictionary of properties for that note."""
+        return self._properties_index
+
+    @properties_index.setter 
+    def properties_index(self, value: dict[str, dict]) -> dict[str, dict]:
+        self._properties_index = value
+
     def connect(self, *, show_nested_tags: bool = False,
                 attachments=False):
         """connect your notes together by representing the vault as a
@@ -494,14 +508,14 @@ class Vault:
             self._tags_index = {}
             self._math_index = {}
             self._front_matter_index = {}
-            # to be used for graph:
-            self._wikilinks_index = {}
-            self._unique_wikilinks_index = {}
-
-            # loop through md files:
-            for f, relpath in self._md_file_index.items():
+            # initialize property index:
+            self._properties_index = {}
+            
+            # process each note:
+            for n, relpath in self._md_file_index.items():
                 self._connect_update_based_on_new_relpath(
-                    relpath, note=f,
+                    relpath,
+                    note=n,
                     show_nested_tags=show_nested_tags)
 
             # canvas content:
@@ -543,24 +557,34 @@ class Vault:
         """Individual file read & associated attrs update for the
         connect method."""
         exclude_canvas = not self._attachments
+        file_path = self._dirpath / relpath
 
-        # MAIN file read:
-        front_matter, content = _get_md_front_matter_and_content(
-            self._dirpath / relpath)
-        html = _get_html_from_md_content(content)
-        src_txt = get_source_text_from_html(
-            html, remove_code=True)
+        try:
+            # MAIN file read:
+            front_matter, content = _get_md_front_matter_and_content(file_path)
+            html = _get_html_from_md_content(content)
+            src_txt = get_source_text_from_html(
+                html, remove_code=True)
 
-        # info from core text:
-        self._md_links_index[note] = (
-            _get_md_links_from_source_text(src_txt))
-        self._unique_md_links_index[note] = (
-            _get_unique_md_links_from_source_text(src_txt))
-        self._embedded_files_index[note] = (
-            _get_all_embedded_files_from_source_text(
-                src_txt, remove_aliases=True)
-            # (aliases are redundant for connect method)
-            )
+            # Extract all properties from the file
+            self._properties_index[note] = get_properties(file_path)
+                
+            # info from core text:
+            self._md_links_index[note] = (
+                _get_md_links_from_source_text(src_txt))
+            self._unique_md_links_index[note] = (
+                _get_unique_md_links_from_source_text(src_txt))
+            self._embedded_files_index[note] = (
+                _get_all_embedded_files_from_source_text(
+                    src_txt, remove_aliases=True)
+                # (aliases are redundant for connect method)
+                )
+        except (FileNotFoundError, IOError) as e:
+            warnings.warn(f"Failed to read file {file_path}: {str(e)}")
+            self._properties_index[note] = {}
+            self._md_links_index[note] = []
+            self._unique_md_links_index[note] = []
+            self._embedded_files_index[note] = []
         self._wikilinks_index[note] = (
             _get_all_wikilinks_from_source_text(
                 src_txt, remove_aliases=True,
@@ -1377,3 +1401,60 @@ class Vault:
         These notes are retrieved from the graph."""
         return [fn for fn in nx.isolates(graph)
                 if fn in self._md_file_index]
+
+    def get_properties(self, note_name: str) -> dict:
+        """Get all properties from a note, combining frontmatter and inline properties.
+        
+        Properties can be defined in two ways in Obsidian:
+        1. As frontmatter at the start of the file
+        2. As inline properties in the format 'property:: value'
+        
+        This method combines both types of properties into a single dictionary.
+        If the same property exists in both frontmatter and inline, 
+        the inline value takes precedence.
+
+        Args:
+            note_name (str): Name of the note (without .md extension).
+                For notes in folders, include the folder path
+                e.g. 'folder/note'.
+
+        Returns:
+            dict: Combined dictionary of all properties
+        """
+        if note_name not in self._md_file_index:
+            return {}
+        # Use dirpath to get the full path
+        fullpath = self._dirpath / self._md_file_index[note_name]
+        return get_properties(fullpath)
+
+    def get_property(self, note_name: str, property_name: str) -> str | list | None:
+        """Get a specific property from a note.
+        
+        Looks for the property in both frontmatter and inline properties.
+        If the property exists in both places, the inline value takes precedence.
+        
+        Args:
+            note_name (str): Name of the note (without .md extension).
+                For notes in folders, include the folder path
+                e.g. 'folder/note'.
+            property_name (str): Name of the property to retrieve
+                
+        Returns:
+            str | list | None: Property value if found, None if not found
+        """
+        properties = self.get_properties(note_name)
+        return properties.get(property_name) if properties else None
+    
+    def get_properties_index(self) -> dict:
+        """Get properties for all notes in the vault.
+        
+        Returns a dictionary mapping note names to their properties.
+        Properties include both frontmatter and inline properties.
+        If a property exists in both places, the inline value takes precedence.
+        
+        Returns:
+            dict: Dictionary mapping note names to property dictionaries
+        """
+        return {note: props 
+                for note, props in self._properties_index.items() 
+                if props}  # Only include notes that have properties
