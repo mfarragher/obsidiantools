@@ -16,7 +16,8 @@ def property_test_files():
         'overriding': Path('.') / 'tests/general/property-tests/property_overriding.md',
         'special': Path('.') / 'tests/general/property-tests/property_special_chars.md',
         'whitespace': Path('.') / 'tests/general/property-tests/property_whitespace.md'
-    }
+        , 'links': Path('.') / 'tests/general/property-tests/property_links.md'
+    }  # added test for links
 
 @pytest.fixture
 def test_vault(tmp_path):
@@ -130,7 +131,7 @@ def test_vault_get_properties_index(test_vault):
     index = test_vault.get_properties_index()
     assert 'basic_properties' in index
     assert 'frontmatter_style' in index
-    assert len(index) == 9  # All our test files should have properties
+    assert len(index) == 10  # All our test files should have properties
     assert index['basic_properties']['prop1'] == 'value1'
     assert index['frontmatter_style']['status'] == 'In Progress'
     assert index['inline_properties']['tags'] == ['tag1', 'tag2', 'tag3']
@@ -162,4 +163,11 @@ def test_property_whitespace_handling(property_test_files):
         'prop3': 'value with spaces before and after',  # extra spaces trimmed
         'prop4': '',  # empty value
         'prop5': ['tag1', 'tag2', 'tag3']  # spaces in array should be trimmed
+    }
+
+def test_property_link_handling(property_test_files):
+    props = get_properties(property_test_files['links'])
+    assert props == {
+        'link': 'Link',
+        'linklist': ['Link', 'Link2']
     }

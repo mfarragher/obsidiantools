@@ -11,6 +11,9 @@ nested:
     subkey1: nested value
     subkey2: another value
 priority: High
+links:
+  - [[another-note]]
+  - [[yet-another-note|custom link text]]
 ---
 
 prop with spaces:: special value

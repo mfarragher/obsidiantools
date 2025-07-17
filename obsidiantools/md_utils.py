@@ -556,7 +556,7 @@ def get_properties(filepath: Path) -> dict:
     if front_matter:
         for key, value in front_matter.items():
             clean_key = clean_property_key(key)
-            # Keep or convert to datetime objects for date/time properties
+            # Process value, handling links and converting dates/times
             if isinstance(value, str):
                 if clean_key == 'date' and len(value) == 10 and value[4] == '-' and value[7] == '-':
                     try:
@@ -569,7 +569,25 @@ def get_properties(filepath: Path) -> dict:
                     except ValueError:
                         pass
                 elif clean_key == 'due' and len(value) == 10 and value[4] == '-' and value[7] == '-':
-                    try:
+                      try:
+                          value = datetime.datetime.strptime(value, '%Y-%m-%d').date()
+                      except ValueError:
+                          pass
+                elif value.startswith("[[") and value.endswith("]]"):
+                  # Handle single wikilink as a string
+                  value = _get_all_wikilinks_from_source_text(value, remove_aliases=True)[0]
+            elif isinstance(value, list):
+                # Handle list of strings, checking for wikilinks
+                new_list = []
+                for item in value:
+                  if isinstance(item, str) and item.startswith("[[") and item.endswith("]]"):
+                      # Extract the wikilink
+                      new_list.extend(_get_all_wikilinks_from_source_text(item, remove_aliases=True))
+                  else:
+                      new_list.append(item)
+                  value = new_list
+                if clean_key in ('date', 'due') and all(isinstance(item, str) and len(item) == 10 and item[4] == '-' and item[7] == '-' for item in value):
+                    try:  # Convert to date objects if they match the pattern
                         value = datetime.datetime.strptime(value, '%Y-%m-%d').date()
                     except ValueError:
                         pass
