@@ -330,7 +330,7 @@ class Vault:
         return self._front_matter_index
 
     @front_matter_index.setter
-    def front_matter_index(self, value) -> dict[str, list[str]]:
+    def front_matter_index(self, value) -> dict[str, dict]:
         self._front_matter_index = value
 
     @property
