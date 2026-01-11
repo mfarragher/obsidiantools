@@ -960,7 +960,7 @@ class Vault:
         else:
             return self._md_links_index[file_name]
 
-    def get_front_matter(self, file_name: str) -> list[dict]:
+    def get_front_matter(self, file_name: str) -> dict:
         """Get front matter for a note (given its filename).
 
         Front matter can only appear in notes that already exist, so if a
@@ -972,7 +972,7 @@ class Vault:
                 This is NOT the filepath!
 
         Returns:
-            list
+            dict
         """
         if not self._is_connected:
             raise AttributeError('Connect notes before calling the function')
