@@ -1,7 +1,7 @@
-import pytest
 from pathlib import Path
-import networkx as nx
 
+import networkx as nx
+import pytest
 
 from obsidiantools.api import Vault
 
@@ -11,15 +11,15 @@ WKD = Path().cwd()
 
 @pytest.fixture
 def actual_connected_vault():
-    return Vault(WKD / 'tests/vault-stub').connect().gather()
+    return Vault(WKD / "tests/vault-stub").connect().gather()
 
 
 def test_attr_setters_main_setup(actual_connected_vault):
     actual_connected_vault.md_file_index = {}
     assert actual_connected_vault.md_file_index == {}
 
-    actual_connected_vault.canvas_file_index = {'New.canvas': ''}
-    assert actual_connected_vault.canvas_file_index == {'New.canvas': ''}
+    actual_connected_vault.canvas_file_index = {"New.canvas": ""}
+    assert actual_connected_vault.canvas_file_index == {"New.canvas": ""}
 
 
 def test_attr_setters_md_connect_related(actual_connected_vault):
@@ -86,11 +86,11 @@ def test_attr_setters_md_connect_related(actual_connected_vault):
 
 
 def test_attr_setters_md_gather_related(actual_connected_vault):
-    actual_connected_vault.source_text_index = {'Isolated note': '`new text`'}
-    assert actual_connected_vault.source_text_index == {'Isolated note': '`new text`'}
+    actual_connected_vault.source_text_index = {"Isolated note": "`new text`"}
+    assert actual_connected_vault.source_text_index == {"Isolated note": "`new text`"}
 
-    actual_connected_vault.readable_text_index = {'Isolated note': 'Test'}
-    assert actual_connected_vault.readable_text_index == {'Isolated note': 'Test'}
+    actual_connected_vault.readable_text_index = {"Isolated note": "Test"}
+    assert actual_connected_vault.readable_text_index == {"Isolated note": "Test"}
 
 
 def test_attr_setters_canvas_connect_related(actual_connected_vault):

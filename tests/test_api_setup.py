@@ -1,6 +1,5 @@
-import pytest
 import networkx as nx
-
+import pytest
 
 from obsidiantools.api import Vault
 
@@ -44,7 +43,7 @@ def test_vault_instantiation_needs_directory():
 
 
 def test_type_error_is_raised_for_string_dirpath():
-    actual_vault_dirpath = 'home/digital-garden'
+    actual_vault_dirpath = "home/digital-garden"
     with pytest.raises(TypeError):
         Vault(actual_vault_dirpath)
 
@@ -73,22 +72,22 @@ def test_connect(mock_initial_vault):
 def test_functions_to_fail_for_unconnected_vault(mock_initial_vault):
     # catch functions that require attributes set via connect method
     with pytest.raises(AttributeError):
-        mock_initial_vault.get_backlinks('A note that would not exist')
+        mock_initial_vault.get_backlinks("A note that would not exist")
     with pytest.raises(AttributeError):
-        mock_initial_vault.get_backlink_counts('A note that would not exist')
+        mock_initial_vault.get_backlink_counts("A note that would not exist")
     with pytest.raises(AttributeError):
-        mock_initial_vault.get_wikilinks('A note that would not exist')
+        mock_initial_vault.get_wikilinks("A note that would not exist")
     with pytest.raises(AttributeError):
-        mock_initial_vault.get_wikilink_counts('A note that would not exist')
+        mock_initial_vault.get_wikilink_counts("A note that would not exist")
     with pytest.raises(AttributeError):
-        mock_initial_vault.get_tags('A note that would not exist')
+        mock_initial_vault.get_tags("A note that would not exist")
     with pytest.raises(AttributeError):
-        mock_initial_vault.get_embedded_files('A note that would not exist')
+        mock_initial_vault.get_embedded_files("A note that would not exist")
     with pytest.raises(AttributeError):
-        mock_initial_vault.get_math_index('A note that would not exist')
+        mock_initial_vault.get_math_index("A note that would not exist")
     with pytest.raises(AttributeError):
-        mock_initial_vault.get_front_matter('A note that would not exist')
+        mock_initial_vault.get_front_matter("A note that would not exist")
     with pytest.raises(AttributeError):
-        mock_initial_vault.get_md_links('A note that would not exist')
+        mock_initial_vault.get_md_links("A note that would not exist")
     with pytest.raises(AttributeError):
         mock_initial_vault.get_note_metadata()
