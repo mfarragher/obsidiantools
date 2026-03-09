@@ -111,6 +111,6 @@ def _get_shortest_path_by_filename(relpaths_list: list[Path]) -> dict[str, Path]
     # get shortest paths via mask:
     shortest_paths_arr = np.array(all_file_names_list, dtype=object)
     shortest_paths_arr[dupe_names_ix] = np.array(
-        [str(fpath) for fpath in relpaths_list]
+        [fpath.as_posix() for fpath in relpaths_list]
     )[dupe_names_ix]
     return dict(zip(shortest_paths_arr, relpaths_list))

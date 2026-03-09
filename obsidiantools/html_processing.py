@@ -1,3 +1,5 @@
+import re
+
 import bleach
 from bs4 import BeautifulSoup
 from html2text import HTML2Text
@@ -62,6 +64,8 @@ def _remove_latex(html: str) -> str:
     soup = BeautifulSoup(html, "lxml")
     soup = _remove_latex_via_soup(soup)
     html_str = str(soup)
+    # Strip leftover $ / $$ delimiters from pymdown-extensions arithmatex
+    html_str = re.sub(r"\${1,2}", "", html_str)
     return html_str
 
 

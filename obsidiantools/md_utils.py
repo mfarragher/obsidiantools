@@ -323,6 +323,8 @@ def get_source_text_from_html(
     if remove_math:
         soup = _remove_latex_via_soup(soup)
     new_str = str(soup)
+    # Strip leftover $ / $$ delimiters from pymdown-extensions arithmatex
+    new_str = re.sub(r"\${1,2}", "", new_str)
     return _get_plaintext_from_html(new_str)
 
 
@@ -364,6 +366,8 @@ def _get_readable_text_from_html(html: str, *, tags: list[str] = None) -> str:
     soup = _remove_latex_via_soup(soup)
     soup = _remove_del_text_via_soup(soup)
     new_str = str(soup)
+    # Strip leftover $ / $$ delimiters from pymdown-extensions arithmatex
+    new_str = re.sub(r"\${1,2}", "", new_str)
     # -BLEACH-
     if tags is not None:
         new_str = _remove_main_formatting(new_str, tags=tags)
