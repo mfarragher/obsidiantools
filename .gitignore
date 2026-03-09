@@ -140,3 +140,4 @@ notebooks/
 .gitignore
 junit.xml
 codecov.yml
+.claude/settings.local.json
