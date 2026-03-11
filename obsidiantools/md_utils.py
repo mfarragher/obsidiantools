@@ -1,3 +1,4 @@
+import logging
 import re
 from pathlib import Path
 
@@ -24,6 +25,8 @@ from .html_processing import (
     _remove_latex_via_soup,
     _remove_main_formatting,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def get_md_relpaths_from_dir(dir_path: Path) -> list[Path]:
@@ -263,17 +266,25 @@ def _get_md_front_matter_and_content(
             return frontmatter.parse(file_string)
         # for invalid YAML, return the whole file as content:
         except yaml.scanner.ScannerError as e:
-            print(f"Front matter not populated for {filepath.name}: {repr(e)}")
+            logger.debug("Front matter not populated for %s: %r", filepath.name, e)
             return {}, file_string
         except yaml.parser.ParserError as e:
-            print(f"Front matter not populated for {filepath.name}: {repr(e)}")
+            logger.debug("Front matter not populated for %s: %r", filepath.name, e)
             return {}, file_string
         # handle template {{}} chars in front matter:
         except yaml.constructor.ConstructorError:
-            file_string_esc = file_string.translate(
-                str.maketrans({"{": r"\{", "}": r"\}"})
-            )
-            return frontmatter.parse(file_string_esc)
+            try:
+                file_string_esc = file_string.translate(
+                    str.maketrans({"{": r"\{", "}": r"\}"})
+                )
+                return frontmatter.parse(file_string_esc)
+            except Exception as e:
+                logger.debug(
+                    "Front matter not populated for %s after escaping: %r",
+                    filepath.name,
+                    e,
+                )
+                return {}, file_string
         # any others:
         except Exception:
             return {}, file_string

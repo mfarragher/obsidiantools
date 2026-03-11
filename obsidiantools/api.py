@@ -8,8 +8,6 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 
-logger = logging.getLogger(__name__)
-
 from ._constants import METADATA_DF_COLS_GENERIC_TYPE
 from ._io import _get_shortest_path_by_filename
 
@@ -39,6 +37,8 @@ from .md_utils import (
     get_tags,
 )
 from .media_utils import _get_all_valid_media_file_relpaths
+
+logger = logging.getLogger(__name__)
 
 
 class Vault:
@@ -154,6 +154,13 @@ class Vault:
         # args:
         self._dirpath = dirpath
         self._attachments = None  # connect()
+
+        logger.info("Initialising vault from '%s'", dirpath)
+        logger.debug(
+            "Init options: include_subdirs=%s, include_root=%s",
+            include_subdirs,
+            include_root,
+        )
 
         self._md_file_index = self._get_md_relpaths_by_name(
             include_subdirs=include_subdirs, include_root=include_root
@@ -528,6 +535,7 @@ class Vault:
 
             # loop through md files:
             n_md = len(self._md_file_index)
+            skipped_md = []
             for i, (f, relpath) in enumerate(self._md_file_index.items(), 1):
                 logger.debug("connect: processing md file %d/%d: %s", i, n_md, relpath)
                 try:
@@ -535,26 +543,35 @@ class Vault:
                         relpath, note=f, show_nested_tags=show_nested_tags
                     )
                 except Exception:
-                    logger.error(
-                        "connect: failed to process md file '%s'",
+                    logger.warning(
+                        "connect: skipping md file '%s' due to error",
                         relpath,
                         exc_info=True,
                     )
-                    raise
+                    skipped_md.append(relpath)
 
             # canvas content:
             # loop through canvas files:
             self._canvas_content_index = {}
             self._canvas_graph_detail_index = {}
             n_canvas = len(self._canvas_file_index)
+            skipped_canvas = []
             for i, (f, relpath) in enumerate(self._canvas_file_index.items(), 1):
                 logger.debug(
                     "connect: processing canvas file %d/%d: %s", i, n_canvas, relpath
                 )
-                content_c = get_canvas_content(self._dirpath / relpath)
-                self._canvas_content_index[f] = content_c
-                G_c, pos_c, edge_labels_c = get_canvas_graph_detail(content_c)
-                self._canvas_graph_detail_index[f] = G_c, pos_c, edge_labels_c
+                try:
+                    content_c = get_canvas_content(self._dirpath / relpath)
+                    self._canvas_content_index[f] = content_c
+                    G_c, pos_c, edge_labels_c = get_canvas_graph_detail(content_c)
+                    self._canvas_graph_detail_index[f] = G_c, pos_c, edge_labels_c
+                except Exception:
+                    logger.warning(
+                        "connect: skipping canvas file '%s' due to error",
+                        relpath,
+                        exc_info=True,
+                    )
+                    skipped_canvas.append(relpath)
 
             # set these up before graph is created:
             self._set_canvas_file_attrs()
@@ -574,6 +591,22 @@ class Vault:
             self._set_media_file_attrs()
 
             self._is_connected = True
+            n_skipped = len(skipped_md) + len(skipped_canvas)
+            if n_skipped:
+                logger.warning(
+                    "Vault connected with %d skipped file(s) (%d md, %d canvas): %s",
+                    n_skipped,
+                    len(skipped_md),
+                    len(skipped_canvas),
+                    [str(p) for p in skipped_md + skipped_canvas],
+                )
+            logger.info(
+                "Vault connected: %d nodes, %d edges in graph",
+                G.number_of_nodes(),
+                G.number_of_edges(),
+            )
+        else:
+            logger.debug("connect: vault already connected, skipping")
 
         return self  # fluent
 
@@ -864,9 +897,28 @@ class Vault:
                 will remove all header formatting (e.g. '#', '##' chars)
                 and produces a one-line string.
         """
-        for f, relpath in self._md_file_index.items():
-            self._gather_update_based_on_new_relpath(relpath, note=f, tags=tags)
+        logger.info("Gathering text from %d md files", len(self._md_file_index))
+        n_md = len(self._md_file_index)
+        skipped = []
+        for i, (f, relpath) in enumerate(self._md_file_index.items(), 1):
+            logger.debug("gather: processing file %d/%d: %s", i, n_md, relpath)
+            try:
+                self._gather_update_based_on_new_relpath(relpath, note=f, tags=tags)
+            except Exception:
+                logger.warning(
+                    "gather: skipping file '%s' due to error",
+                    relpath,
+                    exc_info=True,
+                )
+                skipped.append(relpath)
         self._is_gathered = True
+        if skipped:
+            logger.warning(
+                "Vault gathered with %d skipped file(s): %s",
+                len(skipped),
+                [str(p) for p in skipped],
+            )
+        logger.info("Vault gathered successfully")
 
         return self  # fluent
 
