@@ -1,3 +1,4 @@
+import logging
 import warnings
 from collections import Counter
 from itertools import chain
@@ -6,6 +7,8 @@ from pathlib import Path
 import networkx as nx
 import numpy as np
 import pandas as pd
+
+logger = logging.getLogger(__name__)
 
 from ._constants import METADATA_DF_COLS_GENERIC_TYPE
 from ._io import _get_shortest_path_by_filename
@@ -157,6 +160,11 @@ class Vault:
         )
         self._canvas_file_index = self._get_canvas_relpaths_by_name(
             include_subdirs=include_subdirs, include_root=include_root
+        )
+        logger.info(
+            "Found %d md files and %d canvas files",
+            len(self._md_file_index),
+            len(self._canvas_file_index),
         )
 
         self._is_connected = False
@@ -500,6 +508,11 @@ class Vault:
         """
         if not self._is_connected:
             self._attachments = attachments
+            logger.info(
+                "Connecting vault (%d md files, attachments=%s)",
+                len(self._md_file_index),
+                attachments,
+            )
 
             # md content:
             # index dicts, where k is a note name in the vault:
@@ -514,16 +527,30 @@ class Vault:
             self._unique_wikilinks_index = {}
 
             # loop through md files:
-            for f, relpath in self._md_file_index.items():
-                self._connect_update_based_on_new_relpath(
-                    relpath, note=f, show_nested_tags=show_nested_tags
-                )
+            n_md = len(self._md_file_index)
+            for i, (f, relpath) in enumerate(self._md_file_index.items(), 1):
+                logger.debug("connect: processing md file %d/%d: %s", i, n_md, relpath)
+                try:
+                    self._connect_update_based_on_new_relpath(
+                        relpath, note=f, show_nested_tags=show_nested_tags
+                    )
+                except Exception:
+                    logger.error(
+                        "connect: failed to process md file '%s'",
+                        relpath,
+                        exc_info=True,
+                    )
+                    raise
 
             # canvas content:
             # loop through canvas files:
             self._canvas_content_index = {}
             self._canvas_graph_detail_index = {}
-            for f, relpath in self._canvas_file_index.items():
+            n_canvas = len(self._canvas_file_index)
+            for i, (f, relpath) in enumerate(self._canvas_file_index.items(), 1):
+                logger.debug(
+                    "connect: processing canvas file %d/%d: %s", i, n_canvas, relpath
+                )
                 content_c = get_canvas_content(self._dirpath / relpath)
                 self._canvas_content_index[f] = content_c
                 G_c, pos_c, edge_labels_c = get_canvas_graph_detail(content_c)
@@ -534,6 +561,7 @@ class Vault:
             self._set_media_file_attrs()
 
             # graph setup:
+            logger.debug("connect: building graph")
             graph_data_dict = self.__get_graph_data_dict(attachments=attachments)
             G = nx.MultiDiGraph(graph_data_dict)
             self._graph = G
@@ -1135,11 +1163,11 @@ class Vault:
         shortest_paths_arr = np.array(all_file_names_list, dtype=object)
         if extension == "md":
             shortest_paths_arr[dupe_names_ix] = np.array(
-                [str(fpath.with_suffix("")) for fpath in relpaths_list]
+                [fpath.with_suffix("").as_posix() for fpath in relpaths_list]
             )[dupe_names_ix]
         if extension == "canvas":
             shortest_paths_arr[dupe_names_ix] = np.array(
-                [str(fpath) for fpath in relpaths_list]
+                [fpath.as_posix() for fpath in relpaths_list]
             )[dupe_names_ix]
 
         return dict(zip(shortest_paths_arr, relpaths_list))
