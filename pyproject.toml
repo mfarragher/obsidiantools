@@ -1,0 +1,136 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "obsidiantools"
+version = "0.11.0"
+description = "Obsidian Tools - a Python interface for Obsidian.md vaults"
+readme = "README.md"
+license = { text = "BSD" }
+authors = [{ name = "Mark Farragher" }]
+keywords = [
+  "obsidian",
+  "obsidian.md",
+  "knowledge",
+  "note-taking",
+  "notes",
+  "knowledge management",
+  "connected notes",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Education",
+  "Intended Audience :: Science/Research",
+  "Topic :: Text Processing :: Markup :: Markdown",
+  "Topic :: Office/Business",
+  "Topic :: Education",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "License :: OSI Approved :: BSD License",
+  "Operating System :: OS Independent",
+]
+requires-python = ">=3.9"
+dependencies = [
+  "markdown",
+  "pymdown-extensions",
+  "html2text",
+  "pandas",
+  "numpy",
+  "networkx",
+  "python-frontmatter",
+  "beautifulsoup4",
+  "bleach",
+  "lxml",
+]
+
+[project.urls]
+Source = "https://github.com/mfarragher/obsidiantools"
+
+[project.optional-dependencies]
+dev = [
+  "pytest",
+  "pytest-cov",
+  "pytest-mock",
+  "coverage",
+  "twine",
+]
+
+# ---------------------------------------------------------------------------
+# uv
+# ---------------------------------------------------------------------------
+[tool.uv]
+dev-dependencies = [
+  "pytest",
+  "pytest-cov",
+  "pytest-mock",
+  "coverage",
+  "twine",
+  "ruff",
+  "ty",
+]
+
+# ---------------------------------------------------------------------------
+# Ruff – linting & formatting
+# ---------------------------------------------------------------------------
+[tool.ruff]
+target-version = "py39"
+line-length = 88
+
+[tool.ruff.lint]
+select = [
+  "E",   # pycodestyle errors
+  "W",   # pycodestyle warnings
+  "F",   # Pyflakes
+  "I",   # isort
+  "UP",  # pyupgrade
+  "B",   # flake8-bugbear
+  "C4",  # flake8-comprehensions
+  "SIM", # flake8-simplify
+]
+ignore = [
+  "E501",  # line-too-long (formatter handles this)
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Trailing whitespace is intentional inside expected-value string literals
+"tests/test_md_utils.py" = ["W291"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["obsidiantools"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+# ---------------------------------------------------------------------------
+# ty – static type checking
+# ---------------------------------------------------------------------------
+[tool.ty]
+# Specify source root for type checking
+src = ["obsidiantools"]
+
+[tool.ty.rules]
+# Start with a permissive baseline; tighten over time
+reportMissingTypeStubs = "warn"
+reportUnknownVariableType = "warn"
+reportUnknownMemberType = "warn"
+
+# ---------------------------------------------------------------------------
+# pytest
+# ---------------------------------------------------------------------------
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+# ---------------------------------------------------------------------------
+# coverage
+# ---------------------------------------------------------------------------
+[tool.coverage.run]
+source = ["obsidiantools"]
+omit = ["tests/*"]
+
+[tool.coverage.report]
+show_missing = true

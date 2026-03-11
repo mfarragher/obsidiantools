@@ -1,4 +1,5 @@
-name: codecov
+name: CI
+
 on:
   pull_request:
     branches-ignore:
@@ -6,30 +7,60 @@ on:
   push:
     branches:
       - main
+
 jobs:
-  run:
+  test:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        python-version: ['3.13', '3.12', '3.11', '3.10', '3.9']
+        python-version: ["3.13", "3.12", "3.11", "3.10", "3.9"]
     env:
       OS: ${{ matrix.os }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v1
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
-          python-version: ${{ matrix.python-version }}
-          node-version: 16
+          enable-cache: true
+
+      - name: Set up Python ${{ matrix.python-version }}
+        run: uv python install ${{ matrix.python-version }}
+
       - name: Install dependencies
-        run: |
-          pip install -r requirements.txt --use-pep517
-          pip install -r requirements_test.txt --use-pep517
-          python setup.py sdist bdist_wheel
-          pip install dist/*.whl
+        run: uv sync --python ${{ matrix.python-version }}
+
       - name: Run tests and collect coverage
-        run: python -m pytest tests/ --cov=./ --cov-report=xml
+        run: uv run pytest
+
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Ruff lint
+        run: uvx ruff check .
+
+      - name: Ruff format check
+        run: uvx ruff format --check .
+
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install ty
+        run: uv tool install ty
+
+      - name: Run ty
+        run: uv run ty check obsidiantools

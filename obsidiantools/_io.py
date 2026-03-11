@@ -1,5 +1,6 @@
-from pathlib import Path
 from glob import glob
+from pathlib import Path
+
 import numpy as np
 
 
@@ -18,16 +19,20 @@ def get_relpaths_from_dir(dir_path: Path, *, extension: str) -> list[Path]:
     Returns:
         list of Path objects
     """
-    relpaths_list = [Path(p).relative_to(dir_path)
-                     for p in glob(f"{dir_path}/**/*.{extension}",
-                     recursive=True)]
+    relpaths_list = [
+        Path(p).relative_to(dir_path)
+        for p in glob(f"{dir_path}/**/*.{extension}", recursive=True)
+    ]
     return relpaths_list
 
 
-def get_relpaths_matching_subdirs(dir_path: Path, *,
-                                  extension: str,
-                                  include_subdirs: list = None,
-                                  include_root: bool = True) -> list[Path]:
+def get_relpaths_matching_subdirs(
+    dir_path: Path,
+    *,
+    extension: str,
+    include_subdirs: list = None,
+    include_root: bool = True,
+) -> list[Path]:
     """Get list of relative paths for {extension} files in a given directory,
     filtered to include specified subdirectories (with include_subdirs
     kwarg).  The default arguments align with get_relpaths_from_dir
@@ -61,34 +66,35 @@ def get_relpaths_matching_subdirs(dir_path: Path, *,
     # forward slash consistently here.
 
     if include_subdirs:
-        include_subdirs_final = [str(Path(i).as_posix())
-                                 for i in include_subdirs]
+        include_subdirs_final = [str(Path(i).as_posix()) for i in include_subdirs]
 
     if not include_subdirs and include_root:
-        return get_relpaths_from_dir(dir_path,
-                                     extension=extension)
+        return get_relpaths_from_dir(dir_path, extension=extension)
     elif not include_subdirs and not include_root:
-        return [i for i in get_relpaths_from_dir(dir_path,
-                                                 extension=extension)
-                if str(i.parent.as_posix()) != '.']
+        return [
+            i
+            for i in get_relpaths_from_dir(dir_path, extension=extension)
+            if str(i.parent.as_posix()) != "."
+        ]
     else:
         if include_root:
-            return [i for i in get_relpaths_from_dir(dir_path,
-                                                     extension=extension)
-                    if str(i.parent.as_posix())
-                    in include_subdirs_final + ['.']]
+            return [
+                i
+                for i in get_relpaths_from_dir(dir_path, extension=extension)
+                if str(i.parent.as_posix()) in include_subdirs_final + ["."]
+            ]
         else:
-            return [i for i in get_relpaths_from_dir(dir_path,
-                                                     extension=extension)
-                    if str(i.parent.as_posix())
-                    in include_subdirs_final]
+            return [
+                i
+                for i in get_relpaths_from_dir(dir_path, extension=extension)
+                if str(i.parent.as_posix()) in include_subdirs_final
+            ]
 
 
-def _get_valid_filepaths_by_ext_set(dirpath: Path, *,
-                                    exts: set[str]):
-    all_files = [p.relative_to(dirpath)
-                 for p in Path(dirpath).glob("**/*")
-                 if p.suffix in exts]
+def _get_valid_filepaths_by_ext_set(dirpath: Path, *, exts: set[str]):
+    all_files = [
+        p.relative_to(dirpath) for p in Path(dirpath).glob("**/*") if p.suffix in exts
+    ]
     return all_files
 
 
@@ -98,15 +104,13 @@ def _get_shortest_path_by_filename(relpaths_list: list[Path]) -> dict[str, Path]
 
     # get indices of dupe 'filename w/ ext':
     _, inverse_ix, counts = np.unique(
-        np.array(all_file_names_list),
-        return_inverse=True,
-        return_counts=True,
-        axis=0)
+        np.array(all_file_names_list), return_inverse=True, return_counts=True, axis=0
+    )
     dupe_names_ix = np.where(counts[inverse_ix] > 1)[0]
 
     # get shortest paths via mask:
     shortest_paths_arr = np.array(all_file_names_list, dtype=object)
     shortest_paths_arr[dupe_names_ix] = np.array(
-        [str(fpath)
-         for fpath in relpaths_list])[dupe_names_ix]
-    return {fn: path for fn, path in zip(shortest_paths_arr, relpaths_list)}
+        [fpath.as_posix() for fpath in relpaths_list]
+    )[dupe_names_ix]
+    return dict(zip(shortest_paths_arr, relpaths_list))

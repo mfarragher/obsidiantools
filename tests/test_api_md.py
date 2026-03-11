@@ -1,6 +1,5 @@
 import pytest
 
-
 from obsidiantools.api import Vault
 
 
