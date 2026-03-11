@@ -7,10 +7,36 @@
 It's incredibly easy to explore structured data on your vault through this fluent interface.  This is all the code you need to generate a `vault` object that stores all the data:
 
 ```python
+from pathlib import Path
 import obsidiantools.api as otools
 
-vault = otools.Vault(<VAULT_DIRECTORY>).connect().gather()
+vault = otools.Vault(Path(<VAULT_DIRECTORY>)).connect().gather()
 ```
+
+You can store your vault path in a `.env` file (ignored by git) so you don't have to retype it:
+
+```
+# .env
+VAULT_DIR=C:\Users\me\My Vault
+```
+
+```python
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+import obsidiantools.api as otools
+
+load_dotenv()
+vault = otools.Vault(Path(os.environ["VAULT_DIR"])).connect().gather()
+```
+
+To speed up processing on large vaults, enable parallel loading with the `workers` parameter:
+
+```python
+vault = otools.Vault(Path(os.environ["VAULT_DIR"]), workers=8).connect().gather()
+```
+
+The `workers` value set at initialisation is used by both `connect()` and `gather()`.  You can override it per-call, e.g. `.connect(workers=4).gather(workers=2)`.
 
 These are the basics of the method calls:
 - `connect()`: connect your notes together in a graph structure and get metadata on links (e.g. wikilinks, backlinks, etc.)  There ais the option to support the inclusion of 'attachment' files in the graph.

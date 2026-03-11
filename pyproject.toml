@@ -45,6 +45,7 @@ dependencies = [
   "beautifulsoup4",
   "bleach",
   "lxml",
+  "dotenv>=0.9.9",
 ]
 
 [project.urls]

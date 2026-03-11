@@ -31,8 +31,8 @@ def vault_sequential():
 
 @pytest.fixture
 def vault_parallel():
-    """Vault connected and gathered with threads."""
-    return Vault(VAULT_STUB).connect(workers=WORKERS).gather(workers=WORKERS)
+    """Vault connected and gathered with threads (workers set at init)."""
+    return Vault(VAULT_STUB, workers=WORKERS).connect().gather()
 
 
 # --- connect(): parallel vs sequential equivalence ---
@@ -156,25 +156,38 @@ class TestWorkersEdgeCases:
 
     def test_workers_none_is_sequential(self, vault_sequential):
         """workers=None should behave identically to default."""
-        v = Vault(VAULT_STUB).connect(workers=None).gather(workers=None)
+        v = Vault(VAULT_STUB, workers=None).connect().gather()
         assert v.wikilinks_index == vault_sequential.wikilinks_index
         assert v.source_text_index == vault_sequential.source_text_index
 
     def test_workers_one_is_sequential(self, vault_sequential):
         """workers=1 should use the sequential path."""
-        v = Vault(VAULT_STUB).connect(workers=1).gather(workers=1)
+        v = Vault(VAULT_STUB, workers=1).connect().gather()
         assert v.wikilinks_index == vault_sequential.wikilinks_index
         assert v.source_text_index == vault_sequential.source_text_index
 
     def test_workers_zero_is_sequential(self, vault_sequential):
         """workers=0 (falsy) should fall back to sequential."""
-        v = Vault(VAULT_STUB).connect(workers=0).gather(workers=0)
+        v = Vault(VAULT_STUB, workers=0).connect().gather()
         assert v.wikilinks_index == vault_sequential.wikilinks_index
         assert v.source_text_index == vault_sequential.source_text_index
 
     def test_workers_large_number(self, vault_sequential):
-        """workers much larger than file count should still work."""
-        v = Vault(VAULT_STUB).connect(workers=100).gather(workers=100)
+        """workers much larger than file count should still work
+        (capped internally to platform limit)."""
+        v = Vault(VAULT_STUB, workers=200).connect().gather()
+        assert v.wikilinks_index == vault_sequential.wikilinks_index
+        assert v.source_text_index == vault_sequential.source_text_index
+
+    def test_method_workers_overrides_init(self, vault_sequential):
+        """workers passed to connect/gather should override the init value."""
+        v = Vault(VAULT_STUB, workers=1).connect(workers=WORKERS).gather(workers=WORKERS)
+        assert v.wikilinks_index == vault_sequential.wikilinks_index
+        assert v.source_text_index == vault_sequential.source_text_index
+
+    def test_init_workers_used_when_method_omitted(self, vault_sequential):
+        """When no workers passed to methods, init value should be used."""
+        v = Vault(VAULT_STUB, workers=WORKERS).connect().gather()
         assert v.wikilinks_index == vault_sequential.wikilinks_index
         assert v.source_text_index == vault_sequential.source_text_index
 
@@ -187,12 +200,12 @@ class TestConnectOptionsParallel:
 
     def test_show_nested_tags_parallel(self):
         v_seq = Vault(VAULT_STUB).connect(show_nested_tags=True)
-        v_par = Vault(VAULT_STUB).connect(show_nested_tags=True, workers=WORKERS)
+        v_par = Vault(VAULT_STUB, workers=WORKERS).connect(show_nested_tags=True)
         assert v_seq.tags_index == v_par.tags_index
 
     def test_attachments_true_parallel(self):
         v_seq = Vault(VAULT_STUB).connect(attachments=True)
-        v_par = Vault(VAULT_STUB).connect(attachments=True, workers=WORKERS)
+        v_par = Vault(VAULT_STUB, workers=WORKERS).connect(attachments=True)
         assert v_seq.wikilinks_index == v_par.wikilinks_index
         assert set(v_seq.graph.nodes) == set(v_par.graph.nodes)
         assert set(v_seq.graph.edges) == set(v_par.graph.edges)
@@ -205,16 +218,16 @@ class TestIdempotencyParallel:
     """Calling connect() or gather() twice should not change results."""
 
     def test_double_connect_parallel(self):
-        v = Vault(VAULT_STUB).connect(workers=WORKERS)
+        v = Vault(VAULT_STUB, workers=WORKERS).connect()
         nodes_before = set(v.graph.nodes)
         edges_before = set(v.graph.edges)
-        v.connect(workers=WORKERS)  # second call should be a no-op
+        v.connect()  # second call should be a no-op
         assert set(v.graph.nodes) == nodes_before
         assert set(v.graph.edges) == edges_before
 
     def test_gather_after_parallel_connect(self):
         """gather() sequentially after parallel connect() should work."""
-        v = Vault(VAULT_STUB).connect(workers=WORKERS).gather()
+        v = Vault(VAULT_STUB, workers=WORKERS).connect().gather(workers=1)
         assert v.is_gathered
         assert set(v.md_file_index.keys()) == set(v.source_text_index.keys())
 
@@ -230,8 +243,8 @@ class TestThreadSafety:
     def test_independent_vaults_parallel(self):
         """Create two independent vaults with parallel workers and
         verify they both produce correct, identical results."""
-        v1 = Vault(VAULT_STUB).connect(workers=WORKERS).gather(workers=WORKERS)
-        v2 = Vault(VAULT_STUB).connect(workers=WORKERS).gather(workers=WORKERS)
+        v1 = Vault(VAULT_STUB, workers=WORKERS).connect().gather()
+        v2 = Vault(VAULT_STUB, workers=WORKERS).connect().gather()
 
         assert v1.wikilinks_index == v2.wikilinks_index
         assert v1.source_text_index == v2.source_text_index
