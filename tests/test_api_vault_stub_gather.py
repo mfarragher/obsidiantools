@@ -1,6 +1,6 @@
-import pytest
 from pathlib import Path
 
+import pytest
 
 from obsidiantools.api import Vault
 
@@ -10,7 +10,7 @@ WKD = Path().cwd()
 
 @pytest.fixture
 def actual_unconnected_vault():
-    return Vault(WKD / 'tests/vault-stub')
+    return Vault(WKD / "tests/vault-stub")
 
 
 @pytest.fixture
@@ -31,33 +31,31 @@ def test_vault_not_connected(actual_unconnected_vault):
 
 def test_vault_not_gathered(actual_unconnected_vault):
     with pytest.raises(AttributeError):
-        actual_unconnected_vault.get_source_text('Isolated note')
+        actual_unconnected_vault.get_source_text("Isolated note")
     with pytest.raises(AttributeError):
-        actual_unconnected_vault.get_readable_text('Isolated note')
+        actual_unconnected_vault.get_readable_text("Isolated note")
 
 
 def test_text_not_existing(actual_gathered_vault_defaults):
     assert actual_gathered_vault_defaults.is_gathered
     with pytest.raises(ValueError):
-        actual_gathered_vault_defaults.get_source_text('Tarpeia')
+        actual_gathered_vault_defaults.get_source_text("Tarpeia")
     with pytest.raises(ValueError):
-        actual_gathered_vault_defaults.get_readable_text('Tarpeia')
+        actual_gathered_vault_defaults.get_readable_text("Tarpeia")
 
 
 def test_source_text_existing_file(actual_gathered_vault_defaults):
-    actual_in_text = (actual_gathered_vault_defaults
-                      .get_source_text('Isolated note'))
-    expected_start = '# Isolated note'
-    expected_end = 'an isolated note ~~an orphan~~.\n'
+    actual_in_text = actual_gathered_vault_defaults.get_source_text("Isolated note")
+    expected_start = "# Isolated note"
+    expected_end = "an isolated note ~~an orphan~~.\n"
     assert actual_in_text.startswith(expected_start)
     assert actual_in_text.endswith(expected_end)
 
 
 def test_readable_text_existing_file(actual_gathered_vault_defaults):
-    actual_in_text = (actual_gathered_vault_defaults
-                      .get_readable_text('Sussudio'))
-    expected_start = '# Sussudio'
-    expected_end = '\\- #hash_char_not_tag\n'
+    actual_in_text = actual_gathered_vault_defaults.get_readable_text("Sussudio")
+    expected_start = "# Sussudio"
+    expected_end = "\\- #hash_char_not_tag\n"
     assert actual_in_text.startswith(expected_start)
     assert actual_in_text.endswith(expected_end)
 
@@ -70,7 +68,7 @@ This is an isolated note ~~an orphan~~.
 
     assert actual_gathered_vault_defaults.is_gathered
 
-    actual_text = actual_gathered_vault_defaults.get_source_text('Isolated note')
+    actual_text = actual_gathered_vault_defaults.get_source_text("Isolated note")
     assert actual_text == expected_text
 
 
@@ -107,5 +105,5 @@ More tags: \- #y_1982 \- #y-1982 \- #y1982/sep \- #y2000/party-over/oops/out-of-
 
 However these shouldn't be recognised as tags: \- (#y1985 ) \- #1985 \- American Psycho (film)#Patrick Bateman \- #hash_char_not_tag
 """
-    actual_text = actual_gathered_vault_defaults.get_readable_text('Sussudio')
+    actual_text = actual_gathered_vault_defaults.get_readable_text("Sussudio")
     assert actual_text == expected_text

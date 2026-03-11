@@ -1,8 +1,6 @@
 from pathlib import Path
 
-from obsidiantools.html_processing import (_remove_code,
-                                           _remove_del_text,
-                                           _remove_latex)
+from obsidiantools.html_processing import _remove_code, _remove_del_text, _remove_latex
 from obsidiantools.md_utils import _get_html_from_md_file
 
 # NOTE: run the tests from the project dir.
@@ -10,7 +8,7 @@ WKD = Path().cwd()
 
 
 def test_remove_code():
-    fpath = Path('.') / 'tests/general/wikilinks_exclude-code.md'
+    fpath = Path(".") / "tests/general/wikilinks_exclude-code.md"
 
     actual_html = _get_html_from_md_file(fpath)
     actual_proc_html = _remove_code(actual_html)
@@ -24,7 +22,7 @@ def test_remove_code():
 
 
 def test_remove_del_text():
-    fpath = Path('.') / 'tests/general/readable-text_all-deleted.md'
+    fpath = Path(".") / "tests/general/readable-text_all-deleted.md"
 
     actual_html = _get_html_from_md_file(fpath)
     actual_proc_html = _remove_del_text(actual_html)
@@ -35,7 +33,7 @@ def test_remove_del_text():
 
 
 def test_remove_latex_in_note_with_highly_formatted_text():
-    fpath = Path('.') / 'tests/general/latex.md'
+    fpath = Path(".") / "tests/general/latex.md"
 
     actual_html = _get_html_from_md_file(fpath)
     actual_proc_html = _remove_latex(actual_html)

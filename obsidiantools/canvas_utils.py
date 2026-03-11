@@ -1,10 +1,14 @@
 import json
-import networkx as nx
 from pathlib import Path
+
+import networkx as nx
+
 from ._constants import CANVAS_EXT_SET
-from ._io import (get_relpaths_from_dir,
-                  get_relpaths_matching_subdirs,
-                  _get_valid_filepaths_by_ext_set)
+from ._io import (
+    _get_valid_filepaths_by_ext_set,
+    get_relpaths_from_dir,
+    get_relpaths_matching_subdirs,
+)
 
 
 def get_canvas_relpaths_from_dir(dir_path: Path) -> list[Path]:
@@ -21,12 +25,12 @@ def get_canvas_relpaths_from_dir(dir_path: Path) -> list[Path]:
     Returns:
         list of Path objects
     """
-    return get_relpaths_from_dir(dir_path, extension='canvas')
+    return get_relpaths_from_dir(dir_path, extension="canvas")
 
 
-def get_canvas_relpaths_matching_subdirs(dir_path: Path, *,
-                                         include_subdirs: list = None,
-                                         include_root: bool = True) -> list[Path]:
+def get_canvas_relpaths_matching_subdirs(
+    dir_path: Path, *, include_subdirs: list = None, include_root: bool = True
+) -> list[Path]:
     """Get list of relative paths for canvas files in a given directory,
     filtered to include specified subdirectories (with include_subdirs
     kwarg).  The default arguments align with get_canvas_relpaths_from_dir
@@ -56,15 +60,14 @@ def get_canvas_relpaths_matching_subdirs(dir_path: Path, *,
     """
     return get_relpaths_matching_subdirs(
         dir_path,
-        extension='canvas',
+        extension="canvas",
         include_subdirs=include_subdirs,
-        include_root=include_root)
+        include_root=include_root,
+    )
 
 
 def _get_all_valid_canvas_file_relpaths(dirpath):
-    return (_get_valid_filepaths_by_ext_set(
-        dirpath,
-        exts=CANVAS_EXT_SET))
+    return _get_valid_filepaths_by_ext_set(dirpath, exts=CANVAS_EXT_SET)
 
 
 def get_canvas_content(filepath: Path) -> dict:
@@ -76,15 +79,14 @@ def get_canvas_content(filepath: Path) -> dict:
     Returns:
         dict
     """
-    with open(filepath, encoding='utf-8') as f:
+    with open(filepath, encoding="utf-8") as f:
         json_as_dict = json.load(f)
     return json_as_dict
 
 
-def get_canvas_graph_detail(canvas_content: dict) -> \
-        tuple[nx.MultiDiGraph,
-              dict[str, tuple[int, int]],
-              dict[tuple[str, str], str]]:
+def get_canvas_graph_detail(
+    canvas_content: dict,
+) -> tuple[nx.MultiDiGraph, dict[str, tuple[int, int]], dict[tuple[str, str], str]]:
     """Get the content from a canvas in a NetworkX graph.  With all the
     detail that is returned, it is possible to recreate the layout of the
     material in the canvas.
@@ -104,22 +106,28 @@ def get_canvas_graph_detail(canvas_content: dict) -> \
             edge_labels: list of labels for each edge in graph
     """
     G = nx.MultiDiGraph()
-    nodes_list = [i.get('id') for i in canvas_content['nodes']
-                  if i.get('type') != 'group']
+    nodes_list = [
+        i.get("id") for i in canvas_content["nodes"] if i.get("type") != "group"
+    ]
     G.add_nodes_from(nodes_list)
 
-    graph_edges_list = [(i.get('fromNode'), i.get('toNode'))
-                        for i in canvas_content['edges']
-                        if i.get('type') != 'group']
+    graph_edges_list = [
+        (i.get("fromNode"), i.get("toNode"))
+        for i in canvas_content["edges"]
+        if i.get("type") != "group"
+    ]
     G.add_edges_from(graph_edges_list)
 
     # y co-ord needs to be flipped to reflect app(?):
-    pos = {i.get('id'): (i.get('x'), -i.get('y'))
-           for i in canvas_content['nodes']
-           if i.get('type') != 'group'}
+    pos = {
+        i.get("id"): (i.get("x"), -i.get("y"))
+        for i in canvas_content["nodes"]
+        if i.get("type") != "group"
+    }
 
-    edge_labels = dict([((i.get('fromNode'), i.get('toNode')),
-                         f"{i.get('label', '')}")
-                        for i in canvas_content['edges']])
+    edge_labels = {
+        (i.get("fromNode"), i.get("toNode")): f"{i.get('label', '')}"
+        for i in canvas_content["edges"]
+    }
 
     return G, pos, edge_labels
