@@ -6,6 +6,8 @@ from obsidiantools.api import Vault
 TESTS_DIR = Path('.') / 'tests/properties'
 
 # Test fixtures
+
+
 @pytest.fixture
 def property_test_files():
     return {
@@ -20,11 +22,13 @@ def property_test_files():
         'links': TESTS_DIR / 'property_links.md'
     }  # added test for links
 
+
 @pytest.fixture
 def test_vault(tmp_path):
     return Vault(TESTS_DIR).connect()
-
 # Test md_utils property functions
+
+
 def test_get_basic_properties(property_test_files):
     props = get_properties(property_test_files['basic'])
     assert props == {
@@ -32,6 +36,7 @@ def test_get_basic_properties(property_test_files):
         'prop2': 'value2',
         'prop3': ['item1', 'item2', 'item3']
     }
+
 
 def test_get_frontmatter_style_properties(property_test_files):
     props = get_properties(property_test_files['frontmatter'])
@@ -51,6 +56,7 @@ def test_get_frontmatter_style_properties(property_test_files):
         'priority': 'High'
     }
 
+
 def test_get_nested_properties(property_test_files):
     props = get_properties(property_test_files['nested'])
     assert props == {
@@ -63,6 +69,7 @@ def test_get_nested_properties(property_test_files):
             'prop3': ['item1', 'item2', 'item3']
         }
     }
+
 
 def test_get_property_types(property_test_files):
     props = get_properties(property_test_files['types'])
@@ -86,6 +93,7 @@ def test_get_property_types(property_test_files):
         'empty': ''
     }
 
+
 def test_get_inline_properties(property_test_files):
     props = get_properties(property_test_files['inline'])
 
@@ -102,6 +110,7 @@ def test_get_inline_properties(property_test_files):
         'status': 'In Progress'
     }
 
+
 def test_get_specific_property(property_test_files):
     prop = get_property(property_test_files['basic'], 'prop1')
     assert prop == 'value1'
@@ -113,6 +122,8 @@ def test_get_specific_property(property_test_files):
     assert prop is None
 
 # Test Vault class property methods
+
+
 def test_vault_get_properties(test_vault):
     props = test_vault.get_properties('basic_properties')
     assert props == {
@@ -121,12 +132,14 @@ def test_vault_get_properties(test_vault):
         'prop3': ['item1', 'item2', 'item3']
     }
 
+
 def test_vault_get_property(test_vault):
     prop = test_vault.get_property('basic_properties', 'prop1')
     assert prop == 'value1'
 
     prop = test_vault.get_property('nonexistent_note', 'prop1')
     assert prop is None
+
 
 def test_vault_get_properties_index(test_vault):
     index = test_vault.get_properties_index()
@@ -137,6 +150,7 @@ def test_vault_get_properties_index(test_vault):
     assert index['frontmatter_style']['status'] == 'In Progress'
     assert index['inline_properties']['tags'] == ['tag1', 'tag2', 'tag3']
 
+
 def test_property_overriding(property_test_files):
     props = get_properties(property_test_files['overriding'])
     assert props == {
@@ -144,6 +158,7 @@ def test_property_overriding(property_test_files):
         'prop2': 'overridden value2',  # inline should override frontmatter
         'prop3': 'value3'
     }
+
 
 def test_property_special_chars(property_test_files):
     props = get_properties(property_test_files['special'])
@@ -156,6 +171,7 @@ def test_property_special_chars(property_test_files):
         'property-with-quotes': 'value6'
     }
 
+
 def test_property_whitespace_handling(property_test_files):
     props = get_properties(property_test_files['whitespace'])
     assert props == {
@@ -165,6 +181,7 @@ def test_property_whitespace_handling(property_test_files):
         'prop4': '',  # empty value
         'prop5': ['tag1', 'tag2', 'tag3']  # spaces in array should be trimmed
     }
+
 
 def test_property_link_handling(property_test_files):
     props = get_properties(property_test_files['links'])
