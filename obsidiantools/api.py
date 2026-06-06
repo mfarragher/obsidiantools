@@ -1404,11 +1404,11 @@ class Vault:
 
     def get_properties(self, note_name: str) -> dict:
         """Get all properties from a note, combining frontmatter and inline properties.
-        
+
         Properties can be defined in two ways in Obsidian:
         1. As frontmatter at the start of the file
         2. As inline properties in the format 'property:: value'
-        
+
         This method combines both types of properties into a single dictionary.
         If the same property exists in both frontmatter and inline, 
         the inline value takes precedence.
@@ -1429,29 +1429,29 @@ class Vault:
 
     def get_property(self, note_name: str, property_name: str) -> str | list | None:
         """Get a specific property from a note.
-        
+
         Looks for the property in both frontmatter and inline properties.
         If the property exists in both places, the inline value takes precedence.
-        
+
         Args:
             note_name (str): Name of the note (without .md extension).
                 For notes in folders, include the folder path
                 e.g. 'folder/note'.
             property_name (str): Name of the property to retrieve
-                
+
         Returns:
             str | list | None: Property value if found, None if not found
         """
         properties = self.get_properties(note_name)
         return properties.get(property_name) if properties else None
-    
+
     def get_properties_index(self) -> dict:
         """Get properties for all notes in the vault.
-        
+
         Returns a dictionary mapping note names to their properties.
         Properties include both frontmatter and inline properties.
         If a property exists in both places, the inline value takes precedence.
-        
+
         Returns:
             dict: Dictionary mapping note names to property dictionaries
         """
