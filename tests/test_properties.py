@@ -3,25 +3,26 @@ from pathlib import Path
 import datetime
 from obsidiantools.md_utils import get_properties, get_property
 from obsidiantools.api import Vault
+TESTS_DIR = Path('.') / 'tests/properties'
 
 # Test fixtures
 @pytest.fixture
 def property_test_files():
     return {
-        'basic': Path('.') / 'tests/general/property-tests/basic_properties.md',
-        'frontmatter': Path('.') / 'tests/general/property-tests/frontmatter_style.md',
-        'nested': Path('.') / 'tests/general/property-tests/nested_properties.md',
-        'types': Path('.') / 'tests/general/property-tests/property_types.md',
-        'inline': Path('.') / 'tests/general/property-tests/inline_properties.md',
-        'overriding': Path('.') / 'tests/general/property-tests/property_overriding.md',
-        'special': Path('.') / 'tests/general/property-tests/property_special_chars.md',
-        'whitespace': Path('.') / 'tests/general/property-tests/property_whitespace.md'
-        , 'links': Path('.') / 'tests/general/property-tests/property_links.md'
+        'basic': TESTS_DIR / 'basic_properties.md',
+        'frontmatter': TESTS_DIR / 'frontmatter_style.md',
+        'nested': TESTS_DIR / 'nested_properties.md',
+        'types': TESTS_DIR / 'property_types.md',
+        'inline': TESTS_DIR / 'inline_properties.md',
+        'overriding': TESTS_DIR / 'property_overriding.md',
+        'special': TESTS_DIR / 'property_special_chars.md',
+        'whitespace': TESTS_DIR / 'property_whitespace.md',
+        'links': TESTS_DIR / 'property_links.md'
     }  # added test for links
 
 @pytest.fixture
 def test_vault(tmp_path):
-    return Vault(Path('.') / 'tests/general/property-tests').connect()
+    return Vault(TESTS_DIR).connect()
 
 # Test md_utils property functions
 def test_get_basic_properties(property_test_files):
@@ -34,11 +35,11 @@ def test_get_basic_properties(property_test_files):
 
 def test_get_frontmatter_style_properties(property_test_files):
     props = get_properties(property_test_files['frontmatter'])
-    
+
     # Check date property separately since it's a datetime object
     assert isinstance(props['date'], datetime.date)
     assert props['date'].isoformat() == '2025-07-17'
-    
+
     # Test the rest of the properties
     date_removed = props.copy()
     del date_removed['date']
@@ -65,13 +66,13 @@ def test_get_nested_properties(property_test_files):
 
 def test_get_property_types(property_test_files):
     props = get_properties(property_test_files['types'])
-    
+
     # Convert datetime objects to expected values for comparison
     assert isinstance(props['date'], datetime.date)
     assert isinstance(props['time'], datetime.datetime)
     assert props['date'].isoformat() == '2020-08-21'
     assert props['time'].isoformat() == '2020-08-21T10:30:00'
-    
+
     # Test the rest of the properties
     date_time_removed = props.copy()
     del date_time_removed['date']
@@ -87,11 +88,11 @@ def test_get_property_types(property_test_files):
 
 def test_get_inline_properties(property_test_files):
     props = get_properties(property_test_files['inline'])
-    
+
     # Check date property separately since it's a datetime object
     assert isinstance(props['due'], datetime.date)
     assert props['due'].isoformat() == '2025-07-17'
-    
+
     # Test the rest of the properties
     date_removed = props.copy()
     del date_removed['due']
@@ -104,10 +105,10 @@ def test_get_inline_properties(property_test_files):
 def test_get_specific_property(property_test_files):
     prop = get_property(property_test_files['basic'], 'prop1')
     assert prop == 'value1'
-    
+
     prop = get_property(property_test_files['basic'], 'prop3')
     assert prop == ['item1', 'item2', 'item3']
-    
+
     prop = get_property(property_test_files['basic'], 'nonexistent')
     assert prop is None
 
@@ -123,7 +124,7 @@ def test_vault_get_properties(test_vault):
 def test_vault_get_property(test_vault):
     prop = test_vault.get_property('basic_properties', 'prop1')
     assert prop == 'value1'
-    
+
     prop = test_vault.get_property('nonexistent_note', 'prop1')
     assert prop is None
 
