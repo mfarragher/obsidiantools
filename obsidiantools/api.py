@@ -492,7 +492,8 @@ class Vault:
         self._properties_index = value
 
     def connect(self, *, show_nested_tags: bool = False,
-                attachments=False):
+                attachments=False,
+                include_front_matter_tags=True):
         """connect your notes together by representing the vault as a
         Networkx graph object, G.
 
@@ -513,6 +514,8 @@ class Vault:
                 To include media files in the graph, set this option to True.
                 This will lead to the inclusion of media files' in the
                 backlinks_index.
+            include_front_matter_tags (Boolean): Defaults to True.  Include
+                tags in the front matter in the tags_index.
         """
         # always read in the latest config:
         self._config = self._get_latest_vault_config()
@@ -535,7 +538,8 @@ class Vault:
                 self._connect_update_based_on_new_relpath(
                     relpath,
                     note=n,
-                    show_nested_tags=show_nested_tags)
+                    show_nested_tags=show_nested_tags,
+                    include_front_matter_tags=include_front_matter_tags)
 
             # canvas content:
             # loop through canvas files:
@@ -592,7 +596,8 @@ class Vault:
 
     def _connect_update_based_on_new_relpath(self, relpath: Path, *,
                                              note: str,
-                                             show_nested_tags: bool):
+                                             show_nested_tags: bool,
+                                             include_front_matter_tags: bool = True):
         """Individual file read & associated attrs update for the
         connect method."""
         exclude_canvas = not self._attachments
@@ -643,6 +648,8 @@ class Vault:
         self._tags_index[note] = get_tags(
             self._dirpath / relpath,
             show_nested=show_nested_tags)
+        if include_front_matter_tags:
+            self._tags_index[note] += front_matter.get('tags', [])
 
     def _set_media_file_attrs(self):
         (embedded_files_by_short_path,

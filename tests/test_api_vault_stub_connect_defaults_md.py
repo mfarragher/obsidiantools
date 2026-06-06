@@ -1,6 +1,7 @@
 import pytest
 import numpy as np
 import pandas as pd
+from datetime import datetime, date
 from pathlib import Path
 from pandas.testing import (assert_series_equal,
                             assert_frame_equal)
@@ -120,7 +121,8 @@ def expected_metadata_dict():
                    'Virtus': np.nan,
                    'Tydides': np.nan,
                    'Dives': np.nan,
-                   'Aetna': np.nan},
+                   'Aetna': np.nan,
+                   'Rich_Properties': 3.0},
         'n_embedded_files': {'Isolated note': 0.0,
                              'Sussudio': 2.0,
                              'Brevissimus moenia': 0.0,
@@ -178,7 +180,30 @@ def expected_front_matter_index():
                             'category': 'literature',
                             'year': 8,
                             'language': 'la',
-                            'description': '\\{\\{description\\}\\}'}}
+                            'description': '\\{\\{description\\}\\}'},
+            'Rich_Properties': {'title': 'Rich Properties Example',
+                                'date': date(2025, 7, 17),
+                                'time': datetime(2025, 7, 17, 15, 30),
+                                'status': 'In Progress',
+                                'tags': ['obsidian', 'test', 'properties'],
+                                'mixed bag': [1, 'two', True, None, '', 'None'],
+                                'nested': {'key1': 'value1',
+                                           'key2': {'subkey1': 'nested value',
+                                                    'subkey2': 'another value'}},
+                                'priority': 'High',
+                                'links': [
+                                    [
+                                        [
+                                            'another-note'
+                                        ]
+                                    ],
+                                    [
+                                        [
+                                            'yet-another-note|custom link text'
+                                        ]
+                                    ]
+                                ]}
+            }
 
 
 @pytest.fixture
@@ -199,8 +224,9 @@ def expected_md_links_index():
                          'http://iuppiter.net/'],
             'Vulnera ubera': [],
             'Causam mihi': [],
-            'Rich_Properties': [] # TODO: support obsidian-frontmatter-links option in the API
+            'Rich_Properties': []  # TODO: support obsidian-frontmatter-links option in the API
             }
+
 
 @pytest.fixture
 def expected_tags_main_only_index():
@@ -211,7 +237,8 @@ def expected_tags_main_only_index():
             'Ne fuit': [],
             'Alimenta': [],
             'Vulnera ubera': [],
-            'Causam mihi': []}
+            'Causam mihi': [],
+            'Rich_Properties': ['obsidian', 'test', 'properties']}
 
 
 @pytest.fixture
@@ -377,7 +404,8 @@ def test_backlink_counts(actual_connected_vault):
                 == expected_bl_count_subset.get(k))
 
     with pytest.raises(ValueError):
-        actual_connected_vault.get_backlink_counts("Note that isn't in vault at all")
+        actual_connected_vault.get_backlink_counts(
+            "Note that isn't in vault at all")
 
 
 def test_wikilink_counts(actual_connected_vault):
@@ -416,7 +444,8 @@ def test_wikilink_counts(actual_connected_vault):
                 == expected_wl_count_subset.get(k))
 
     with pytest.raises(ValueError):
-        actual_connected_vault.get_wikilink_counts("Note that isn't in vault at all")
+        actual_connected_vault.get_wikilink_counts(
+            "Note that isn't in vault at all")
 
 
 def test_wikilink_individual_notes(actual_connected_vault):
@@ -485,7 +514,8 @@ def test_nonexistent_notes(actual_connected_vault, actual_metadata_df):
 
 
 def test_isolated_notes(actual_connected_vault):
-    expected_isol_notes = ['Isolated note', 'lipsum/Isolated note', 'Rich_Properties']
+    expected_isol_notes = ['Isolated note',
+                           'lipsum/Isolated note', 'Rich_Properties']
 
     assert isinstance(actual_connected_vault.isolated_notes, list)
 
@@ -505,6 +535,7 @@ def test_front_matter_index(
     assert isinstance(actual_connected_vault.front_matter_index, dict)
 
     actual_front_matter_index = actual_connected_vault.front_matter_index
+
     assert actual_front_matter_index == expected_front_matter_index
 
 
