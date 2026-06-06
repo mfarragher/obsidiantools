@@ -99,7 +99,8 @@ def expected_metadata_dict():
                         'Virtus': np.nan,
                         'Tydides': np.nan,
                         'Dives': np.nan,
-                        'Aetna': np.nan},
+                        'Aetna': np.nan,
+                        'Rich_Properties': 0.0},
         'n_tags': {'Sussudio': 5.0,
                    'Isolated note': 0.0,
                    'Brevissimus moenia': 0.0,
@@ -197,8 +198,9 @@ def expected_md_links_index():
                          'http://et-pronus.com/',
                          'http://iuppiter.net/'],
             'Vulnera ubera': [],
-            'Causam mihi': []}
-
+            'Causam mihi': [],
+            'Rich_Properties': [] # TODO: support obsidian-frontmatter-links option in the API
+            }
 
 @pytest.fixture
 def expected_tags_main_only_index():
