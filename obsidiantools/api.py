@@ -1,4 +1,5 @@
 import warnings
+import json
 import networkx as nx
 import numpy as np
 import pandas as pd
@@ -105,6 +106,7 @@ class Vault:
         Attributes - general:
             dirpath (arg)
             attachments (kwarg)
+            config (map of all .obsidian folder JSON file content)
             is_connected
             is_gathered
         Attributes - md-related:
@@ -139,6 +141,8 @@ class Vault:
         # args:
         self._dirpath = dirpath
         self._attachments = None  # connect()
+
+        self._config = self._get_latest_vault_config()
 
         self._md_file_index = self._get_md_relpaths_by_name(
             include_subdirs=include_subdirs,
@@ -184,6 +188,15 @@ class Vault:
     def dirpath(self) -> Path:
         """pathlib Path"""
         return self._dirpath
+
+    @property
+    def config(self) -> dict[str, dict]:
+        """dict of .obsidian folder config filenames (incl .json) mapped to their JSON content"""
+        return self._config
+
+    @config.setter
+    def config(self, value) -> dict[str, dict]:
+        self._config = value
 
     @property
     def attachments(self) -> bool:
@@ -497,6 +510,9 @@ class Vault:
                 This will lead to the inclusion of media files' in the
                 backlinks_index.
         """
+        # always read in the latest config:
+        self._config = self._get_latest_vault_config()
+
         if not self._is_connected:
             self._attachments = attachments
 
@@ -549,6 +565,26 @@ class Vault:
             self._is_connected = True
 
         return self  # fluent
+
+    def _get_latest_vault_config(self) -> dict[str, dict]:
+        """Return detail from the .obsidian JSON config files:
+        - Each key is a json file e.g. 'types.json'
+        - Each value is the json file's content (JSON as dict type)
+
+        Returns:
+            dict[str, dict]
+        """
+        config_dir = self._dirpath / '.obsidian'
+
+        # start with str:filepath pairs:
+        config = {i.name: i for i in config_dir.glob('*.json')}
+        # replace the values as the JSON content itself:
+        for k, v in config.items():
+            with open(v, encoding='utf-8') as f:
+                content = json.load(f)
+            config[k] = content
+
+        return config
 
     def _connect_update_based_on_new_relpath(self, relpath: Path, *,
                                              note: str,
