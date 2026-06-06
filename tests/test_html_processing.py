@@ -49,6 +49,6 @@ def test_remove_latex_in_note_with_highly_formatted_text():
 <h2>GEE estimation</h2>
 <p><em>A few eqs more using deeper LaTeX functionality:</em></p>
 <p>Equations for GEE are solved for the regression parameters  using:
-</p>
+$$</p>
 <p>Taking the expectation of the equation system in  <em>...</em></p></body></html>"""
     assert actual_html_string == expected_html_string

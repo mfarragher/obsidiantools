@@ -327,7 +327,7 @@ def test_unique_md_links():
 def test_readable_text_from_latex_md_stub_default_tags():
     actual_str = get_readable_text_from_md_file(
         Path('.') / 'tests/general/latex.md')
-    expected_str = '# Note with LaTeX\n\n## GEE \n\nRegression coefficients estimated through GEE are asymptotically normal: \n\nThe underscore chars above need to be caught through MathJax - capture subscripts rather than emphasis in the parsing.\n\n## GEE estimation\n\nA few eqs more using deeper LaTeX functionality:\n\nEquations for GEE are solved for the regression parameters using: \n\nTaking the expectation of the equation system in ...\n'
+    expected_str = '# Note with LaTeX\n\n## GEE \n\nRegression coefficients estimated through GEE are asymptotically normal: \n\nThe underscore chars above need to be caught through MathJax - capture subscripts rather than emphasis in the parsing.\n\n## GEE estimation\n\nA few eqs more using deeper LaTeX functionality:\n\nEquations for GEE are solved for the regression parameters using: $$\n\nTaking the expectation of the equation system in ...\n'
 
     assert actual_str == expected_str
 
@@ -335,7 +335,7 @@ def test_readable_text_from_latex_md_stub_default_tags():
 def test_readable_text_from_latex_md_stub_allow_no_tags():
     actual_str = get_readable_text_from_md_file(
         Path('.') / 'tests/general/latex.md', tags=[])
-    expected_str = 'Note with LaTeX GEE Regression coefficients estimated through GEE are asymptotically normal: The underscore chars above need to be caught through MathJax - capture subscripts rather than emphasis in the parsing. GEE estimation A few eqs more using deeper LaTeX functionality: Equations for GEE are solved for the regression parameters using: Taking the expectation of the equation system in ...\n'
+    expected_str = 'Note with LaTeX GEE Regression coefficients estimated through GEE are asymptotically normal: The underscore chars above need to be caught through MathJax - capture subscripts rather than emphasis in the parsing. GEE estimation A few eqs more using deeper LaTeX functionality: Equations for GEE are solved for the regression parameters using: $$ Taking the expectation of the equation system in ...\n'
     assert actual_str == expected_str
 
 
@@ -367,7 +367,7 @@ Cras imperdiet enim felis, vitae placerat turpis egestas sed. Nulla maximus vel 
 
 ## Estimation
 
-Problematic equation for html2text: 
+Problematic equation for html2text: $$
 
 ...
 
