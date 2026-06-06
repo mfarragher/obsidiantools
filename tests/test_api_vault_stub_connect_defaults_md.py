@@ -35,7 +35,8 @@ def expected_metadata_dict():
                          'Virtus': np.nan,
                          'Tydides': np.nan,
                          'Dives': np.nan,
-                         'Aetna': np.nan},
+                         'Aetna': np.nan,
+                         'Rich_Properties': Path('Rich_Properties.md')},
         # abs_filepath would be here
         'note_exists': {'Sussudio': True,
                         'Isolated note': True,
@@ -56,7 +57,8 @@ def expected_metadata_dict():
                         'Virtus': False,
                         'Tydides': False,
                         'Dives': False,
-                        'Aetna': False},
+                        'Aetna': False,
+                        'Rich_Properties': True},
         'n_backlinks': {'Sussudio': 0,
                         'Isolated note': 0,
                         'Brevissimus moenia': 1,
@@ -76,7 +78,8 @@ def expected_metadata_dict():
                         'Virtus': 1,
                         'Tydides': 1,
                         'Dives': 1,
-                        'Aetna': 1},
+                        'Aetna': 1,
+                        'Rich_Properties': 0},
         'n_wikilinks': {'Sussudio': 1.0,
                         'Isolated note': 0.0,
                         'Brevissimus moenia': 3.0,
@@ -136,7 +139,8 @@ def expected_metadata_dict():
                              'Virtus': np.nan,
                              'Tydides': np.nan,
                              'Dives': np.nan,
-                             'Aetna': np.nan}
+                             'Aetna': np.nan,
+                             'Rich_Properties': 0.0}
     }
 
 
@@ -149,7 +153,8 @@ def expected_embedded_files_index():
             'Ne fuit': [],
             'Alimenta': [],
             'Vulnera ubera': [],
-            'Causam mihi': []}
+            'Causam mihi': [],
+            'Rich_Properties': []}
 
 
 @pytest.fixture
@@ -216,7 +221,8 @@ def expected_math_index():
             'Ne fuit': [],
             'Alimenta': [],
             'Vulnera ubera': [],
-            'Causam mihi': []}
+            'Causam mihi': [],
+            'Rich_Properties': []}
 
 
 @pytest.fixture
@@ -477,7 +483,7 @@ def test_nonexistent_notes(actual_connected_vault, actual_metadata_df):
 
 
 def test_isolated_notes(actual_connected_vault):
-    expected_isol_notes = ['Isolated note', 'lipsum/Isolated note']
+    expected_isol_notes = ['Isolated note', 'lipsum/Isolated note', 'Rich_Properties']
 
     assert isinstance(actual_connected_vault.isolated_notes, list)
 
