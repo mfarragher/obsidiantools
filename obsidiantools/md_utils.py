@@ -1,5 +1,6 @@
 import re
 import yaml
+import datetime
 from pathlib import Path
 from bs4 import BeautifulSoup
 import markdown
@@ -9,7 +10,9 @@ from ._constants import (WIKILINK_REGEX,
                          WIKILINK_AS_STRING_REGEX,
                          EMBEDDED_FILE_LINK_AS_STRING_REGEX,
                          INLINE_LINK_AFTER_HTML_PROC_REGEX,
-                         INLINE_LINK_VIA_MD_ONLY_REGEX)
+                         INLINE_LINK_VIA_MD_ONLY_REGEX,
+                         INLINE_PROPERTY_REGEX,
+                         INLINE_PROPERTY_VALUE_ARRAY_REGEX)
 from ._io import (get_relpaths_from_dir,
                   get_relpaths_matching_subdirs)
 from .html_processing import (_get_plaintext_from_html,
@@ -509,3 +512,161 @@ def _remove_embedded_file_links_from_text(src_txt: str) -> str:
     for i in links_list:
         out_str = out_str.replace(i, '')
     return out_str
+
+
+def clean_property_key(key: str) -> str:
+    """Clean a property key by removing quotes and trailing colons.
+    
+    Args:
+        key (str): The property key to clean
+        
+    Returns:
+        str: The cleaned key
+    """
+    # Remove trailing colons first (but not embedded ones)
+    key = key.rstrip(':')
+    # Remove outer quotes if present
+    key = key.strip()
+    if (key.startswith('"') and key.endswith('"')) or (key.startswith("'") and key.endswith("'")):
+        key = key[1:-1].strip()
+    return key
+
+def get_properties(filepath: Path) -> dict:
+    """Get all properties from a markdown file, combining frontmatter and inline properties.
+    
+    Properties can be defined in two ways in Obsidian:
+    1. As frontmatter at the start of the file
+    2. As inline properties in the format 'property:: value'
+    
+    This method combines both types of properties into a single dictionary.
+    If the same property exists in both frontmatter and inline, 
+    the inline value takes precedence.
+
+    Args:
+        filepath (pathlib Path): Path object representing the file from
+            which info will be extracted.
+            
+    Returns:
+        dict: Combined dictionary of all properties
+    """
+    props = {}
+    
+    # Get frontmatter properties
+    front_matter = get_front_matter(filepath)
+    if front_matter:
+        for key, value in front_matter.items():
+            clean_key = clean_property_key(key)
+            # Process value, handling links and converting dates/times
+            if isinstance(value, str):
+                if clean_key == 'date' and len(value) == 10 and value[4] == '-' and value[7] == '-':
+                    try:
+                        value = datetime.datetime.strptime(value, '%Y-%m-%d').date()
+                    except ValueError:
+                        print(f"Failed to parse date for key '{clean_key}' with value '{value}' in frontmatter of {filepath}")
+                elif clean_key == 'time' and len(value) == 19 and value[4] == '-' and value[7] == '-' and value[10] == 'T':
+                    try:
+                        value = datetime.datetime.strptime(value, '%Y-%m-%dT%H:%M:%S')
+                    except ValueError:
+                        pass
+                elif clean_key == 'due' and len(value) == 10 and value[4] == '-' and value[7] == '-':
+                      try:
+                          value = datetime.datetime.strptime(value, '%Y-%m-%d').date()
+                      except ValueError:
+                          pass
+                elif value.startswith("[[") and value.endswith("]]"):
+                  # Handle single wikilink as a string
+                  value = _get_all_wikilinks_from_source_text(value, remove_aliases=True)[0]
+            elif isinstance(value, list):
+                # Handle list of strings, checking for wikilinks
+                new_list = []
+                for item in value:
+                  if isinstance(item, str) and item.startswith("[[") and item.endswith("]]"):
+                      # Extract the wikilink
+                      new_list.extend(_get_all_wikilinks_from_source_text(item, remove_aliases=True))
+                  else:
+                      new_list.append(item)
+                  value = new_list
+                if clean_key in ('date', 'due') and all(isinstance(item, str) and len(item) == 10 and item[4] == '-' and item[7] == '-' for item in value):
+                    try:  # Convert to date objects if they match the pattern
+                        value = datetime.datetime.strptime(value, '%Y-%m-%d').date()
+                    except ValueError:
+                        pass
+            props[clean_key] = value
+    
+    # Get inline properties
+    inline_props = get_inline_properties(filepath)
+    if inline_props:
+        for key, value in inline_props.items():
+            # Keep datetime objects as is - no need to convert to string
+            clean_key = clean_property_key(key)
+            props[clean_key] = value  # Inline properties override frontmatter
+    return props
+
+def get_property(filepath: Path, property_name: str) -> str | list | None:
+    """Get a specific property from a markdown file.
+    
+    Looks for the property in both frontmatter and inline properties.
+    If the property exists in both places, the inline value takes precedence.
+    
+    Args:
+        filepath (pathlib Path): Path object representing the file from
+            which info will be extracted.
+        property_name (str): Name of the property to retrieve
+            
+    Returns:
+        str | list | None: Property value if found, None if not found
+    """
+    props = get_properties(filepath)
+    return props.get(property_name)
+
+def get_inline_properties(filepath: Path) -> dict:
+    """Extract inline properties from a md file.
+    
+    Looks for lines in the format 'property:: value' and parses them into a dictionary.
+    Handles array values in the format '[value1, value2]'.
+    Handles special characters and quoted property names.
+    
+    Args:
+        filepath (pathlib Path): Path object representing the file from
+            which info will be extracted.
+    Returns:
+        dict: Dictionary of inline properties
+    """
+    _, content = _get_md_front_matter_and_content(filepath)
+    properties = {}
+    
+    for line in content.splitlines():
+        match = re.match(INLINE_PROPERTY_REGEX, line.strip())
+        if match:
+            key = match.group(1).strip()
+            value = match.group(2)
+            
+            # Handle array values
+            array_match = re.match(INLINE_PROPERTY_VALUE_ARRAY_REGEX, value)
+            if array_match:
+                # Split array values and clean them up
+                values = [v.strip(' "\''  ) for v in array_match.group(1).split(',')]
+                properties[clean_property_key(key)] = values
+            else:
+                # Single value
+                # Remove quotes from beginning and end if present
+                value = value.strip()
+                if (value.startswith('"') and value.endswith('"')) or (value.startswith("'") and value.endswith("'")):
+                    value = value[1:-1].strip()
+                    
+                clean_key = clean_property_key(key)
+                # Handle date and time strings after cleaning quotes
+                if clean_key in ('date', 'due') and len(value) == 10 and value[4] == '-' and value[7] == '-':
+                    try:
+                        value = datetime.datetime.strptime(value, '%Y-%m-%d').date()
+                    except ValueError:
+                        pass
+                elif clean_key == 'time' and len(value) == 19 and value[4] == '-' and value[7] == '-' and value[10] == 'T':
+                    try:
+                        value = datetime.datetime.strptime(value, '%Y-%m-%dT%H:%M:%S')
+                    except ValueError:
+                        pass
+                    
+                properties[clean_key] = value
+    
+    return properties
