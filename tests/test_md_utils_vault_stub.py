@@ -22,7 +22,8 @@ def test_get_md_relpaths_matching_subdirs(actual_vault_path):
     actual_wo_root = get_md_relpaths_matching_subdirs(
         actual_vault_path, include_root=False)
     expected_in_root = [Path('Sussudio.md'),
-                        Path('Isolated note.md')]
+                        Path('Isolated note.md'),
+                        Path('Rich_Properties.md')]
     assert (set(actual_w_root).difference(actual_wo_root)
             == set(expected_in_root))
 
