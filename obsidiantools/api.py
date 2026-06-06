@@ -470,7 +470,7 @@ class Vault:
         """dict: k is a note name, v is a dictionary of properties for that note."""
         return self._properties_index
 
-    @properties_index.setter 
+    @properties_index.setter
     def properties_index(self, value: dict[str, dict]) -> dict[str, dict]:
         self._properties_index = value
 
@@ -508,9 +508,8 @@ class Vault:
             self._tags_index = {}
             self._math_index = {}
             self._front_matter_index = {}
-            # initialize property index:
             self._properties_index = {}
-            
+
             # process each note:
             for n, relpath in self._md_file_index.items():
                 self._connect_update_based_on_new_relpath(
@@ -568,7 +567,7 @@ class Vault:
 
             # Extract all properties from the file
             self._properties_index[note] = get_properties(file_path)
-                
+
             # info from core text:
             self._md_links_index[note] = (
                 _get_md_links_from_source_text(src_txt))
@@ -1410,7 +1409,7 @@ class Vault:
         2. As inline properties in the format 'property:: value'
 
         This method combines both types of properties into a single dictionary.
-        If the same property exists in both frontmatter and inline, 
+        If the same property exists in both frontmatter and inline,
         the inline value takes precedence.
 
         Args:
@@ -1455,6 +1454,6 @@ class Vault:
         Returns:
             dict: Dictionary mapping note names to property dictionaries
         """
-        return {note: props 
-                for note, props in self._properties_index.items() 
+        return {note: props
+                for note, props in self._properties_index.items()
                 if props}  # Only include notes that have properties
