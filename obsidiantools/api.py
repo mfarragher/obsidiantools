@@ -1,5 +1,6 @@
 import warnings
 import json
+import datetime
 import networkx as nx
 import numpy as np
 import pandas as pd
@@ -8,9 +9,7 @@ from pathlib import Path
 from itertools import chain
 
 # init
-from .md_utils import (get_md_relpaths_matching_subdirs,
-                       get_properties,
-                       get_front_matter)
+from .md_utils import get_md_relpaths_matching_subdirs
 from .canvas_utils import (get_canvas_relpaths_matching_subdirs,
                            _get_all_valid_canvas_file_relpaths)
 # connect
@@ -32,6 +31,10 @@ from .md_utils import (get_source_text_from_html,
 # canvas:
 from .canvas_utils import (get_canvas_content,
                            get_canvas_graph_detail)
+# properties:
+from .properties_utils import (_clean_up_property_key,
+                               _process_values_for_properties_from_front_matter,
+                               _get_inline_properties_from_md_content)
 
 
 class Vault:
@@ -119,6 +122,7 @@ class Vault:
             math_index
             md_links_index
             unique_md_links_index
+            properties_index
             tags_index
             nonexistent_notes
             isolated_notes
@@ -602,7 +606,8 @@ class Vault:
                 html, remove_code=True)
 
             # Extract all properties from the file
-            self._properties_index[note] = get_properties(file_path)
+            self._properties_index[note] = (
+                self._get_all_properties_from_md_file(front_matter, src_txt))
 
             # info from core text:
             self._md_links_index[note] = (
@@ -1437,59 +1442,48 @@ class Vault:
         return [fn for fn in nx.isolates(graph)
                 if fn in self._md_file_index]
 
-    def get_properties(self, note_name: str) -> dict:
-        """Get all properties from a note, combining frontmatter and inline properties.
+    def _get_all_properties_from_md_file(self, front_matter: dict, source_text: str) -> dict[str, dict]:
+        """Get all properties from a markdown file, combining frontmatter and inline properties.
 
         Properties can be defined in two ways in Obsidian:
         1. As frontmatter at the start of the file
         2. As inline properties in the format 'property:: value'
 
         This method combines both types of properties into a single dictionary.
-        If the same property exists in both frontmatter and inline,
+        If the same property exists in both frontmatter and inline, 
         the inline value takes precedence.
 
         Args:
-            note_name (str): Name of the note (without .md extension).
-                For notes in folders, include the folder path
-                e.g. 'folder/note'.
+            filepath (pathlib Path): Path object representing the file from
+                which info will be extracted.
 
         Returns:
             dict: Combined dictionary of all properties
         """
-        if note_name not in self._md_file_index:
-            return {}
-        # Use dirpath to get the full path
-        fullpath = self._dirpath / self._md_file_index[note_name]
-        return get_properties(fullpath)
+        properties_index = {}
+        if 'types.json' in self._config.keys():
+            types_dict = self._config['types.json']['types']
+        else:
+            types_dict = {'types': {}}
 
-    def get_property(self, note_name: str, property_name: str) -> str | list | None:
-        """Get a specific property from a note.
+        # loop through each property in the front matter:
+        for key, value in front_matter.items():
+            # properties from front matter:
+            clean_key = _clean_up_property_key(key)
+            properties_index[clean_key] = _process_values_for_properties_from_front_matter(
+                clean_key, value,
+                types_config=types_dict
+            )
+            # inline properties:
+            inline_properties = {}
+            inline_properties = _get_inline_properties_from_md_content(
+                source_text, clean_key,
+                types_config=types_dict
+            )
 
-        Looks for the property in both frontmatter and inline properties.
-        If the property exists in both places, the inline value takes precedence.
-
-        Args:
-            note_name (str): Name of the note (without .md extension).
-                For notes in folders, include the folder path
-                e.g. 'folder/note'.
-            property_name (str): Name of the property to retrieve
-
-        Returns:
-            str | list | None: Property value if found, None if not found
-        """
-        properties = self.get_properties(note_name)
-        return properties.get(property_name) if properties else None
-
-    def get_properties_index(self) -> dict:
-        """Get properties for all notes in the vault.
-
-        Returns a dictionary mapping note names to their properties.
-        Properties include both frontmatter and inline properties.
-        If a property exists in both places, the inline value takes precedence.
-
-        Returns:
-            dict: Dictionary mapping note names to property dictionaries
-        """
-        return {note: props
-                for note, props in self._properties_index.items()
-                if props}  # Only include notes that have properties
+            if inline_properties:
+                for key, value in inline_properties.items():
+                    # Keep datetime objects as is - no need to convert to string
+                    clean_key = _clean_up_property_key(key)
+                    properties_index[clean_key] = value  # Inline properties override frontmatter
+        return properties_index
