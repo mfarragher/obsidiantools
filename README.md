@@ -44,6 +44,7 @@ This is how **`obsidiantools`** can complement your workflows for note-taking:
         - Front matter via `vault.get_front_matter(<NOTE>)` or `vault.front_matter_index`
         - Tags via `vault.get_tags(<NOTE>)` or `vault.tags_index`.  Nested tags are supported.
         - LaTeX math via `vault.get_math(<NOTE>)` or `vault.math_index`
+        - Properties of notes in `vault.properties_index`.
         - As long as `gather()` is called:
             - Get source text of note (via `vault.get_source_text(<NOTE>)`).  This tries to represent how a note's text appears in Obsidian's 'source mode'.
             - Get readable text of note (via `vault.get_readable_text(<NOTE>)`).  This tries to reduce note text to minimal markdown formatting, e.g. preserving paragraphs, headers and punctuation.  Only slight processing is needed for various forms of NLP analysis.
