@@ -23,9 +23,11 @@ CLASSIFIERS = [
     "Topic :: Text Processing :: Markup :: Markdown",
     "Topic :: Office/Business",
     "Topic :: Education",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.9",
     "License :: OSI Approved :: BSD License",
     "Operating System :: OS Independent",
 ]
@@ -44,7 +46,7 @@ setuptools.setup(
     url="https://github.com/mfarragher/obsidiantools",
     project_urls=PROJECT_URLS,
     packages=setuptools.find_packages(exclude=("tests")),
-    python_requires=">=3.9",
+    python_requires=">=3.10",
     install_requires=INSTALL_REQUIRES,
     license="BSD",
     classifiers=CLASSIFIERS
