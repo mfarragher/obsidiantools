@@ -244,6 +244,8 @@ def get_tags(filepath: Path, *, show_nested: bool = False) -> list[str]:
         str_transform_func=_transform_md_file_string_for_tag_parsing)
     # remove wikilinks so that '#' headers are not caught:
     src_txt = _remove_wikilinks_from_source_text(src_txt)
+    # remove md link URLs so that '#' fragments in them are not caught:
+    src_txt = _remove_md_link_urls_from_source_text(src_txt)
     tags = _get_tags_from_source_text(src_txt, show_nested=show_nested)
     return tags
 
@@ -445,6 +447,12 @@ def _get_unique_md_links_from_source_text(src_txt: str) -> list[str]:
 
 def _remove_wikilinks_from_source_text(src_txt: str) -> str:
     return re.sub(WIKILINK_REGEX, '', src_txt)
+
+
+def _remove_md_link_urls_from_source_text(src_txt: str) -> str:
+    # replace '[text](<url>)' with its 'text' so that any '#' fragment
+    # in the URL is not mistaken for a tag, while keeping the link text:
+    return re.sub(INLINE_LINK_AFTER_HTML_PROC_REGEX, r'\1', src_txt)
 
 
 def _transform_md_file_string_for_tag_parsing(txt: str) -> str:

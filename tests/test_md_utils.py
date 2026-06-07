@@ -260,6 +260,22 @@ def test_sussudio_tags_with_nesting_shown():
     assert actual_tags == expected_tags
 
 
+def test_url_fragments_in_md_links_not_parsed_as_tags():
+    # the '#' fragment of a markdown link URL must not be read as a tag,
+    # while genuine tags in the note are still captured (issue #52):
+    actual_tags = get_tags(
+        Path('.') / 'tests/general/tags_url-fragment.md')
+    expected_tags = ['python', 'data']
+    assert actual_tags == expected_tags
+
+
+def test_url_fragments_in_md_links_not_parsed_as_tags_with_nesting():
+    actual_tags = get_tags(
+        Path('.') / 'tests/general/tags_url-fragment.md', show_nested=True)
+    expected_tags = ['python', 'data']
+    assert actual_tags == expected_tags
+
+
 def test_embedded_files_alias_scaling():
     actual_embedded_images = get_embedded_files(
         Path('.') / 'tests/general/embedded-images_in-table.md')
