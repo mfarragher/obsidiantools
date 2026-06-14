@@ -254,6 +254,13 @@ def _get_md_front_matter_and_content(filepath: Path, *,
             if str_transform_func:
                 file_string = str_transform_func(file_string)
             return frontmatter.parse(file_string)
+        # non-UTF-8 bytes: re-raise with the offending file path so the
+        # file can be identified (the bare except below would otherwise
+        # swallow this and raise a confusing UnboundLocalError):
+        except UnicodeDecodeError as e:
+            raise UnicodeDecodeError(
+                e.encoding, e.object, e.start, e.end,
+                f"{e.reason} (in file: {filepath})") from e
         # for invalid YAML, return the whole file as content:
         except yaml.scanner.ScannerError as e:
             print(f"Front matter not populated for {filepath.name}: {repr(e)}")

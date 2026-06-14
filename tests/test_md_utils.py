@@ -235,6 +235,18 @@ def test_front_matter_parse_double_curly():
     assert actual_txt == expected_txt
 
 
+def test_non_utf8_file_error_includes_filepath(tmp_path):
+    # a file with non-UTF-8 bytes should raise a UnicodeDecodeError whose
+    # message identifies the offending file (issue #32)
+    fpath = tmp_path / 'invalid-encoding.md'
+    fpath.write_bytes(b'# Heading\n\xff invalid start byte\n')
+
+    with pytest.raises(UnicodeDecodeError) as exc_info:
+        get_front_matter(fpath)
+
+    assert str(fpath) in str(exc_info.value)
+
+
 def test_hash_char_parsing_func():
     # '\#' in md file keeps # but stops text from being a tag
     in_str = r"\#hash #tag"
