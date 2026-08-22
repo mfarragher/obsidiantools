@@ -242,6 +242,23 @@ def get_tags(filepath: Path, *, show_nested: bool = False) -> list[str]:
     # remove wikilinks so that '#' headers are not caught:
     src_txt = _remove_wikilinks_from_source_text(src_txt)
     tags = _get_tags_from_source_text(src_txt, show_nested=show_nested)
+    # get tags from front matter
+    front_matter = get_front_matter(filepath)
+    tags.extend(_get_tags_from_front_matter(front_matter))
+    # remove duplicate tags
+    tags = list(set(tags))
+    return tags
+
+
+def _get_tags_from_front_matter(front_matter: dict) -> list[str]:
+    """front_matter -> tags"""
+    # Check for front matter tags.
+    if 'tags' not in front_matter: return []
+    tags = front_matter['tags']
+    # Sometimes there are None values. Make sure it is a list.
+    if type(tags) is not list: return []
+    # Strip any redundant '#' characters.
+    tags = [ x.strip('#') for x in tags ]
     return tags
 
 
